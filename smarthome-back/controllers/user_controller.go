@@ -1,20 +1,20 @@
 package controllers
 
 import (
+	"database/sql"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"smarthome-back/services"
 	"net/http"
+	"smarthome-back/services"
 )
 
 type UserController struct {
 	service services.UserService
 }
 
-func NewUserController(db *gorm.DB) UserController {
-	return UserController{service: services.NewUserService(db)}
+func NewUserController(db *gorm.DB, database *sql.DB) UserController {
+	return UserController{service: services.NewUserService(db, database)}
 }
-
 
 func (uc UserController) ListUsers(c *gin.Context) {
 	users := uc.service.ListUsers()
@@ -29,4 +29,8 @@ func (uc UserController) GetUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, user)
+}
+
+func (uc UserController) TestGetMethod(c *gin.Context) {
+	uc.service.TestGetMethod()
 }
