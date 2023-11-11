@@ -19,6 +19,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, database *sql.DB) {
 	realEstateRoutes := r.Group("/api/realestate")
 	{
 		realEstateController := controllers.NewRealEstateController(db, database)
-		realEstateRoutes.GET("/:id", realEstateController.GetAll)
+		realEstateRoutes.GET("/:userId", realEstateController.GetAll)
+		realEstateRoutes.GET("/:id", realEstateController.Get)
 	}
 }
