@@ -10,6 +10,7 @@ import (
 type RealEstateService interface {
 	GetAll(userId int) []models.RealEstate
 	Get(id int) (models.RealEstate, error)
+	GetPending() []models.RealEstate
 }
 
 type RealEstateServiceImpl struct {
@@ -38,7 +39,7 @@ func (res *RealEstateServiceImpl) GetAll(userId int) []models.RealEstate {
 		)
 		if err := rows.Scan(&realEstate.Id, &realEstate.Type, &realEstate.Address,
 			&realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors,
-			&realEstate.Picture, &realEstate.State); err != nil {
+			&realEstate.Picture, &realEstate.State, &realEstate.User); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return []models.RealEstate{}
 		}
@@ -65,11 +66,36 @@ func (res *RealEstateServiceImpl) Get(id int) (models.RealEstate, error) {
 		)
 		if err := rows.Scan(&realEstate.Id, &realEstate.Type, &realEstate.Address,
 			&realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors,
-			&realEstate.Picture, &realEstate.State); err != nil {
+			&realEstate.Picture, &realEstate.State, &realEstate.User); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return models.RealEstate{}, err
 		}
 		return realEstate, nil
 	}
 	return models.RealEstate{}, err
+}
+
+func (res *RealEstateServiceImpl) GetPending() []models.RealEstate {
+	query := "SELECT * FROM realestate WHERE STATE = 0"
+	rows, err := res.database.Query(query)
+
+	if err != nil {
+		fmt.Println("Error: ", err.Error())
+		return nil
+	}
+	var realEstates []models.RealEstate
+	for rows.Next() {
+		var (
+			realEstate models.RealEstate
+		)
+		if err := rows.Scan(&realEstate.Id, &realEstate.Type, &realEstate.Address, &realEstate.City,
+			&realEstate.SquareFootage, &realEstate.NumberOfFloors, &realEstate.Picture, &realEstate.State,
+			&realEstate.User); err != nil {
+			fmt.Println("Error: ", err.Error())
+			return nil
+		}
+		realEstates = append(realEstates, realEstate)
+	}
+	return realEstates
+
 }

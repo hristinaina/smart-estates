@@ -15,4 +15,10 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, database *sql.DB) {
 		userRoutes.GET("/:id", userController.GetUser)
 		userRoutes.GET("/test", userController.TestGetMethod)
 	}
+
+	realEstateRoutes := r.Group("/api/realestate")
+	{
+		realEstateController := controllers.NewRealEstateController(db, database)
+		realEstateRoutes.GET("/:id", realEstateController.GetAll)
+	}
 }

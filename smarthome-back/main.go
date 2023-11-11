@@ -14,7 +14,7 @@ import (
 func main() {
 	// Change the values of the connection string according to your MySQL setup
 	// connected with scada database only for testing purposes
-	database, err := sql.Open("mysql", "root:siit2020@tcp(localhost:3306)/scada")
+	database, err := sql.Open("mysql", "root:siit2020@tcp(localhost:3306)/smart_home")
 	if err != nil {
 		panic(err.Error())
 	}
