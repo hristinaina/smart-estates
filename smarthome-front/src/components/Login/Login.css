@@ -1,22 +1,28 @@
 /* Login.css */
-/* .dvobojna-container {
-  display: flex;
-}
-
-.bela-polovina {
-  flex: 1;
-  background-color: white;
-}
-
-.oboji-polovinu {
-  flex: 1;
-  background-color: #806894;
-  color: white;
-} */
-
 .background {
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
   padding: 5px 1rem;
-  background: linear-gradient(90deg, #806894 50%, #ffffff 50%);
-  display: block;
+  background: linear-gradient(90deg, #ffffff 50%, #806894 50%);
+}
+
+.left-side {
+  flex: 1;
+}
+
+.right-side {
+  text-align: center; 
+  color: white;
+  flex: 1;
+}
+
+.title { 
+  font-size: 450%;  
+  margin: 0 !important;
+}
+
+.reg {
+  color: #806894 !important;
 }
