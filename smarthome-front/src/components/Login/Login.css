@@ -1,0 +1,22 @@
+/* Login.css */
+/* .dvobojna-container {
+  display: flex;
+}
+
+.bela-polovina {
+  flex: 1;
+  background-color: white;
+}
+
+.oboji-polovinu {
+  flex: 1;
+  background-color: #806894;
+  color: white;
+} */
+
+.background {
+  min-height: 100vh;
+  padding: 5px 1rem;
+  background: linear-gradient(90deg, #806894 50%, #ffffff 50%);
+  display: block;
+}
