@@ -1,0 +1,17 @@
+
+#add-real-estate {
+    text-align: right;
+    width: 98%;
+    font-size: large;
+    margin-right: 2%;
+    font-weight: 500;
+}
+
+#plus {
+    height: 15px;
+    text-align: right;
+}
+
+#add-real-estate:hover {
+    cursor: pointer;
+}
