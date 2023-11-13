@@ -1,12 +1,14 @@
-// Login.js
 import React, {useState} from 'react';
-import './Login.css'; // Uvozite CSS datoteku
+import { Link } from 'react-router-dom';
+
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import TextField from '@mui/material/TextField';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+
+import './Login.css'; 
 
 
 const Login = () => {
@@ -61,7 +63,9 @@ const Login = () => {
       <div className='right-side'>
         <p className='title'>Welcome to Smart Home!</p>
         <p className='text'>One place to remotely manage all your devices!</p>
-        <Button className='reg' variant="contained" color="secondary">No account yet? Sign up</Button>
+        <Link to="/reg">
+            <Button className='reg' variant="contained" color="secondary">No account yet? Sign up</Button>
+        </Link>
       </div>
     </div>
   );
