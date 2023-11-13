@@ -48,7 +48,7 @@ const Registration = () => {
       <div className='left'>
         <p className='title-reg'>Sign up</p>
         <div className='input-fields'>
-            <div className='labels'> Username:</div>
+            <div className='label'> Username:</div>
             <TextField
                 id="username"
                 className='text-field'
@@ -57,7 +57,7 @@ const Registration = () => {
             />
         </div>    
         <div className='input-fields'>
-          <div className='labels'>Password:</div>
+          <div className='label'>Password:</div>
           <TextField
             id="password"
             className='text-field'
@@ -80,7 +80,7 @@ const Registration = () => {
         </div>
 
         <div className='input-fields'>
-          <div className='labels'>Confirm password:</div>
+          <div style={{marginRight: "150px"}}>Confirm password:</div>
           <TextField
             id="confirm-password"
             className='text-field'
@@ -103,7 +103,7 @@ const Registration = () => {
         </div>
 
         <div >
-          <div htmlFor="profileImage" style={{marginBottom: "5px"}}>Profile Image:</div>
+          <div htmlFor="profileImage" className='label' style={{marginBottom: "5px", marginRight: "200px"}}>Profile Image:</div>
           <input
             type="file"
             id="profileImage"
