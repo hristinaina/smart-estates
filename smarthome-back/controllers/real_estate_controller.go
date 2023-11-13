@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
+	"smarthome-back/models"
 	"smarthome-back/services"
 	"strconv"
 )
@@ -54,7 +55,19 @@ func (rec RealEstateController) ChangeState(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, realEstate)
+}
 
+func (rec RealEstateController) Add(c *gin.Context) {
+	var estate models.RealEstate
+
+	// convert json object to model real estate
+	if err := c.BindJSON(&estate); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid JSON"})
+		return
+	}
+
+	estate = rec.service.Add(estate)
+	c.JSON(http.StatusOK, estate)
 }
 
 func CheckIfError(err error, c *gin.Context) bool {

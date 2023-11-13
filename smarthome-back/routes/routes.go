@@ -23,5 +23,6 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, database *sql.DB) {
 		realEstateRoutes.GET("/user/:userId", realEstateController.GetAllByUserId)
 		realEstateRoutes.GET("/:id", realEstateController.Get)
 		realEstateRoutes.PUT("/:id/:state", realEstateController.ChangeState)
+		realEstateRoutes.POST("/", realEstateController.Add)
 	}
 }

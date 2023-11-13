@@ -15,6 +15,7 @@ type RealEstateService interface {
 	GetPending() []models.RealEstate
 	// ChangeState if state == 0 it is accepted, in opposite it is declined
 	ChangeState(id int, state int) models.RealEstate
+	Add(estate models.RealEstate) models.RealEstate
 }
 
 type RealEstateServiceImpl struct {
@@ -165,6 +166,35 @@ func (res *RealEstateServiceImpl) ChangeState(id int, state int) models.RealEsta
 
 	return realEstate
 
+}
+
+func (res *RealEstateServiceImpl) Add(estate models.RealEstate) models.RealEstate {
+	estate.Id = res.generateId()
+
+	// TODO: add some validation for pictures
+	if estate.Address != "" && estate.City != "" && estate.SquareFootage != 0.0 && estate.NumberOfFloors != 0 {
+		query := "INSERT INTO realestate (Id, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId)" +
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
+		_, err := res.database.Exec(query, estate.Id, estate.Type, estate.Address, estate.City, estate.SquareFootage,
+			estate.NumberOfFloors, estate.Picture, estate.State, estate.User)
+		if CheckIfError(err) {
+			return models.RealEstate{}
+		}
+		return estate
+	}
+	return models.RealEstate{}
+}
+
+func (res *RealEstateServiceImpl) generateId() int {
+	id := 0
+	estates := res.GetAll()
+
+	for _, estate := range estates {
+		if estate.Id > id {
+			id = estate.Id
+		}
+	}
+	return id + 1
 }
 
 func CheckIfError(err error) bool {
