@@ -9,7 +9,24 @@
 }
 
 .left-side {
+  text-align: center;
   flex: 1;
+}
+
+.title-login {
+  font-size: 450%; 
+  margin-bottom: 50px;
+  margin-top: 0% !important;
+}
+
+.label {
+  text-align: left;
+  margin-left: 26%;
+}
+
+.fields {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .right-side {
