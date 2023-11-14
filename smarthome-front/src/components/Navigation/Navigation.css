@@ -33,6 +33,10 @@
     cursor: pointer;
   }
 
+  .text-light:hover{
+    color: rgb(206, 203, 203)
+  }
+
   .logout {
     margin-left: auto; /* Pushes the logout link to the right */
   }

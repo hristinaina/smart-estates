@@ -50,6 +50,11 @@ p{
     width: 15%;
 }
 
+.device-card:hover{
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
 .device-img {
     width: 100%;
     height: 100%;

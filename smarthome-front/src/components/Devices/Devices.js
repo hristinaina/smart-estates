@@ -4,7 +4,8 @@ import './Devices.css';
 import { Navigation } from '../Navigation/Navigation';
 import DeviceService from '../../services/DeviceService'
 import { Divider } from '@mui/material';
-import { width } from '@mui/system';
+import { Link } from 'react-router-dom';
+import { color } from '@mui/system';
 
 export class Devices extends Component {
     constructor(props) {
@@ -30,7 +31,7 @@ export class Devices extends Component {
             <div>
                 <Navigation />
                 <div id="tools">
-                    <img src='/images/arrow.png' id='arrow' />
+                    <Link to="/"><img src='/images/arrow.png' id='arrow' /></Link>
                     <span className='estate-title'>Ta i ta nekretnina</span>
                     <p id="add-device">
                         <img alt="." src="/images/plus.png" id="plus" />
@@ -69,7 +70,8 @@ const DevicesList = ({ devices }) => {
                             <div className='device-info'>
                                 <p className='device-title'>{device.name}</p>
                                 <p className='device-text'>{device.type}</p>
-                                <p className='device-text state-color'>{device.status}</p>
+                                {device.status=="Online" && (<p className='device-text' style={{color: 'green'}}>{device.status}</p>)}
+                                {device.status=="Offline" && (<p className='device-text' style={{color: 'red'}}>{device.status}</p>)}
                             </div>
                         </div>
                     ))}
