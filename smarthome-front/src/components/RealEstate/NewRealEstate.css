@@ -5,6 +5,7 @@
 
 #new-real-estate-container {
     margin-top: 4em;
+    padding-bottom: 2.5em;
     display: inline-block;
     width: 30%;
     border: 1px solid rgb(221, 221, 221);
@@ -24,6 +25,7 @@
 
 .new-real-estate-select {
     margin-bottom: 1em;
+    padding-left: 0.8em;
     text-align: left;
     width: 72%;
     height: 3.2em;
@@ -33,8 +35,9 @@
 
 .new-real-estate-input {
     margin-bottom: 1em;
+    padding-left: 1em;
     text-align: left;
-    width: 70%;
+    width: 68%;
     height: 2.8em;
     border-radius: 10px;
     border: 2px solid #806894;
@@ -56,6 +59,7 @@
 }
 
 #upload-image {
+    margin-top: 1.5em;
     display: inline-block;
     height: 2em;
     width: 2em;
@@ -67,4 +71,34 @@
     display: inline-block;
     width: fit-content;
     vertical-align: bottom;
+}
+
+.btn {
+    height: 3em;
+    width: 10em;
+    border-radius: 10px;
+}
+
+#cancel-button {
+    margin-right: 4em;
+    margin-top: 2em;
+    background-color: white;
+    border: 2px solid #806894;
+    font-weight: bold;
+    color: rgb(104, 104, 104);
+}
+
+#cancel-button:hover {
+    cursor: pointer;
+}
+
+#confirm-button {
+    background-color: #806894;
+    border: 0px;
+    color: white;
+    font-weight: bold;
+}
+
+#confirm-button:hover {
+    cursor: pointer;
 }

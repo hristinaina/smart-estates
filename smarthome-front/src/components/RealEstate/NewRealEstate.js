@@ -145,6 +145,7 @@ export class NewRealEstate extends Component {
                             className="new-real-estate-input" 
                             type="number" 
                             name="footage" 
+                            min="0"
                             placeholder="Type square footage of the real estate..."
                             />
                         <p className="new-real-estate-label">Number of Floors</p>
@@ -152,6 +153,7 @@ export class NewRealEstate extends Component {
                             className="new-real-estate-input" 
                             type="number" 
                             name="floors" 
+                            min="1"
                             placeholder="Type number of floors..."
                             />
                         <br/>
@@ -168,6 +170,16 @@ export class NewRealEstate extends Component {
                             <img id="upload-image" src="/images/photo.png"/>
                             <p id="upload-image-p">Upload image</p>
                         </div>
+                        <span>
+                            <button
+                                id="cancel-button" className="btn">
+                                    CANCEL
+                            </button>
+                            <button
+                            id="confirm-button" className="btn">
+                                CONFIRM
+                            </button>
+                        </span>
                     </div>
                 </div>
                 
