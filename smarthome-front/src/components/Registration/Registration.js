@@ -1,5 +1,7 @@
 import React, {useState} from 'react';
 import { Link } from 'react-router-dom';
+import theme from '../../theme';
+import { ThemeProvider } from '@emotion/react';
 
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -82,6 +84,7 @@ const Registration = () => {
     }
 
   return (
+    <ThemeProvider theme={theme}>
     <div className='ground'>
 
       <div className='left'>
@@ -89,7 +92,7 @@ const Registration = () => {
 
         <form>
         <div className='input-fields'>
-            <div style={{marginRight: "250px"}}> Email:</div>
+            <div className='label'> Email:</div>
             <TextField
                 value={email}
                 onChange={handleEmailChange}
@@ -128,7 +131,7 @@ const Registration = () => {
         </div>
 
         <div className='input-fields'>
-          <div style={{marginRight: "150px"}}>Confirm password:</div>
+          <div className='label'>Confirm password:</div>
           <TextField
             id="confirm-password"
             className='text-field'
@@ -154,7 +157,7 @@ const Registration = () => {
         </div>
 
         <div >
-          <div htmlFor="profileImage" className='label' style={{marginBottom: "5px", marginRight: "200px"}}>Profile Image:</div>
+          <div htmlFor="profileImage" className='label' style={{marginBottom: "5px"}}>Profile Image:</div>
           <input
             type="file"
             id="profileImage"
@@ -171,11 +174,12 @@ const Registration = () => {
         )}
 
         <Button 
+        id='signup'
           variant="contained" 
           color="secondary" 
           disabled={isButtonDisabled}
           onClick={handleSignUp}
-          style={{marginTop: "50px", color: "#806894"}} 
+          style={{marginTop: "50px", color: "#806894", textTransform: 'none'}} 
           sx={{ m: 1, width: '39ch' }}>
             Sign up
         </Button>
@@ -186,10 +190,11 @@ const Registration = () => {
         <p className='welcome'>Welcome to Smart Home!</p>
         <p className='desc'>One place to remotely manage all your devices!</p>
         <Link to="/">        
-          <Button variant="contained" color="primary">Already have an account? Login</Button>
+          <Button sx={theme.customStyles.myCustomButton} variant="contained" color="primary">Already have an account? Login</Button>
         </Link>
       </div>
     </div>
+    </ThemeProvider>
   );
 };
 

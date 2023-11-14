@@ -1,5 +1,7 @@
 import React, {useState} from 'react';
 import { Link } from 'react-router-dom';
+import theme from '../../theme';
+import { ThemeProvider } from '@emotion/react';
 
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -50,12 +52,13 @@ const Login = () => {
 
 
   return (
+    <ThemeProvider theme={theme}>
     <div className='background'>
       <div className='left-side'>
         <p className='title-login'>Login</p>
         <form>
         <div className='fields'>
-            <div style={{marginRight: "250px"}}> Email:</div>
+            <div className='label'> Email:</div>
             <TextField
                 value={username}
                 onChange={handleUsernameChange}
@@ -92,11 +95,12 @@ const Login = () => {
             />
         </div>
             <Button 
+                id='login'
                 variant="contained" 
                 color="primary" 
                 disabled={isButtonDisabled}
                 onClick={handleLogin}
-                style={{marginTop: "50px"}} 
+                style={{marginTop: "50px", textTransform: 'none'}} 
                 sx={{ m: 1, width: '39ch' }}>
                     Login
             </Button>
@@ -106,10 +110,11 @@ const Login = () => {
         <p className='title'>Welcome to Smart Home!</p>
         <p className='text'>One place to remotely manage all your devices!</p>
         <Link to="/reg">
-            <Button className='reg' variant="contained" color="secondary">No account yet? Sign up</Button>
+            <Button className="reg" sx={theme.customStyles.myCustomButton} variant="contained" color="secondary">No account yet? Sign up</Button>
         </Link>
       </div>
     </div>
+    </ThemeProvider>
   );
 };
 

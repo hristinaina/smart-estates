@@ -16,8 +16,8 @@
 
 .title-reg {
   font-size: 450%; 
-  margin-bottom: 50px;
-  margin-top: 0% !important;
+  margin-bottom: 20px;
+  margin-top: 2% !important;
 }
 
 .input-fields {
@@ -51,11 +51,16 @@
 }
 
 .welcome { 
-  font-size: 450%;  
+  font-size: 400%;  
   margin: 0 !important;
   color: black;
 }
 
 .desc {
   color: #666666;
+}
+
+#signup{
+  width: 50%;
+  margin-bottom: 30px;
 }
