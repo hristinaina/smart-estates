@@ -1,17 +1,26 @@
 
-import { Component } from 'react';
+import React,{ Component, useState } from 'react';
 import './RealEstates.css';
 
 export class RealEstates extends Component {
-
     constructor(props) {
         super(props);
+
+        this.state = {
+            showNewRealEstate: false,
+        };
+    }
+
+    toggleNewRealEstate = () => {
+        this.setState((prevState) => ({
+            showNewRealEstate: !prevState.showNewRealEstate,
+        }));
     }
 
     render() {
         return (
             <div>
-                <p id="add-real-estate">
+                <p id="add-real-estate" onClick={this.toggleNewRealEstate}>
                     <img alt="." src="/images/plus.png" id="plus" /> 
                     Add Real-Estate
                 </p>
@@ -27,7 +36,6 @@ export class RealEstates extends Component {
                         </div>
                     </div>
                 </div>
-                
             </div>
         )
     }
