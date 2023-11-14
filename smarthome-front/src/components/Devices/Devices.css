@@ -1,0 +1,61 @@
+#add-real-estate {
+    text-align: right;
+    width: 98%;
+    font-size: large;
+    margin-right: 2%;
+    font-weight: 500;
+}
+
+#plus {
+    height: 15px;
+    text-align: right;
+}
+
+#add-real-estate:hover {
+    cursor: pointer;
+}
+
+.card-list{
+    display: flex;
+    flex-direction: row;
+}
+
+#devices-container {
+    display: block;
+  }
+
+.real-estate-card {
+    margin-top: 2em;
+    display: inline-block;
+    border-radius: 10%;
+    overflow: hidden;
+    padding-bottom: 20px;
+    background-color: rgb(230, 230, 230);
+    border: 1px solid  rgb(189, 189, 189);
+    width: 200px;
+}
+
+.device-img {
+    width: 100%;
+    height: 100%;
+}
+
+.device-info {
+    padding-left: 7%;
+}
+
+.device-title {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    font-size: 1.8em;
+    font-weight: 500;
+}
+
+.device-text {
+    color: gray;
+    font-size: 1em;
+}
+
+.state-color {
+    color: green;
+}
