@@ -7,27 +7,47 @@ import 'leaflet/dist/leaflet.css';
 import axios from 'axios';
 
 
-function LocationMarker() {
-    const [position, setPosition] = useState(null)
+function LocationMarker({ onMapClick }) {
+    const [position, setPosition] = useState(null);
+    const [address, setAddress] = useState('');
+
     const map = useMapEvents({
-      click() {
-        map.locate()
-      },
-      locationfound(e) {
-        setPosition(e.latlng)
-        console.log("TESTTTT")
-        console.log(e.latlng)
-        map.flyTo(e.latlng, map.getZoom())
-      },
-    })
-  
+        click(e) {
+            const clickedPosition = e.latlng;
+            setPosition(clickedPosition);
+
+            // Perform reverse geocoding to get the address
+            axios
+                .get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${clickedPosition.lat}&lon=${clickedPosition.lng}`)
+                .then((response) => {
+                    const { address } = response.data;
+                    const { display_name } = response.data;
+                    setAddress(display_name);
+                })
+                .catch((error) => {
+                    console.error('Error fetching address:', error);
+                });
+
+            if (onMapClick) {
+                onMapClick(clickedPosition);
+            }
+        },
+        locationfound(e) {
+            setPosition(e.latlng);
+            console.log("TESTTTT");
+            console.log(e.latlng);
+            map.flyTo(e.latlng, map.getZoom());
+        },
+    });
+
     return position === null ? null : (
-      <Marker position={position}>
-        <Popup>You are here</Popup>
-      </Marker>
-    )
-  }
-  
+        <Marker position={position}>
+            <Popup>{address}</Popup>
+        </Marker>
+    );
+}
+
+
 
 export class NewRealEstate extends Component {
 
@@ -50,6 +70,26 @@ export class NewRealEstate extends Component {
 
     handleCityChange = (event) => {
         this.setState({ selectedCity: event.target.value });
+    }
+
+    handleAddressChange = (newAddress) => {
+        axios
+                .get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newAddress.lat}&lon=${newAddress.lng}`)
+                .then((response) => {
+                    console.log(response.data.address);
+                    const obj = response.data.address;
+                    if (obj.house_number != undefined)
+                        this.setState({'address': response.data.address.road + " " + response.data.address.house_number + 
+                        ", " + response.data.address.city_district});
+                    else 
+                        this.setState({'address': response.data.address.road + 
+                        ", " + response.data.address.city_district});
+                    return response.data;
+
+                })
+                .catch((error) => {
+                    console.error('Error fetching address:', error);
+                });
     }
     
 
@@ -83,7 +123,10 @@ export class NewRealEstate extends Component {
                             className="new-real-estate-input" 
                             type="text" 
                             name="address" 
-                            placeholder="Type address or choose on the map"/>
+                            placeholder="Type address or choose on the map"
+                            value={this.state.address} // Set the input value from the state
+                            onChange={(e) => this.setState({ address: e.target.value })}
+                            />
                         
                         <div id="maps">
                             <MapContainer 
@@ -100,7 +143,14 @@ export class NewRealEstate extends Component {
                                         Current Location
                                     </Popup>
                                 </Marker> */}
-                                <LocationMarker/>
+                               <LocationMarker
+                                    onMapClick={(clickedPosition) => {
+                                        // Handle the clicked position and address here
+                                        this.handleAddressChange(clickedPosition);
+                                        // Update the state with the clicked position
+                                        //this.setState({ address: this.handleAddressChange(clickedPosition) });
+                                    }}
+                                />
                             </MapContainer>
                         </div>
 
