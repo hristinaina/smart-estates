@@ -9,25 +9,12 @@ import axios from 'axios';
 
 function LocationMarker({ onMapClick }) {
     const [position, setPosition] = useState(null);
-    const [address, setAddress] = useState('');
+    const [address] = useState('');
 
     const map = useMapEvents({
         click(e) {
             const clickedPosition = e.latlng;
             setPosition(clickedPosition);
-
-            // Perform reverse geocoding to get the address
-            axios
-                .get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${clickedPosition.lat}&lon=${clickedPosition.lng}`)
-                .then((response) => {
-                    const { address } = response.data;
-                    const { display_name } = response.data;
-                    setAddress(display_name);
-                })
-                .catch((error) => {
-                    console.error('Error fetching address:', error);
-                });
-
             if (onMapClick) {
                 onMapClick(clickedPosition);
             }
@@ -92,9 +79,7 @@ export class NewRealEstate extends Component {
                 });
     }
     
-
     render() {
-
         return (
             <div>
                 <div id="new-real-estate-container-parent">
@@ -138,34 +123,14 @@ export class NewRealEstate extends Component {
                                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                 />
-                                {/* <Marker position={this.position}>
-                                    <Popup>
-                                        Current Location
-                                    </Popup>
-                                </Marker> */}
                                <LocationMarker
                                     onMapClick={(clickedPosition) => {
-                                        // Handle the clicked position and address here
+                                        // handle the clicked position and address here
                                         this.handleAddressChange(clickedPosition);
-                                        // Update the state with the clicked position
-                                        //this.setState({ address: this.handleAddressChange(clickedPosition) });
                                     }}
                                 />
                             </MapContainer>
                         </div>
-
-                        {/* or use material design select */}
-                        {/* <Select id="new-real-estate-select"
-                            value={this.state.selectedValue}
-                            onChange={this.handleChange}
-                            label="Select an option"
-                        >
-                            <MenuItem value="">
-                            </MenuItem>
-                            <MenuItem value="apartment">Apartment</MenuItem>
-                            <MenuItem value="house">House</MenuItem>
-                            <MenuItem value="villa">Villa</MenuItem>
-                        </Select> */}
                     </div>
                 </div>
                 
