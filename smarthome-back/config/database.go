@@ -1,12 +1,24 @@
 package config
 
 import (
-	"gorm.io/gorm"
+	"database/sql"
+	"fmt"
 )
 
-func SetupDatabase() *gorm.DB {
+func SetupDatabase() *sql.DB {
 
-	//todo setup database
+	database, err := sql.Open("mysql", "root:siit2020@tcp(localhost:3306)/smart_home")
+	if err != nil {
+		panic(err.Error())
+	}
+	//defer database.Close()
 
-	return nil
+	// Test the connection
+	err = database.Ping()
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Println("Successfully connected to the database!")
+
+	return database
 }
