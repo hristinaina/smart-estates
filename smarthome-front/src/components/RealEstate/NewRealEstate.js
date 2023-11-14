@@ -44,6 +44,7 @@ export class NewRealEstate extends Component {
         this.state = {
             selectedType: 'apartment',
             selectedCity: 'Novi Sad',
+            searchCity: '',
             address: '',
             selectedImage: null,
         };
@@ -51,6 +52,17 @@ export class NewRealEstate extends Component {
         this.position = [45.23598471651923, 19.83932472361301]; // Initial map position
 
     }
+
+    cities = [
+        { vlaue: 'novi-sad', label: 'NOVI SAD, SERBIA'},
+        { value: 'belgrade', label: 'BELGRADE, SERBIA'},
+    ];
+
+    getFilteredCities = () => {
+        return this.cities.filter((city) =>
+            city.label.toLowerCase().includes(this.state.searchCity.toLowerCase())
+        );
+    };
 
     handleTypeChange = (event) => {
         this.setState({ selectedType: event.target.value });
@@ -95,6 +107,7 @@ export class NewRealEstate extends Component {
       };
     
     render() {
+        const filteredCities = this.getFilteredCities();
         return (
             <div>
                 <div id="new-real-estate-container-parent">
@@ -109,14 +122,16 @@ export class NewRealEstate extends Component {
                             <option value="house">HOUSE</option>
                             <option value="villa">VILLA</option>
                         </select>
-                        <p className="new-real-estate-label">City</p>
+                        <p className="new-real-estate-label">City and country</p>
                         <select 
                             className="new-real-estate-select"
                             value={this.state.selectedCity}
                             onChange={this.handleCityChange}>
-                            <option
-                                value="novi-sad">NOVI SAD, SERBIA</option>
-                            <option value="belgrade">BELGRADE, SERBIA</option>
+                            {filteredCities.map((city) => (
+                                <option key={city.value} value={city.value}>
+                                    {city.label}
+                                </option>
+                            ))}
                         </select>
                         <p className="new-real-estate-label">Address</p>
                         <input 
