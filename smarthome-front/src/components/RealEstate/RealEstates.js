@@ -1,6 +1,7 @@
 
 import { Component } from 'react';
 import './RealEstates.css';
+import { Navigation } from '../Navigation/Navigation';
 
 export class RealEstates extends Component {
 
@@ -11,6 +12,7 @@ export class RealEstates extends Component {
     render() {
         return (
             <div>
+                <Navigation />
                 <p id="add-real-estate">
                     <img alt="." src="/images/plus.png" id="plus" /> 
                     Add Real-Estate
