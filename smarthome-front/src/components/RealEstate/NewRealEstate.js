@@ -45,6 +45,7 @@ export class NewRealEstate extends Component {
             selectedType: 'apartment',
             selectedCity: 'Novi Sad',
             address: '',
+            selectedImage: null,
         };
 
         this.position = [45.23598471651923, 19.83932472361301]; // Initial map position
@@ -78,6 +79,14 @@ export class NewRealEstate extends Component {
                     console.error('Error fetching address:', error);
                 });
     }
+
+    handleImageChange = (e) => {
+        const file = e.target.files[0];
+        this.state.selectedImage = file;
+    
+        // here image can be uploaded to server
+        console.log('Selected Image:', file);
+      };
     
     render() {
         return (
@@ -130,6 +139,34 @@ export class NewRealEstate extends Component {
                                     }}
                                 />
                             </MapContainer>
+                        </div>
+                        <p className="new-real-estate-label">Square Footage (m2)</p>
+                        <input 
+                            className="new-real-estate-input" 
+                            type="number" 
+                            name="footage" 
+                            placeholder="Type square footage of the real estate..."
+                            />
+                        <p className="new-real-estate-label">Number of Floors</p>
+                        <input 
+                            className="new-real-estate-input" 
+                            type="number" 
+                            name="floors" 
+                            placeholder="Type number of floors..."
+                            />
+                        <br/>
+                        <div 
+                            id="upload-image-container"
+                            onClick={() => this.fileInput.click()}>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={this.handleImageChange}
+                                    style={{ display: 'none' }}
+                                    ref={(fileInput) => (this.fileInput = fileInput)}
+                                />
+                            <img id="upload-image" src="/images/photo.png"/>
+                            <p id="upload-image-p">Upload image</p>
                         </div>
                     </div>
                 </div>
