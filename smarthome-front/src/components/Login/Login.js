@@ -12,7 +12,13 @@ import './Login.css';
 
 
 const Login = () => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])(.{8,})$/;
 
     const handleClickShowPassword = () => {
         setShowPassword(!showPassword);
@@ -22,17 +28,42 @@ const Login = () => {
         event.preventDefault();
     };
 
+    const handleUsernameChange = (event) => {
+        setUsername(event.target.value);
+        event.target.value.trim() ===  '' || !emailRegex.test(event.target.value.trim()) || password.trim() === '' 
+        ? checkButtonDisabled(true) : checkButtonDisabled(false)
+    };
+
+    const handlePasswordChange = (event) => {
+        setPassword(event.target.value);
+        event.target.value.trim() ===  '' || !passwordRegex.test(event.target.value.trim()) || username.trim() === '' 
+        ? checkButtonDisabled(true) : checkButtonDisabled(false)
+    };
+
+    const checkButtonDisabled = (value) => {
+        value ? setIsButtonDisabled(true) : setIsButtonDisabled(false);
+    };
+
+    const handleLogin = () => {
+        // send values form to server
+    }
+
 
   return (
     <div className='background'>
       <div className='left-side'>
         <p className='title-login'>Login</p>
+        <form>
         <div className='fields'>
-            <div className='label'> Username:</div>
+            <div style={{marginRight: "250px"}}> Email:</div>
             <TextField
+                value={username}
+                onChange={handleUsernameChange}
                 id="username"
                 sx={{ m: 1, width: '30ch' }}
-                placeholder="Type here"
+                placeholder="e.g. someone@example.com"
+                helperText="Required"
+                type='email'
             />
         </div>    
         <div className='fields'>
@@ -41,24 +72,35 @@ const Login = () => {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 sx={{ m: 1, width: '30ch' }}
-                placeholder='Type here'
+                placeholder='e.g. !mikaMIKIC'
+                helperText="Required. Min 8 characters, special character, capital latter"
+                value={password}
+                onChange={handlePasswordChange}
+                required
                 InputProps={{
                 endAdornment: (
                     <InputAdornment position="end">
-                    <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickShowPassword}
-                        onMouseDown={handleMouseDownPassword}
-                    >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
+                        <IconButton
+                            aria-label="toggle password visibility"
+                            onClick={handleClickShowPassword}
+                            onMouseDown={handleMouseDownPassword}>
+                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
                     </InputAdornment>
                 ),
                 }}
             />
         </div>
-
-        <Button variant="contained" color="primary" style={{marginTop: "50px"}} sx={{ m: 1, width: '39ch' }}>Login</Button>
+            <Button 
+                variant="contained" 
+                color="primary" 
+                disabled={isButtonDisabled}
+                onClick={handleLogin}
+                style={{marginTop: "50px"}} 
+                sx={{ m: 1, width: '39ch' }}>
+                    Login
+            </Button>
+        </form>
       </div>
       <div className='right-side'>
         <p className='title'>Welcome to Smart Home!</p>
