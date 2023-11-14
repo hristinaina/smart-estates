@@ -16,7 +16,13 @@
     cursor: pointer;
 }
 
+#real-estates-container {
+    display: block;
+  }
+
 .real-estate-card {
+    margin-top: 2em;
+    display: inline-block;
     width: 22%;
     border-radius: 10%;
     overflow: hidden;
