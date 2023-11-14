@@ -1,10 +1,33 @@
-import React, { Component } from "react";
+import React, { Component, useState } from "react";
 import './NewRealEstate.css';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import axios from 'axios';
 
+
+function LocationMarker() {
+    const [position, setPosition] = useState(null)
+    const map = useMapEvents({
+      click() {
+        map.locate()
+      },
+      locationfound(e) {
+        setPosition(e.latlng)
+        console.log("TESTTTT")
+        console.log(e.latlng)
+        map.flyTo(e.latlng, map.getZoom())
+      },
+    })
+  
+    return position === null ? null : (
+      <Marker position={position}>
+        <Popup>You are here</Popup>
+      </Marker>
+    )
+  }
+  
 
 export class NewRealEstate extends Component {
 
@@ -14,6 +37,7 @@ export class NewRealEstate extends Component {
         this.state = {
             selectedType: 'apartment',
             selectedCity: 'Novi Sad',
+            address: '',
         };
 
         this.position = [45.23598471651923, 19.83932472361301]; // Initial map position
@@ -27,6 +51,7 @@ export class NewRealEstate extends Component {
     handleCityChange = (event) => {
         this.setState({ selectedCity: event.target.value });
     }
+    
 
     render() {
 
@@ -37,7 +62,7 @@ export class NewRealEstate extends Component {
                         <p id="new-real-estate-title">New Real Estate</p>
                         <p className="new-real-estate-label">Type</p>
                         <select 
-                            id="new-real-estate-select"
+                            className="new-real-estate-select"
                             value={this.state.selectedType}
                             onChange={this.handleTypeChange}>
                             <option value="apartment">APARTMENT</option>
@@ -46,7 +71,7 @@ export class NewRealEstate extends Component {
                         </select>
                         <p className="new-real-estate-label">City</p>
                         <select 
-                            id="new-real-estate-select"
+                            className="new-real-estate-select"
                             value={this.state.selectedCity}
                             onChange={this.handleCityChange}>
                             <option
@@ -56,20 +81,26 @@ export class NewRealEstate extends Component {
                         <p className="new-real-estate-label">Address</p>
                         <input 
                             className="new-real-estate-input" 
-                            type="text" name="address" 
+                            type="text" 
+                            name="address" 
                             placeholder="Type address or choose on the map"/>
                         
                         <div id="maps">
-                            <MapContainer center={this.position} zoom={13} style={{ height: '100%', width: '100%' }}>
+                            <MapContainer 
+                                center={this.position} 
+                                zoom={15} 
+                                style={{ height: '100%', width: '100%' }}
+                                >
                                 <TileLayer
                                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                 />
-                                <Marker position={this.position}>
+                                {/* <Marker position={this.position}>
                                     <Popup>
-                                    A pretty CSS3 popup. <br /> Easily customizable.
+                                        Current Location
                                     </Popup>
-                                </Marker>
+                                </Marker> */}
+                                <LocationMarker/>
                             </MapContainer>
                         </div>
 
