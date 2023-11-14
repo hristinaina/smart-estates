@@ -7,7 +7,6 @@ import (
 	_ "fmt"
 	_ "github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
-	"gorm.io/gorm"
 	"smarthome-back/models"
 )
 
@@ -18,12 +17,11 @@ type UserService interface {
 }
 
 type UserServiceImpl struct {
-	db       *gorm.DB
-	database *sql.DB
+	db *sql.DB
 }
 
-func NewUserService(db *gorm.DB, database *sql.DB) UserService {
-	return &UserServiceImpl{db: db, database: database}
+func NewUserService(db *sql.DB) UserService {
+	return &UserServiceImpl{db: db}
 }
 
 func (us *UserServiceImpl) ListUsers() []models.User {
@@ -39,16 +37,16 @@ func (us *UserServiceImpl) ListUsers() []models.User {
 
 func (us *UserServiceImpl) GetUser(id string) (models.User, error) {
 	var user models.User
-	result := us.db.First(&user, id)
-	if result.Error != nil {
-		return models.User{}, result.Error
-	}
+	//result := us.db.First(&user, id)
+	//if result.Error != nil {
+	//	return models.User{}, result.Error
+	//}
 	return user, nil
 }
 
 func (us *UserServiceImpl) TestGetMethod() {
 
-	rows, err := us.database.Query("SELECT * FROM users")
+	rows, err := us.db.Query("SELECT * FROM users")
 	if err != nil {
 		fmt.Println("Error1: ", err.Error())
 		return

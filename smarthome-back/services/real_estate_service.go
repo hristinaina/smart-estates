@@ -3,7 +3,6 @@ package services
 import (
 	"database/sql"
 	"fmt"
-	"gorm.io/gorm"
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
 )
@@ -19,17 +18,16 @@ type RealEstateService interface {
 }
 
 type RealEstateServiceImpl struct {
-	db       *gorm.DB
-	database *sql.DB
+	db *sql.DB
 }
 
-func NewRealEstateService(db *gorm.DB, database *sql.DB) RealEstateService {
-	return &RealEstateServiceImpl{db: db, database: database}
+func NewRealEstateService(db *sql.DB) RealEstateService {
+	return &RealEstateServiceImpl{db: db}
 }
 
 func (res *RealEstateServiceImpl) GetAll() []models.RealEstate {
 	query := "SELECT * FROM realestate"
-	rows, err := res.database.Query(query)
+	rows, err := res.db.Query(query)
 	if CheckIfError(err) {
 		return nil
 	}
@@ -57,7 +55,7 @@ func (res *RealEstateServiceImpl) GetAll() []models.RealEstate {
 
 func (res *RealEstateServiceImpl) GetAllByUserId(userId int) []models.RealEstate {
 	query := "SELECT * FROM realestate WHERE USERID = ?"
-	rows, err := res.database.Query(query, userId)
+	rows, err := res.db.Query(query, userId)
 
 	if CheckIfError(err) {
 		return nil
@@ -84,7 +82,7 @@ func (res *RealEstateServiceImpl) GetAllByUserId(userId int) []models.RealEstate
 
 func (res *RealEstateServiceImpl) Get(id int) (models.RealEstate, error) {
 	query := "SELECT * FROM realestate WHERE ID = ?"
-	rows, err := res.database.Query(query, id)
+	rows, err := res.db.Query(query, id)
 
 	if CheckIfError(err) {
 		return models.RealEstate{}, nil
@@ -108,7 +106,7 @@ func (res *RealEstateServiceImpl) Get(id int) (models.RealEstate, error) {
 
 func (res *RealEstateServiceImpl) GetPending() []models.RealEstate {
 	query := "SELECT * FROM realestate WHERE STATE = 0"
-	rows, err := res.database.Query(query)
+	rows, err := res.db.Query(query)
 
 	if CheckIfError(err) {
 		return nil
@@ -142,7 +140,7 @@ func (res *RealEstateServiceImpl) ChangeState(id int, state int) models.RealEsta
 
 	// delete old data
 	query := "DELETE FROM realestate WHERE id = ?"
-	_, err = res.database.Exec(query, id)
+	_, err = res.db.Exec(query, id)
 
 	if CheckIfError(err) {
 		return models.RealEstate{}
@@ -157,7 +155,7 @@ func (res *RealEstateServiceImpl) ChangeState(id int, state int) models.RealEsta
 
 	query = "INSERT INTO realestate (Id, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId)" +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
-	_, err = res.database.Exec(query, realEstate.Id, realEstate.Type, realEstate.Address, realEstate.City,
+	_, err = res.db.Exec(query, realEstate.Id, realEstate.Type, realEstate.Address, realEstate.City,
 		realEstate.SquareFootage, realEstate.NumberOfFloors, realEstate.Picture, realEstate.State, realEstate.User)
 
 	if CheckIfError(err) {
@@ -175,7 +173,7 @@ func (res *RealEstateServiceImpl) Add(estate models.RealEstate) models.RealEstat
 	if estate.Address != "" && estate.City != "" && estate.SquareFootage != 0.0 && estate.NumberOfFloors != 0 {
 		query := "INSERT INTO realestate (Id, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId)" +
 			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
-		_, err := res.database.Exec(query, estate.Id, estate.Type, estate.Address, estate.City, estate.SquareFootage,
+		_, err := res.db.Exec(query, estate.Id, estate.Type, estate.Address, estate.City, estate.SquareFootage,
 			estate.NumberOfFloors, estate.Picture, estate.State, estate.User)
 		if CheckIfError(err) {
 			return models.RealEstate{}

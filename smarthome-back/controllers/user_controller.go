@@ -3,7 +3,6 @@ package controllers
 import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"net/http"
 	"smarthome-back/services"
 )
@@ -12,8 +11,8 @@ type UserController struct {
 	service services.UserService
 }
 
-func NewUserController(db *gorm.DB, database *sql.DB) UserController {
-	return UserController{service: services.NewUserService(db, database)}
+func NewUserController(db *sql.DB) UserController {
+	return UserController{service: services.NewUserService(db)}
 }
 
 func (uc UserController) ListUsers(c *gin.Context) {
