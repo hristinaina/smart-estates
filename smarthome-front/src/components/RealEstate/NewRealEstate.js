@@ -57,7 +57,12 @@ export class NewRealEstate extends Component {
     }
 
     handleCityChange = (event) => {
-        this.setState({ selectedCity: event.target.value });
+        if (typeof event == "string") {
+            this.setState({ selectedCity: event });
+        }
+        else {
+            this.setState({ selectedCity: event.target.value });
+        }
     }
 
     handleAddressChange = (newAddress) => {
@@ -72,6 +77,7 @@ export class NewRealEstate extends Component {
                     else 
                         this.setState({'address': response.data.address.road + 
                         ", " + response.data.address.city_district});
+                    this.handleCityChange(response.data.address.city_district);
                     return response.data;
 
                 })
@@ -82,7 +88,7 @@ export class NewRealEstate extends Component {
 
     handleImageChange = (e) => {
         const file = e.target.files[0];
-        this.state.selectedImage = file;
+        this.setState({selectedImage: file})
     
         // here image can be uploaded to server
         console.log('Selected Image:', file);
