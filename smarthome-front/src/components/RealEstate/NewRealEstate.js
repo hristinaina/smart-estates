@@ -5,6 +5,7 @@ import Select from '@mui/material/Select';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import axios from 'axios';
+import { RealEstates } from "./RealEstates";
 
 
 function LocationMarker({ onMapClick }) {
@@ -21,8 +22,6 @@ function LocationMarker({ onMapClick }) {
         },
         locationfound(e) {
             setPosition(e.latlng);
-            console.log("TESTTTT");
-            console.log(e.latlng);
             map.flyTo(e.latlng, map.getZoom());
         },
     });
@@ -47,10 +46,17 @@ export class NewRealEstate extends Component {
             searchCity: '',
             address: '',
             selectedImage: null,
+            showRealEstates: false,
         };
 
         this.position = [45.23598471651923, 19.83932472361301]; // Initial map position
 
+    }
+
+    toggleRealEstates = () => {
+        this.setState((prevState) => ({
+            showRealEstates: !prevState.showRealEstates,
+        }));
     }
 
     cities = [
@@ -81,7 +87,6 @@ export class NewRealEstate extends Component {
         axios
                 .get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newAddress.lat}&lon=${newAddress.lng}`)
                 .then((response) => {
-                    console.log(response.data.address);
                     const obj = response.data.address;
                     if (obj.house_number != undefined)
                         this.setState({'address': response.data.address.road + " " + response.data.address.house_number + 
@@ -110,6 +115,9 @@ export class NewRealEstate extends Component {
         const filteredCities = this.getFilteredCities();
         return (
             <div>
+                {this.state.showRealEstates ? (
+                <RealEstates />
+                ) : (
                 <div id="new-real-estate-container-parent">
                     <div id="new-real-estate-container">
                         <p id="new-real-estate-title">New Real Estate</p>
@@ -155,7 +163,6 @@ export class NewRealEstate extends Component {
                                 />
                                <LocationMarker
                                     onMapClick={(clickedPosition) => {
-                                        // handle the clicked position and address here
                                         this.handleAddressChange(clickedPosition);
                                     }}
                                 />
@@ -193,7 +200,7 @@ export class NewRealEstate extends Component {
                         </div>
                         <span>
                             <button
-                                id="cancel-button" className="btn">
+                                id="cancel-button" className="btn" onClick={this.toggleRealEstates}>
                                     CANCEL
                             </button>
                             <button
@@ -202,7 +209,7 @@ export class NewRealEstate extends Component {
                             </button>
                         </span>
                     </div>
-                </div>
+                </div> )}
                 
             </div>
         )
