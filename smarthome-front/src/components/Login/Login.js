@@ -64,7 +64,7 @@ const Login = () => {
                 onChange={handleUsernameChange}
                 id="username"
                 sx={{ m: 1, width: '30ch' }}
-                placeholder="e.g. someone@example.com"
+                placeholder="someone@example.com"
                 helperText="Required"
                 type='email'
             />
@@ -75,7 +75,7 @@ const Login = () => {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 sx={{ m: 1, width: '30ch' }}
-                placeholder='e.g. !mikaMIKIC'
+                placeholder='P@ssw0rd123'
                 helperText="Required. Min 8 characters, special character, capital latter"
                 value={password}
                 onChange={handlePasswordChange}
