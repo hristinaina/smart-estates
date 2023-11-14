@@ -28,13 +28,13 @@
 
 .text-field {
   background-color: #ffffff;
-  border-radius: 10px;
+  border-radius: 5px;
 }
 
 .input-image {
   border: 2px solid #CEC0D9;
   padding: 10px 25px;
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
 }
 
