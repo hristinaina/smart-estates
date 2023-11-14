@@ -3,7 +3,7 @@
 }
 
 #new-real-estate-container {
-    margin-top: 5em;
+    margin-top: 4em;
     display: inline-block;
     width: 30%;
     border: 1px solid rgb(221, 221, 221);
@@ -36,4 +36,10 @@
     height: 2.8em;
     border-radius: 10px;
     border: 2px solid #806894;
+}
+
+#maps {
+    margin: 1em auto;
+    height: 200px;
+    width: 70%;
 }

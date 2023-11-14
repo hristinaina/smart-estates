@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import './NewRealEstate.css';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 
 export class NewRealEstate extends Component {
@@ -13,6 +15,9 @@ export class NewRealEstate extends Component {
             selectedType: 'apartment',
             selectedCity: 'Novi Sad',
         };
+
+        this.position = [45.23598471651923, 19.83932472361301]; // Initial map position
+
     }
 
     handleTypeChange = (event) => {
@@ -54,7 +59,19 @@ export class NewRealEstate extends Component {
                             type="text" name="address" 
                             placeholder="Type address or choose on the map"/>
                         
-
+                        <div id="maps">
+                            <MapContainer center={this.position} zoom={13} style={{ height: '100%', width: '100%' }}>
+                                <TileLayer
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                />
+                                <Marker position={this.position}>
+                                    <Popup>
+                                    A pretty CSS3 popup. <br /> Easily customizable.
+                                    </Popup>
+                                </Marker>
+                            </MapContainer>
+                        </div>
 
                         {/* or use material design select */}
                         {/* <Select id="new-real-estate-select"
