@@ -14,7 +14,7 @@ export class RealEstates extends Component {
             <div>
                 <Navigation />
                 <p id="add-real-estate">
-                    <img alt="." src="/images/plus.png" id="plus" /> 
+                    <img alt="." src="/images/plus.png" id="plus" style={{marginTop: "5px"}} /> 
                     Add Real-Estate
                 </p>
                 <div id='real-estates-container'>

@@ -18,7 +18,7 @@ export class Navigation extends Component {
                 <Navbar className="navbar">
                     {isAdmin && (
                         <ul>
-                            <span class="logo">Smart Home</span>
+                            <span className="logo">Smart Home</span>
                             <NavItem>
                                 <NavLink tag={Link} className="text-light" to="/home">Home</NavLink>
                             </NavItem>
@@ -35,7 +35,7 @@ export class Navigation extends Component {
                     )}
                     {!isAdmin && (
                         <ul>
-                            <span class="logo">Smart Home</span>
+                            <span className="logo">Smart Home</span>
                             <NavItem>
                                 <NavLink tag={Link} className="text-light" to="/home">Home</NavLink>
                             </NavItem>
