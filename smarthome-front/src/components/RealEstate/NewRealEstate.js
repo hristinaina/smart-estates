@@ -53,12 +53,6 @@ export class NewRealEstate extends Component {
 
     }
 
-    toggleRealEstates = () => {
-        this.setState((prevState) => ({
-            showRealEstates: !prevState.showRealEstates,
-        }));
-    }
-
     cities = [
         { vlaue: 'novi-sad', label: 'NOVI SAD, SERBIA'},
         { value: 'belgrade', label: 'BELGRADE, SERBIA'},
@@ -109,7 +103,11 @@ export class NewRealEstate extends Component {
     
         // here image can be uploaded to server
         console.log('Selected Image:', file);
-      };
+    };
+
+    cancel = () => {
+        window.location.href = '/real-estates'
+    }
     
     render() {
         const filteredCities = this.getFilteredCities();
@@ -200,11 +198,11 @@ export class NewRealEstate extends Component {
                         </div>
                         <span>
                             <button
-                                id="cancel-button" className="btn" onClick={this.toggleRealEstates}>
+                                id="cancel-button" className="btn" onClick={this.cancel}>
                                     CANCEL
                             </button>
                             <button
-                            id="confirm-button" className="btn">
+                            id="confirm-button" className="btn" onClick={this.cancel}>
                                 CONFIRM
                             </button>
                         </span>

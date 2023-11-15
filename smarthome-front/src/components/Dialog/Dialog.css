@@ -1,0 +1,39 @@
+/* YourComponent.css */
+
+#dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+  
+#dialog {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.5);
+}
+
+#dialog-title {
+    font-size: larger;
+    font-weight: 600;
+}
+
+#dialog-message {
+    margin: 2em 0;
+}
+  
+#dialog button {
+    margin: 0 10px;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 10px;
+    border: 3px solid var(--primary-color);
+}
+  
