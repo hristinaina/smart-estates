@@ -1,0 +1,66 @@
+/* Registration.css */
+.ground {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 5px 1rem;
+  background: linear-gradient(90deg, #806894 50%, #ffffff 50%);
+}
+
+.left {
+  text-align: center;
+  flex: 1;
+  color: #ffffff;
+}
+
+.title-reg {
+  font-size: 450%; 
+  margin-bottom: 20px;
+  margin-top: 2% !important;
+}
+
+.input-fields {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: auto;
+}
+
+.text-field {
+  background-color: #ffffff;
+  border-radius: 5px;
+}
+
+.input-image {
+  border: 2px solid #CEC0D9;
+  padding: 10px 25px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cropped-image {
+  margin-top: 20px;
+  max-width: 50%; 
+  height: auto;
+}
+
+.right {
+  text-align: center; 
+  color: white;
+  flex: 1;
+}
+
+.welcome { 
+  font-size: 400%;  
+  margin: 0 !important;
+  color: black;
+}
+
+.desc {
+  color: #666666;
+}
+
+#signup{
+  width: 50%;
+  margin-bottom: 30px;
+}
