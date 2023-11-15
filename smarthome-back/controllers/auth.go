@@ -3,10 +3,13 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
+	"os"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -18,39 +21,58 @@ func NewAuthController(db *sql.DB) AuthController {
 	return AuthController{repo: repositories.NewUserRepository(db)}
 }
 
-// type LoginInput struct {
-// 	Username string `json:"username" binding:"required"`
-// 	Password string `json:"password" binding:"required"`
-// }
+type LoginInput struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
 
-// func Login(c *gin.Context) {
+func (uc AuthController) Login(c *gin.Context) {
 
-// 	var input LoginInput
+	// get email and password from req body
+	var input LoginInput
 
-// 	if err := c.ShouldBindJSON(&input); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
 
-// 	u := models.User{}
+	// looked up requested user by email
+	user, err := uc.repo.GetUserByEmail(input.Email)
 
-// 	u.Username = input.Username
-// 	u.Password = input.Password
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid username or password"})
+		return
+	}
 
-// 	token, err := models.LoginCheck(u.Username, u.Password)
+	// compare sent password with saved user hash password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
 
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "username or password is incorrect."})
-// 		return
-// 	}
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid username or password"})
+		return
+	}
 
-// 	c.JSON(http.StatusOK, gin.H{"token": token})
+	// generate a jwt token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.Id,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(), // 30 days
+	})
 
-// }
+	// Sign and get the complete encoded token as a string using the secret
+	tokenString, err := token.SignedString([]byte(os.Getenv("API_SECRET")))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create token"})
+		return
+	}
+
+	// send it back
+	c.JSON(http.StatusOK, gin.H{"token": tokenString})
+}
 
 // request body
 type RegisterInput struct {
-	Username string `json:"email" binding:"required"`
+	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 	Name     string `json:"name" binding:"required"`
 	Surname  string `json:"surname" binding:"required"`
@@ -78,7 +100,7 @@ func (uc AuthController) Register(c *gin.Context) {
 	// create the user
 	u := models.User{}
 
-	u.Email = input.Username
+	u.Email = input.Email
 	u.Password = string(hash)
 	u.Name = input.Name
 	u.Surname = input.Surname

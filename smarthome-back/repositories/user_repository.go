@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"smarthome-back/models"
 )
@@ -9,11 +10,14 @@ import (
 type UserRepository interface {
 	GetAll() []models.User
 	SaveUser(user models.User) error
+	GetUserByEmail(email string) (*models.User, error)
 }
 
 type UserRepositoryImpl struct {
 	db *sql.DB
 }
+
+var ErrUserNotFound = errors.New("User not found")
 
 func NewUserRepository(db *sql.DB) UserRepository {
 	return &UserRepositoryImpl{db: db}
@@ -60,6 +64,22 @@ func (res *UserRepositoryImpl) SaveUser(user models.User) error {
 		return nil
 	}
 	return fmt.Errorf("Invalid user data")
+}
+
+func (res *UserRepositoryImpl) GetUserByEmail(email string) (*models.User, error) {
+	query := "SELECT * FROM user WHERE email = ?"
+	row := res.db.QueryRow(query, email)
+
+	var user models.User
+
+	err := row.Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Surname, &user.Picture)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrUserNotFound
+		}
+		return nil, err
+	}
+	return &user, nil
 }
 
 func (res *UserRepositoryImpl) generateId() int {

@@ -17,6 +17,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 
 		authController := controllers.NewAuthController(db)
 		userRoutes.POST("/reg", authController.Register)
+		userRoutes.POST("/login", authController.Login)
 	}
 
 	realEstateRoutes := r.Group("/api/real-estates")
