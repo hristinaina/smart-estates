@@ -3,6 +3,7 @@ import React,{ Component, useState } from 'react';
 import './RealEstates.css';
 import { NewRealEstate } from './NewRealEstate';
 
+import { Navigation } from '../Navigation/Navigation';
 
 export class RealEstates extends Component {
     constructor(props) {
@@ -22,6 +23,7 @@ export class RealEstates extends Component {
     render() {
         return (
             <div>
+                <Navigation />
                 {!this.state.showNewRealEstate && (
                 <p id="add-real-estate" onClick={this.toggleNewRealEstate}>
                     <img alt="." src="/images/plus.png" id="plus" />

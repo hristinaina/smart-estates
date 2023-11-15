@@ -1,6 +1,7 @@
 import React from 'react';
 import { RealEstates } from './components/RealEstate/RealEstates';
 import { NewRealEstate } from './components/RealEstate/NewRealEstate';
+import { Devices } from './components/Devices/Devices';
 
 const AppRoutes = [
   {
@@ -10,6 +11,10 @@ const AppRoutes = [
   {
     path: '/new-real-estate',
     element: <NewRealEstate/>
+  },
+  {
+    path: '/devices',
+    element: <Devices />
   }
 ];
 

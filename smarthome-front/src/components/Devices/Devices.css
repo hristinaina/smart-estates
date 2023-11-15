@@ -1,0 +1,82 @@
+p{
+    margin: 0;
+}
+
+#tools {
+    display: flex;
+    flex-direction: row;
+    margin: 45px 7% 30px 5%;
+    align-items: center;
+}
+
+#arrow {
+    width: 40px;
+    height: 40px;
+}
+
+.estate-title {
+    font-size: 45px;
+    margin-left: 35px;
+}
+
+#add-device {
+    font-size: 20px;
+    font-weight: 500;
+    margin-left: auto;
+    margin-top: 20px;
+}
+
+#plus {
+    height: 20px;
+    margin-right: 8px;
+}
+
+#add-device:hover {
+    cursor: pointer;
+}
+
+#devices-container{
+    margin: 0 50px;
+}
+
+.device-card {
+    display: inline-block;
+    border-radius: 10%;
+    overflow: hidden;
+    padding-bottom: 7px;
+    background-color: rgb(230, 230, 230);
+    border: 1px solid rgb(189, 189, 189);
+    margin: 25px 2.4%;
+    width: 15%;
+}
+
+.device-card:hover{
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+.device-img {
+    width: 100%;
+    height: 100%;
+    max-height: 250px;
+}
+
+.device-info {
+    padding-left: 7%;
+}
+
+.device-title {
+    margin: 9px 0;
+    font-size: 1.5em;
+    font-weight: 500;
+}
+
+.device-text {
+    color: gray;
+    margin-bottom: 13px;
+    font-size: 1em;
+}
+
+.state-color {
+    color: green;
+}
