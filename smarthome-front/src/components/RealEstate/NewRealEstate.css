@@ -1,0 +1,104 @@
+#new-real-estate-container-parent {
+    text-align: center;
+    margin-bottom: 4em;
+}
+
+#new-real-estate-container {
+    margin-top: 4em;
+    padding-bottom: 2.5em;
+    display: inline-block;
+    width: 30%;
+    border: 1px solid rgb(221, 221, 221);
+    border-radius: 20px;
+}
+
+#new-real-estate-title {
+    width: 100%;
+    font-size: 2em;
+    font-weight: 500;
+}
+
+.new-real-estate-label {
+    text-align: left;
+    margin-left: 4em;
+}
+
+.new-real-estate-select {
+    margin-bottom: 1em;
+    padding-left: 0.8em;
+    text-align: left;
+    width: 72%;
+    height: 3.2em;
+    border-radius: 10px;
+    border: 2px solid #806894;
+}
+
+.new-real-estate-input {
+    margin-bottom: 1em;
+    padding-left: 1em;
+    text-align: left;
+    width: 68%;
+    height: 2.8em;
+    border-radius: 10px;
+    border: 2px solid #806894;
+}
+
+#maps {
+    margin: 1.5em auto;
+    height: 200px;
+    width: 70%;
+}
+
+#upload-image-container {
+    width: fit-content;
+    margin: 0 auto;
+}
+
+#upload-image-container:hover {
+    cursor: pointer;
+}
+
+#upload-image {
+    margin-top: 1.5em;
+    display: inline-block;
+    height: 2em;
+    width: 2em;
+    padding-bottom: 0.5em;
+}
+
+#upload-image-p {
+    margin-left: 1em;
+    display: inline-block;
+    width: fit-content;
+    vertical-align: bottom;
+}
+
+.btn {
+    height: 3em;
+    width: 10em;
+    border-radius: 10px;
+}
+
+#cancel-button {
+    margin-right: 4em;
+    margin-top: 2em;
+    background-color: white;
+    border: 2px solid #806894;
+    font-weight: bold;
+    color: rgb(104, 104, 104);
+}
+
+#cancel-button:hover {
+    cursor: pointer;
+}
+
+#confirm-button {
+    background-color: #806894;
+    border: 0px;
+    color: white;
+    font-weight: bold;
+}
+
+#confirm-button:hover {
+    cursor: pointer;
+}
