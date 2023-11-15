@@ -42,6 +42,11 @@ func (rec RealEstateController) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, realEstate)
 }
 
+func (rec RealEstateController) GetPending(c *gin.Context) {
+	realEstates := rec.service.GetPending()
+	c.JSON(http.StatusOK, realEstates)
+}
+
 func (rec RealEstateController) ChangeState(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	CheckIfError(err, c)

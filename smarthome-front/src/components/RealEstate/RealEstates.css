@@ -9,6 +9,7 @@
     font-size: large;
     margin-right: 2%;
     font-weight: 500;
+    margin-bottom: 0;
 }
 
 #plus {
@@ -27,7 +28,7 @@
   }
 
 .real-estate-card {
-    margin-top: 2em;
+    margin-top: 3em;
     margin-left: 5%;
     display: inline-block;
     width: 22%;

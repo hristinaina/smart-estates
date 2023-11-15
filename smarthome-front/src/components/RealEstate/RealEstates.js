@@ -12,7 +12,7 @@ export class RealEstates extends Component {
         super(props);
 
         this.state = {
-            showNewRealEstate: false,
+            isAdmin: true,
             showApproveDialog: false,
             showDiscardDialog: false,
             realEstates: [],
@@ -21,9 +21,16 @@ export class RealEstates extends Component {
 
     async componentDidMount() {
         try {
-            const result = await RealEstateService.getRealEstates();
-            this.setState({realEstates: result})
-            console.log(result);
+            if (!this.state.isAdmin) {
+                const result = await RealEstateService.getRealEstates();
+                this.setState({realEstates: result})
+                console.log(result);
+            } else {
+                const result = await RealEstateService.getPendingRealEstates();
+                this.setState({realEstates: result})
+                console.log(result);
+            }
+           
         } catch (error) {
             console.log("error");
             console.error(error);
@@ -64,10 +71,11 @@ export class RealEstates extends Component {
     }
 
     render() {
+
         return (
             <div id="real-estates-parent-container">
                 <Navigation />
-                {!this.state.showNewRealEstate && (
+                {!this.state.isAdmin && (
                 <p id="add-real-estate" onClick={this.handleAddRealEstateClick}>
                     <img alt="." src="/images/plus.png" id="plus" />
                     Add Real-Estate
@@ -90,12 +98,14 @@ export class RealEstates extends Component {
                     </div>
                     ))}
                 </div>
-                
-                 <div id="bottom-bar">
+
+                {this.state.isAdmin && (
+                    <div id="bottom-bar">
                     <button className='bottom-bar-btn' id='bottom-bar-approve' onClick={this.handleApprove}>APPROVE</button>
                     <button className='bottom-bar-btn' id='bottom-bar-discard' onClick={this.handleDiscard}>DISCARD</button>
                  </div>
-
+                )}
+                 
                 {this.state.showApproveDialog && (
                 <Dialog
                     title="Approve Real Estate Request"

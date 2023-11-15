@@ -21,6 +21,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		realEstateRoutes.GET("/", realEstateController.GetAll)
 		realEstateRoutes.GET("/user/:userId", realEstateController.GetAllByUserId)
 		realEstateRoutes.GET("/:id", realEstateController.Get)
+		realEstateRoutes.GET("/pending", realEstateController.GetPending)
 		realEstateRoutes.PUT("/:id/:state", realEstateController.ChangeState)
 		realEstateRoutes.POST("/", realEstateController.Add)
 	}
