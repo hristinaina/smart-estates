@@ -7,6 +7,7 @@ import (
 	"smarthome-back/repositories"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthController struct {
@@ -47,6 +48,7 @@ func NewAuthController(db *sql.DB) AuthController {
 
 // }
 
+// request body
 type RegisterInput struct {
 	Username string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
@@ -57,17 +59,27 @@ type RegisterInput struct {
 
 func (uc AuthController) Register(c *gin.Context) {
 
+	// get values from req body
 	var input RegisterInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
 	}
 
+	// hash password
+	hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to hash password"})
+		return
+	}
+
+	// create the user
 	u := models.User{}
 
 	u.Email = input.Username
-	u.Password = input.Password
+	u.Password = string(hash)
 	u.Name = input.Name
 	u.Surname = input.Surname
 	u.Picture = input.Picture
@@ -77,6 +89,6 @@ func (uc AuthController) Register(c *gin.Context) {
 		return
 	}
 
+	// respond
 	c.JSON(http.StatusOK, gin.H{"message": "registration success"})
-
 }
