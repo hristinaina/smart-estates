@@ -2,7 +2,7 @@
 import React,{ Component, useState } from 'react';
 import './RealEstates.css';
 import Dialog from '../Dialog/Dialog';
-import { NewRealEstate } from './NewRealEstate';
+import RealEstateService from '../../services/RealEstateService';
 
 import { Navigation } from '../Navigation/Navigation';
 
@@ -15,6 +15,16 @@ export class RealEstates extends Component {
             showApproveDialog: false,
             showDiscardDialog: false,
         };
+    }
+
+    async componentDidMount() {
+        try {
+            const result = await RealEstateService.getRealEstates();
+            console.log(result);
+        } catch (error) {
+            console.log("error");
+            console.error(error);
+        }
     }
 
     handleApprove = () => {
@@ -60,10 +70,7 @@ export class RealEstates extends Component {
                     Add Real-Estate
                 </p>
                 )}
-
-                {this.state.showNewRealEstate ? (
-                <NewRealEstate />
-                ) : (
+                
                 <div id='real-estates-container'>
                     <div className='real-estate-card'>
                         <img alt='real-estate' src='/images/real_estate_example.png' className='real-estate-img' />
@@ -76,7 +83,7 @@ export class RealEstates extends Component {
                         </div>
                     </div>
                 </div>
-                )}
+                
                  <div id="bottom-bar">
                     <button className='bottom-bar-btn' id='bottom-bar-approve' onClick={this.handleApprove}>APPROVE</button>
                     <button className='bottom-bar-btn' id='bottom-bar-discard' onClick={this.handleDiscard}>DISCARD</button>
