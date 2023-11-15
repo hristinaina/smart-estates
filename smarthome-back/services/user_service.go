@@ -26,12 +26,12 @@ func NewUserService(db *sql.DB) UserService {
 
 func (us *UserServiceImpl) ListUsers() []models.User {
 	var users = []models.User{
-		{Id: 1, Name: "Blue Train"},
-		{Id: 2, Name: "Jeru"},
-		{Id: 3, Name: "Sarah Vaughan and Clifford Brown"},
+		//{Id: 1, Name: "Blue Train"},
+		//{Id: 2, Name: "Jeru"},
+		//{Id: 3, Name: "Sarah Vaughan and Clifford Brown"},
 	}
-	// var users []models.User
-	// us.db.Find(&users)
+	//var users []models.User
+	//us.db.Find(&users)
 	return users
 }
 

@@ -2,8 +2,9 @@ package routes
 
 import (
 	"database/sql"
-	"github.com/gin-gonic/gin"
 	"smarthome-back/controllers"
+
+	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes(r *gin.Engine, db *sql.DB) {
@@ -13,6 +14,9 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		userRoutes.GET("/", userController.ListUsers)
 		userRoutes.GET("/:id", userController.GetUser)
 		userRoutes.GET("/test", userController.TestGetMethod)
+
+		authController := controllers.NewAuthController(db)
+		userRoutes.POST("/reg", authController.Register)
 	}
 
 	realEstateRoutes := r.Group("/api/real-estates")
