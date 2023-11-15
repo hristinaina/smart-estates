@@ -10,6 +10,8 @@
 #plus {
     height: 15px;
     text-align: right;
+    vertical-align: middle;
+    padding-bottom: 0.3em;
 }
 
 #add-real-estate:hover {
@@ -60,3 +62,37 @@
 .state-color {
     color: green;
 }
+
+#bottom-bar {
+    position: absolute;
+    bottom: 0;
+    width: 98.5%;
+    height: 3.5em;
+    background-color: #f1f1f1;
+    padding: 0px;
+    text-align: center;
+}
+
+.bottom-bar-btn {
+    width: 8em;
+    height: 100%;
+    border: 0px;
+    font-size: large;
+    font-weight: bold;
+}
+
+.bottom-bar-btn:hover {
+    cursor: pointer;
+    background-color: #e4e4e4;
+}
+
+#bottom-bar-approve {
+    color: green;
+    margin-right: 10em;
+}
+
+#bottom-bar-discard {
+    color: red;
+}
+
+

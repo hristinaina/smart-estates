@@ -20,7 +20,7 @@ export class Navigation extends Component {
                         <ul>
                             <span className="logo">Smart Home</span>
                             <NavItem>
-                                <NavLink tag={Link} className="text-light" to="/home">Home</NavLink>
+                                <NavLink tag={Link} className="text-light" to="/real-estates">Home</NavLink>
                             </NavItem>
                             <NavItem>
                                 <NavLink tag={Link} className="text-light" to="/database-manager">Nekaj</NavLink>
