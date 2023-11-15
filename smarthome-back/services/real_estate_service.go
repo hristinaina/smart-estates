@@ -40,7 +40,7 @@ func (res *RealEstateServiceImpl) GetAll() []models.RealEstate {
 		)
 
 		// TODO: create function for this -> DRY
-		if err := rows.Scan(&realEstate.Id, &realEstate.Type, &realEstate.Address,
+		if err := rows.Scan(&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address,
 			&realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors,
 			&realEstate.Picture, &realEstate.State, &realEstate.User); err != nil {
 			fmt.Println("Error: ", err.Error())
@@ -67,7 +67,7 @@ func (res *RealEstateServiceImpl) GetAllByUserId(userId int) []models.RealEstate
 		var (
 			realEstate models.RealEstate
 		)
-		if err := rows.Scan(&realEstate.Id, &realEstate.Type, &realEstate.Address,
+		if err := rows.Scan(&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address,
 			&realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors,
 			&realEstate.Picture, &realEstate.State, &realEstate.User); err != nil {
 			fmt.Println("Error: ", err.Error())
@@ -93,7 +93,7 @@ func (res *RealEstateServiceImpl) Get(id int) (models.RealEstate, error) {
 		var (
 			realEstate models.RealEstate
 		)
-		if err := rows.Scan(&realEstate.Id, &realEstate.Type, &realEstate.Address,
+		if err := rows.Scan(&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address,
 			&realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors,
 			&realEstate.Picture, &realEstate.State, &realEstate.User); err != nil {
 			fmt.Println("Error: ", err.Error())
@@ -116,7 +116,7 @@ func (res *RealEstateServiceImpl) GetPending() []models.RealEstate {
 		var (
 			realEstate models.RealEstate
 		)
-		if err := rows.Scan(&realEstate.Id, &realEstate.Type, &realEstate.Address, &realEstate.City,
+		if err := rows.Scan(&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address, &realEstate.City,
 			&realEstate.SquareFootage, &realEstate.NumberOfFloors, &realEstate.Picture, &realEstate.State,
 			&realEstate.User); err != nil {
 			fmt.Println("Error: ", err.Error())

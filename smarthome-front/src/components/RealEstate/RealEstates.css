@@ -1,4 +1,8 @@
 
+#real-estates-parent-container{
+    margin-bottom: 5em;
+}
+
 #add-real-estate {
     text-align: right;
     width: 98%;
@@ -24,12 +28,12 @@
 
 .real-estate-card {
     margin-top: 2em;
+    margin-left: 5%;
     display: inline-block;
     width: 22%;
     border-radius: 10%;
     overflow: hidden;
     padding-bottom: 20px;
-    margin-left: 5%;
     background-color: rgb(230, 230, 230);
     border: 1px solid  rgb(189, 189, 189);
 }
@@ -59,12 +63,20 @@
     font-size: 1em;
 }
 
-.state-color {
+.accepted {
     color: green;
 }
 
+.declined {
+    color: red;
+}
+
+.pending {
+    color: gray;
+}
+
 #bottom-bar {
-    position: absolute;
+    position: fixed;
     bottom: 0;
     width: 98.5%;
     height: 3.5em;

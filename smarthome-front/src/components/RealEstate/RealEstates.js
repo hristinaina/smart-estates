@@ -7,6 +7,7 @@ import RealEstateService from '../../services/RealEstateService';
 import { Navigation } from '../Navigation/Navigation';
 
 export class RealEstates extends Component {
+
     constructor(props) {
         super(props);
 
@@ -14,12 +15,14 @@ export class RealEstates extends Component {
             showNewRealEstate: false,
             showApproveDialog: false,
             showDiscardDialog: false,
+            realEstates: [],
         };
     }
 
     async componentDidMount() {
         try {
             const result = await RealEstateService.getRealEstates();
+            this.setState({realEstates: result})
             console.log(result);
         } catch (error) {
             console.log("error");
@@ -62,7 +65,7 @@ export class RealEstates extends Component {
 
     render() {
         return (
-            <div>
+            <div id="real-estates-parent-container">
                 <Navigation />
                 {!this.state.showNewRealEstate && (
                 <p id="add-real-estate" onClick={this.handleAddRealEstateClick}>
@@ -72,16 +75,20 @@ export class RealEstates extends Component {
                 )}
                 
                 <div id='real-estates-container'>
-                    <div className='real-estate-card'>
+                    {this.state.realEstates.map((realEstate, index) => (
+                        <div className='real-estate-card'>
                         <img alt='real-estate' src='/images/real_estate_example.png' className='real-estate-img' />
                         <div className='real-estate-info'>
-                            <p className='real-estate-title'>Villa B dorm</p>
-                            <p className='real-estate-text'>Location: Maldives</p>
-                            <p className='real-estate-text'>Square Footage: 102 m2</p>
-                            <p className='real-estate-text'>Number of Floors: 2</p>
-                            <p className='real-estate-text state-color'>Accepted</p>
+                            <p className='real-estate-title'>{realEstate.Name}</p>
+                            <p className='real-estate-text'>Address: {realEstate.Address}</p>
+                            <p className='real-estate-text'>Square Footage: {realEstate.SquareFootage}</p>
+                            <p className='real-estate-text'>Number of Floors: {realEstate.NumberOfFloors}</p>
+                            <p className={`real-estate-text ${realEstate.State === 1 ? 'accepted' : realEstate.State === 0 ? 'pending' : 'declined'}`}>
+                                {realEstate.State === 1 ? 'Accepted' : realEstate.State === 0 ? 'Pending' : 'Declined'}
+                            </p>
                         </div>
                     </div>
+                    ))}
                 </div>
                 
                  <div id="bottom-bar">
