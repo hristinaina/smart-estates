@@ -11,6 +11,7 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 import './Login.css'; 
+import authService from '../../services/AuthService'
 
 
 const Login = () => {
@@ -46,9 +47,17 @@ const Login = () => {
         value ? setIsButtonDisabled(true) : setIsButtonDisabled(false);
     };
 
-    const handleLogin = () => {
-        // send values form to server
-    }
+    const handleLogin = async () => {
+        const result = await authService.loginUser(username, password);
+    
+        if (result.success) {
+          console.log('Uspješno prijavljeni!');
+          // Dodajte daljnju logiku nakon uspješne prijave
+        } else {
+          console.error('Greška prilikom prijave:', result.error);
+          // Dodajte odgovarajući tretman grešaka
+        }
+    };
 
 
   return (
