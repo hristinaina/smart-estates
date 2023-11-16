@@ -24,11 +24,11 @@ export class RealEstates extends Component {
     async componentDidMount() {
         try {
             if (!this.state.isAdmin) {
-                const result = await RealEstateService.getRealEstates();
+                const result = await RealEstateService.get();
                 this.setState({realEstates: result})
                 console.log(result);
             } else {
-                const result = await RealEstateService.getPendingRealEstates();
+                const result = await RealEstateService.getPending();
                 this.setState({realEstates: result})
                 console.log(result);
             }
@@ -54,11 +54,13 @@ export class RealEstates extends Component {
     handleConfirmDiscard = () => {
         this.setState({showDiscardDialog: false});
         console.log("Request discarted...")
+        this.changeState(1);
     }
 
     handleConfirmApprove = () => {
         this.setState({showApproveDialog: false});
         console.log("Approved");
+        this.changeState(0);
     }
 
     handleCancel = () => {
@@ -76,6 +78,18 @@ export class RealEstates extends Component {
         this.setState({selectedRealEstate: id, isDisabled: false});
     }
 
+    changeState = async (state) => {
+        try {
+            const result = await RealEstateService.changeState(state, this.state.selectedRealEstate);
+            console.log("Success");
+            console.log(result);
+            this.componentDidMount();
+        } catch (error) {
+            console.log("Error");
+            console.error(error);
+        }
+    }
+ 
     render() {
 
         return (
@@ -89,7 +103,8 @@ export class RealEstates extends Component {
                 )}
                 
                 <div id='real-estates-container'>
-                    {this.state.realEstates.map((realEstate, index) => (
+                    {this.state.realEstates !== null  ? (
+                    this.state.realEstates.map((realEstate) => (
                         <div 
                             key={realEstate.Id}
                             className={`real-estate-card ${(realEstate.Id !== this.state.selectedRealEstate && this.state.isAdmin === true) ? 'not-selected-card' : 'selected-card'}`} 
@@ -105,7 +120,7 @@ export class RealEstates extends Component {
                                 </p>
                             </div>
                         </div>
-                    ))}
+                    ))): (<p>No real estates available.</p>)}
                 </div>
 
                 {this.state.isAdmin && (
