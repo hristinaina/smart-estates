@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"smarthome-back/dtos"
 	"smarthome-back/models"
 	"smarthome-back/services"
 	"strconv"
@@ -52,8 +53,10 @@ func (rec RealEstateController) ChangeState(c *gin.Context) {
 	CheckIfError(err, c)
 	state, err := strconv.Atoi(c.Param("state"))
 	CheckIfError(err, c)
-
-	realEstate := rec.service.ChangeState(id, state)
+	var reason dtos.DiscardRealEstate
+	err = c.BindJSON(&reason)
+	CheckIfError(err, c)
+	realEstate := rec.service.ChangeState(id, state, reason.DiscardReason)
 	if realEstate.SquareFootage == 0 {
 		c.JSON(http.StatusBadRequest, "Only pending real estates can be accepted/declined.")
 		return

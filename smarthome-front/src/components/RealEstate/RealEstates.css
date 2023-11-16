@@ -84,6 +84,10 @@
     color: gray;
 }
 
+#nothing-available {
+    text-align: center;
+}
+
 #bottom-bar {
     position: fixed;
     bottom: 0;

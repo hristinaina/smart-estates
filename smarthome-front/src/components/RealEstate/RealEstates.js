@@ -51,16 +51,17 @@ export class RealEstates extends Component {
                       })
     }
 
-    handleConfirmDiscard = () => {
-        this.setState({showDiscardDialog: false});
-        console.log("Request discarted...")
-        this.changeState(1);
+    handleConfirmDiscard = (reason) => {
+        this.setState({showDiscardDialog: false, isDisabled: true, selectedRealEstate: -1});
+        console.log("Request discarted...");
+        console.log("Reason:", reason);
+        this.changeState(1, reason);
     }
 
     handleConfirmApprove = () => {
-        this.setState({showApproveDialog: false});
+        this.setState({showApproveDialog: false, isDisabled: true, selectedRealEstate: -1});
         console.log("Approved");
-        this.changeState(0);
+        this.changeState(0, '');
     }
 
     handleCancel = () => {
@@ -78,9 +79,9 @@ export class RealEstates extends Component {
         this.setState({selectedRealEstate: id, isDisabled: false});
     }
 
-    changeState = async (state) => {
+    changeState = async (state, reason) => {
         try {
-            const result = await RealEstateService.changeState(state, this.state.selectedRealEstate);
+            const result = await RealEstateService.changeState(state, this.state.selectedRealEstate, reason);
             console.log("Success");
             console.log(result);
             this.componentDidMount();
@@ -120,7 +121,7 @@ export class RealEstates extends Component {
                                 </p>
                             </div>
                         </div>
-                    ))): (<p>No real estates available.</p>)}
+                    ))): (<p id="nothing-available">No real estates available.</p>)}
                 </div>
 
                 {this.state.isAdmin && (
@@ -136,6 +137,7 @@ export class RealEstates extends Component {
                     message="Are you sure you want to approve selected real-estate request?"
                     onConfirm={this.handleConfirmApprove}
                     onCancel={this.handleCancel}
+                    isDiscard={false}
                 />
                 )}
 
@@ -145,6 +147,7 @@ export class RealEstates extends Component {
                     message="Are you sure you want to discard selected real-estate request?"
                     onConfirm={this.handleConfirmDiscard}
                     onCancel={this.handleCancel}
+                    isDiscard={true}
                 />
                 )}
             </div>

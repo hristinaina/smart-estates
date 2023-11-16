@@ -43,7 +43,7 @@ class RealEstateService {
     //   }
     // }
 
-    static async changeState(state, id) {
+    static async changeState(state, id, reason) {
       var url  = '';
       if (state === 0) url = `http://localhost:8081/api/real-estates/${id}/0`;
       else {url = `http://localhost:8081/api/real-estates/${id}/1`};
@@ -53,6 +53,9 @@ class RealEstateService {
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          'DiscardReason': reason,
+        }),
  
       };
 

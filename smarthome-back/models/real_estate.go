@@ -15,4 +15,5 @@ type RealEstate struct {
 	Picture        string // change this later (upload picture)
 	State          enumerations.State
 	User           int
+	DiscardReason  string
 }

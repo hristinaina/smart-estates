@@ -13,7 +13,7 @@ type RealEstateService interface {
 	Get(id int) (models.RealEstate, error)
 	GetPending() []models.RealEstate
 	// ChangeState if state == 0 it is accepted, in opposite it is declined
-	ChangeState(id int, state int) models.RealEstate
+	ChangeState(id int, state int, reason string) models.RealEstate
 	Add(estate models.RealEstate) models.RealEstate
 }
 
@@ -42,12 +42,11 @@ func (res *RealEstateServiceImpl) GetAll() []models.RealEstate {
 		// TODO: create function for this -> DRY
 		if err := rows.Scan(&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address,
 			&realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors,
-			&realEstate.Picture, &realEstate.State, &realEstate.User); err != nil {
+			&realEstate.Picture, &realEstate.State, &realEstate.User, &realEstate.DiscardReason); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return []models.RealEstate{}
 		}
 		realEstates = append(realEstates, realEstate)
-		fmt.Println(realEstate)
 	}
 
 	return realEstates
@@ -69,7 +68,7 @@ func (res *RealEstateServiceImpl) GetAllByUserId(userId int) []models.RealEstate
 		)
 		if err := rows.Scan(&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address,
 			&realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors,
-			&realEstate.Picture, &realEstate.State, &realEstate.User); err != nil {
+			&realEstate.Picture, &realEstate.State, &realEstate.User, &realEstate.DiscardReason); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return []models.RealEstate{}
 		}
@@ -95,7 +94,7 @@ func (res *RealEstateServiceImpl) Get(id int) (models.RealEstate, error) {
 		)
 		if err := rows.Scan(&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address,
 			&realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors,
-			&realEstate.Picture, &realEstate.State, &realEstate.User); err != nil {
+			&realEstate.Picture, &realEstate.State, &realEstate.User, &realEstate.DiscardReason); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return models.RealEstate{}, err
 		}
@@ -118,7 +117,7 @@ func (res *RealEstateServiceImpl) GetPending() []models.RealEstate {
 		)
 		if err := rows.Scan(&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address, &realEstate.City,
 			&realEstate.SquareFootage, &realEstate.NumberOfFloors, &realEstate.Picture, &realEstate.State,
-			&realEstate.User); err != nil {
+			&realEstate.User, &realEstate.DiscardReason); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return nil
 		}
@@ -127,7 +126,7 @@ func (res *RealEstateServiceImpl) GetPending() []models.RealEstate {
 	return realEstates
 }
 
-func (res *RealEstateServiceImpl) ChangeState(id int, state int) models.RealEstate {
+func (res *RealEstateServiceImpl) ChangeState(id int, state int, reason string) models.RealEstate {
 	realEstate, err := res.Get(id)
 
 	if CheckIfError(err) {
@@ -151,12 +150,14 @@ func (res *RealEstateServiceImpl) ChangeState(id int, state int) models.RealEsta
 		realEstate.State = enumerations.ACCEPTED
 	} else {
 		realEstate.State = enumerations.DECLINED
+		realEstate.DiscardReason = reason
 	}
 
-	query = "INSERT INTO realestate (Id, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId)" +
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
-	_, err = res.db.Exec(query, realEstate.Id, realEstate.Type, realEstate.Address, realEstate.City,
-		realEstate.SquareFootage, realEstate.NumberOfFloors, realEstate.Picture, realEstate.State, realEstate.User)
+	query = "INSERT INTO realestate (Id, Name, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId, DiscardReason)" +
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+	_, err = res.db.Exec(query, realEstate.Id, realEstate.Name, realEstate.Type, realEstate.Address, realEstate.City,
+		realEstate.SquareFootage, realEstate.NumberOfFloors, realEstate.Picture, realEstate.State, realEstate.User,
+		realEstate.DiscardReason)
 
 	if CheckIfError(err) {
 		return models.RealEstate{}
@@ -171,10 +172,10 @@ func (res *RealEstateServiceImpl) Add(estate models.RealEstate) models.RealEstat
 
 	// TODO: add some validation for pictures
 	if estate.Address != "" && estate.City != "" && estate.SquareFootage != 0.0 && estate.NumberOfFloors != 0 {
-		query := "INSERT INTO realestate (Id, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId)" +
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
-		_, err := res.db.Exec(query, estate.Id, estate.Type, estate.Address, estate.City, estate.SquareFootage,
-			estate.NumberOfFloors, estate.Picture, estate.State, estate.User)
+		query := "INSERT INTO realestate (Id, Name, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId, DiscardReason)" +
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+		_, err := res.db.Exec(query, estate.Id, estate.Name, estate.Type, estate.Address, estate.City, estate.SquareFootage,
+			estate.NumberOfFloors, estate.Picture, estate.State, estate.User, "")
 		if CheckIfError(err) {
 			return models.RealEstate{}
 		}
