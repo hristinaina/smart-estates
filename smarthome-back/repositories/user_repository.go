@@ -11,6 +11,7 @@ type UserRepository interface {
 	GetAll() []models.User
 	SaveUser(user models.User) error
 	GetUserByEmail(email string) (*models.User, error)
+	GetUserById(id int) (*models.User, error)
 }
 
 type UserRepositoryImpl struct {
@@ -69,6 +70,22 @@ func (res *UserRepositoryImpl) SaveUser(user models.User) error {
 func (res *UserRepositoryImpl) GetUserByEmail(email string) (*models.User, error) {
 	query := "SELECT * FROM user WHERE email = ?"
 	row := res.db.QueryRow(query, email)
+
+	var user models.User
+
+	err := row.Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Surname, &user.Picture)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrUserNotFound
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (res *UserRepositoryImpl) GetUserById(id int) (*models.User, error) {
+	query := "SELECT * FROM user WHERE id = ?"
+	row := res.db.QueryRow(query, id)
 
 	var user models.User
 

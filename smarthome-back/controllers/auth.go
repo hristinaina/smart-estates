@@ -21,6 +21,7 @@ func NewAuthController(db *sql.DB) AuthController {
 	return AuthController{repo: repositories.NewUserRepository(db)}
 }
 
+// request body
 type LoginInput struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
@@ -116,4 +117,9 @@ func (uc AuthController) Register(c *gin.Context) {
 
 	// respond
 	c.JSON(http.StatusOK, gin.H{"message": "registration success"})
+}
+
+func (uc AuthController) Validate(c *gin.Context) {
+	user, _ := c.Get("user")
+	c.JSON(http.StatusOK, gin.H{"message": user})
 }
