@@ -17,13 +17,14 @@ export class NewDevice extends Component {
             maxTemp: 31,
             batterySize: 1,
             chargingPower: 0,
-            connections: 0,
+            connections: 1,
             selectedPowerSupply: 'autonomous',
-            showPowerSupply: true,  //za sve osim za posljednja tri
-            showPowerConsumption: false,  // ako je Power Supply battery/network (i prethodno je true)
+            showPowerSupply: true,
+            showPowerConsumption: false,
             showAirConditioner: false,
             showBatterySize: false,
             showCharger: false,
+            isButtonDisabled: true,
         };
     }
 
@@ -41,69 +42,122 @@ export class NewDevice extends Component {
 
     handleTypeChange = (event) => {
         const selectedType = event.target.value;
-      
+
         this.setState({ selectedType }, () => {
-          // Callback function after state is updated
-          this.setState({
-            showPowerConsumption: false,
-            showAirConditioner: false,
-            showBatterySize: false,
-            showCharger: false,
-          });
-      
-          if (selectedType === 'solar-panel' || selectedType === 'battery-storage' || selectedType === 'electric-vehicle-charger') {
+            // Callback function after state is updated
             this.setState({
-              showPowerSupply: false,
+                showPowerConsumption: false,
+                showAirConditioner: false,
+                showBatterySize: false,
+                showCharger: false,
             });
-          } else {
-            this.setState({
-              showPowerSupply: true,
-              selectedPowerSupply: 'autonomous',
-            });
-          }
-      
-          if (selectedType === 'battery-storage') {
-            this.setState({
-              showBatterySize: true,
-            });
-          }else if (selectedType === 'air') {
-            this.setState({
-              showAirConditioner: true,
-            });
-          } else if (selectedType === 'electric-vehicle-charger') {
-            this.setState({
-              showCharger: true,
-            });
-          }
+
+            if (selectedType === 'solar-panel' || selectedType === 'battery-storage' || selectedType === 'electric-vehicle-charger') {
+                this.setState({
+                    showPowerSupply: false,
+                });
+            } else {
+                this.setState({
+                    showPowerSupply: true,
+                    selectedPowerSupply: 'autonomous',
+                });
+            }
+
+            if (selectedType === 'battery-storage') {
+                this.setState({
+                    showBatterySize: true,
+                });
+            } else if (selectedType === 'air') {
+                this.setState({
+                    showAirConditioner: true,
+                });
+            } else if (selectedType === 'electric-vehicle-charger') {
+                this.setState({
+                    showCharger: true,
+                });
+            }
         });
-      };
-      
+    };
+
 
     handlePowerSupplyChange = (event) => {
         const selectedPowerSupply = event.target.value;
-      
+
         this.setState({ selectedPowerSupply }, () => {
-          if (selectedPowerSupply === 'home') {
-            this.setState({
-              showPowerConsumption: true,
-            });
-          } else {
-            this.setState({
-              showPowerConsumption: false,
-            });
-          }
+            if (selectedPowerSupply === 'home') {
+                this.setState({
+                    showPowerConsumption: true,
+                });
+            } else {
+                this.setState({
+                    showPowerConsumption: false,
+                });
+            }
         });
-      };
+    };
+
+    handleNameChange = (event) => {
+        const name = event.target.value;
+
+        this.setState({ name }, () => {
+            this.checkButton();
+        });
+    }
+
+    handleMinTemp = (event) => {
+        const minTemp = event.target.value;
       
+        this.setState((prevState) => ({
+          ...prevState,
+          minTemp,
+        }), () => {
+          this.checkButton();
+        });
+      }
+      
+      handleMaxTemp = (event) => {
+        const maxTemp = event.target.value;
+      
+        this.setState((prevState) => ({
+          ...prevState,
+          maxTemp,
+        }), () => {
+          this.checkButton();
+        });
+      }
 
     handleImageChange = (event) => {
         const file = event.target.files[0];
 
-        this.setState({
-            selectedImage: file,
-            imagePreview: URL.createObjectURL(file),
-        });
+        this.setState(
+            {
+                selectedImage: file,
+                imagePreview: URL.createObjectURL(file),
+            },
+            () => {
+                this.checkButton();
+            }
+        );
     };
+
+    checkButton = () => {
+        if (this.state.name.trim() === '' || this.state.selectedImage === null) {
+            this.setState({ isButtonDisabled: true })
+        }
+        else {
+            if (this.state.selectedType === 'air' && this.state.minTemp>= this.state.maxTemp){
+                this.setState({ isButtonDisabled: true })
+            }
+            else{
+                this.setState({ isButtonDisabled: false })
+            }
+        }
+    }
+
+    createDevice = () => {
+        console.log("api sent");
+    };
+
 
     render() {
         const types = this.types;
@@ -120,7 +174,7 @@ export class NewDevice extends Component {
                             name="name"
                             placeholder="Type the name of the device"
                             value={this.state.name} // Set the input value from the state
-                            onChange={(e) => this.setState({ name: e.target.value })}
+                            onChange={this.handleNameChange}
                         />
                         <p className="new-real-estate-label">Type</p>
                         <select
@@ -135,10 +189,10 @@ export class NewDevice extends Component {
                         </select>
                         {this.state.showPowerSupply && (
                             <div>
-                                <p className="new-real-estate-label">Power supply method:</p>
+                                <p className="new-real-estate-label">Power supply type:</p>
                                 <select
                                     className="new-real-estate-select"
-                                    value={this.state.selectedPowerSupply} 
+                                    value={this.state.selectedPowerSupply}
                                     onChange={this.handlePowerSupplyChange}>
                                     <option value="autonomous">Autonomous</option>
                                     <option value="home">Home (home battery/network)</option>
@@ -153,8 +207,8 @@ export class NewDevice extends Component {
                                     type="number"
                                     name="power-consumption"
                                     placeholder="Enter the power consumption of your device (in watts)"
-                                    value={this.state.powerConsumption} 
-                                    onChange={(e) => this.setState({ name: e.target.value })}
+                                    value={this.state.powerConsumption}
+                                    onChange={(e) => this.setState({ powerConsumption: e.target.value })}
                                 />
                             </div>
                         )}
@@ -166,8 +220,8 @@ export class NewDevice extends Component {
                                     type="number"
                                     name="min-temp"
                                     placeholder="Enter the min temp of your air conditioner (in celsius)"
-                                    value={this.state.minTemp} 
-                                    onChange={(e) => this.setState({ name: e.target.value })}
+                                    value={this.state.minTemp}
+                                    onChange={this.handleMinTemp}
                                 />
                                 <p className="new-real-estate-label">Maximal temperature: (celsius)</p>
                                 <input
@@ -175,8 +229,8 @@ export class NewDevice extends Component {
                                     type="number"
                                     name="max-temp"
                                     placeholder="Enter the min temp of your air conditioner (in celsius)"
-                                    value={this.state.maxTemp} 
-                                    onChange={(e) => this.setState({ name: e.target.value })}
+                                    value={this.state.maxTemp}
+                                    onChange={this.handleMaxTemp}
                                 />
                             </div>
                         )}
@@ -188,8 +242,8 @@ export class NewDevice extends Component {
                                     type="number"
                                     name="battery-size"
                                     placeholder="Enter the battery size (in kWh)"
-                                    value={this.state.batterySize} 
-                                    onChange={(e) => this.setState({ name: e.target.value })}
+                                    value={this.state.batterySize}
+                                    onChange={(e) => this.setState({ batterySize: e.target.value })}
                                 />
                             </div>
                         )}
@@ -201,8 +255,8 @@ export class NewDevice extends Component {
                                     type="number"
                                     name="charging-power"
                                     placeholder="Enter the charging power (in kwatts)"
-                                    value={this.state.chargingPower} 
-                                    onChange={(e) => this.setState({ name: e.target.value })}
+                                    value={this.state.chargingPower}
+                                    onChange={(e) => this.setState({ chargingPower: e.target.value })}
                                 />
                                 <p className="new-real-estate-label">Number of connections:</p>
                                 <input
@@ -210,8 +264,8 @@ export class NewDevice extends Component {
                                     type="number"
                                     name="connections"
                                     placeholder="Enter the number of connections"
-                                    value={this.state.connections} 
-                                    onChange={(e) => this.setState({ name: e.target.value })}
+                                    value={this.state.connections}
+                                    onChange={(e) => this.setState({ connections: e.target.value })}
                                 />
                             </div>
                         )}
@@ -243,7 +297,7 @@ export class NewDevice extends Component {
                                 </button>
                             </Link>
                             <button
-                                id="confirm-button" className="btn">
+                                id="confirm-button" className={`btn ${this.state.isButtonDisabled ? 'disabled' : ''}`} disabled={this.state.isButtonDisabled} onClick={this.createDevice}>
                                 CONFIRM
                             </button>
                         </span>
