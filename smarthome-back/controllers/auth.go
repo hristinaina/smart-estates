@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"net/http"
 	"os"
+	"smarthome-back/enumerations"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -55,8 +57,9 @@ func (uc AuthController) Login(c *gin.Context) {
 
 	// generate a jwt token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.Id,
-		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(), // 30 days
+		"sub":  user.Id,
+		"role": strconv.Itoa(int(user.Role)),
+		"exp":  time.Now().Add(time.Hour * 24 * 30).Unix(), // 30 days
 	})
 
 	// Sign and get the complete encoded token as a string using the secret
@@ -81,6 +84,7 @@ type RegisterInput struct {
 	Name     string `json:"name" binding:"required"`
 	Surname  string `json:"surname" binding:"required"`
 	Picture  string `json:"picture" binding:"required"`
+	Role     int    `json:"role" binding:"required"`
 }
 
 func (uc AuthController) Register(c *gin.Context) {
@@ -109,6 +113,7 @@ func (uc AuthController) Register(c *gin.Context) {
 	u.Name = input.Name
 	u.Surname = input.Surname
 	u.Picture = input.Picture
+	u.Role = enumerations.IntToRole(input.Role)
 
 	if err := uc.repo.SaveUser(u); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"smarthome-back/repositories"
+	"smarthome-back/utils"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -29,8 +30,6 @@ func (mw Middleware) RequireAuth(c *gin.Context) {
 	}
 
 	// decode/validate it
-
-	// Parse takes the token string and a function for looking up the key. The latter is especially
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
@@ -65,9 +64,61 @@ func (mw Middleware) RequireAuth(c *gin.Context) {
 
 		// continue
 		c.Next()
-
-		fmt.Println(claims["sub"], claims["exp"])
 	} else {
 		c.AbortWithStatus(http.StatusUnauthorized)
 	}
+}
+
+// functions which only admin can use
+func AdminMiddleware(c *gin.Context) {
+
+	cookie, err := c.Cookie("Authorization")
+
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	claims, err := utils.ParseToken(cookie)
+
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	// 0 is admin
+	if claims["role"] != "0" {
+		c.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+
+	c.Next()
+	return
+}
+
+// functions which only users can use
+func UserMiddleware(c *gin.Context) {
+
+	cookie, err := c.Cookie("Authorization")
+
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	claims, err := utils.ParseToken(cookie)
+
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	// 1 is user
+	if claims["role"] != "1" {
+		c.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+
+	c.Next()
+	return
 }

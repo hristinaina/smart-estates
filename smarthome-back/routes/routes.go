@@ -30,7 +30,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		realEstateRoutes.GET("/", realEstateController.GetAll)
 		realEstateRoutes.GET("/user/:userId", realEstateController.GetAllByUserId)
 		realEstateRoutes.GET("/:id", realEstateController.Get)
-		realEstateRoutes.PUT("/:id/:state", realEstateController.ChangeState)
-		realEstateRoutes.POST("/", realEstateController.Add)
+		realEstateRoutes.PUT("/:id/:state", middleware.AdminMiddleware, realEstateController.ChangeState) // user can't use this
+		realEstateRoutes.POST("/", middleware.UserMiddleware, realEstateController.Add)                   // admin can't use this
 	}
 }
