@@ -71,7 +71,6 @@ const Login = () => {
         const result = await authService.loginUser(username, password);
     
         if (result.success) {
-            handleClick()
             navigate('/real-estates');;
         } else {
             setSnackbarMessage(result.error);

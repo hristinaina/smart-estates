@@ -40,7 +40,7 @@ export class Navigation extends Component {
                                 <NavLink tag={Link} className="text-light" to="/reports">Nekaj</NavLink>
                             </NavItem>
                             <NavItem className="logout">
-                                <NavLink tag={Link} className="text-light" to="/login" onClick={this.handleLogout}>Log out</NavLink>
+                                <NavLink tag={Link} className="text-light" to="/" onClick={this.handleLogout}>Log out</NavLink>
                             </NavItem>
                         </ul>
                     )}
@@ -57,7 +57,7 @@ export class Navigation extends Component {
                                 <NavLink tag={Link} className="text-light" to="/reports">ADmin2</NavLink>
                             </NavItem>
                             <NavItem className="logout">
-                                <NavLink tag={Link} className="text-light" to="/login" onClick={this.handleLogout}>Log out</NavLink>
+                                <NavLink tag={Link} className="text-light" to="/" onClick={this.handleLogout}>Log out</NavLink>
                             </NavItem>
                         </ul>
                     )}

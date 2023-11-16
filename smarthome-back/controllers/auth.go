@@ -116,7 +116,7 @@ func (uc AuthController) Register(c *gin.Context) {
 	u.Role = enumerations.IntToRole(input.Role)
 
 	if err := uc.repo.SaveUser(u); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Account with that email already exists!"})
 		return
 	}
 
