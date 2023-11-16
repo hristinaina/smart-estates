@@ -34,8 +34,10 @@ export class Devices extends Component {
                     <Link to="/"><img src='/images/arrow.png' id='arrow' /></Link>
                     <span className='estate-title'>Ta i ta nekretnina</span>
                     <p id="add-device">
-                        <img alt="." src="/images/plus.png" id="plus" />
-                        Add Device
+                        <Link to="/new-device">
+                            <img alt="." src="/images/plus.png" id="plus" />
+                            Add Device
+                        </Link>
                     </p>
                 </div>
                 <Divider style={{width: "87%", marginLeft: 'auto', marginRight: 'auto', marginBottom: '20px'}}/>
