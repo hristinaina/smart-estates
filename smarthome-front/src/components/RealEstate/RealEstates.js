@@ -1,5 +1,5 @@
 
-import React,{ Component, useState } from 'react';
+import React,{ Component, setState } from 'react';
 import './RealEstates.css';
 import Dialog from '../Dialog/Dialog';
 import RealEstateService from '../../services/RealEstateService';
@@ -13,8 +13,10 @@ export class RealEstates extends Component {
 
         this.state = {
             isAdmin: true,
+            isDisabled: true,
             showApproveDialog: false,
             showDiscardDialog: false,
+            selectedRealEstate: -1,
             realEstates: [],
         };
     }
@@ -70,6 +72,10 @@ export class RealEstates extends Component {
         window.location.href = '/new-real-estate';
     }
 
+    handleCardClick = (id) => {
+        this.setState({selectedRealEstate: id, isDisabled: false});
+    }
+
     render() {
 
         return (
@@ -84,25 +90,28 @@ export class RealEstates extends Component {
                 
                 <div id='real-estates-container'>
                     {this.state.realEstates.map((realEstate, index) => (
-                        <div className='real-estate-card'>
-                        <img alt='real-estate' src='/images/real_estate_example.png' className='real-estate-img' />
-                        <div className='real-estate-info'>
-                            <p className='real-estate-title'>{realEstate.Name}</p>
-                            <p className='real-estate-text'>Address: {realEstate.Address}</p>
-                            <p className='real-estate-text'>Square Footage: {realEstate.SquareFootage}</p>
-                            <p className='real-estate-text'>Number of Floors: {realEstate.NumberOfFloors}</p>
-                            <p className={`real-estate-text ${realEstate.State === 1 ? 'accepted' : realEstate.State === 0 ? 'pending' : 'declined'}`}>
-                                {realEstate.State === 1 ? 'Accepted' : realEstate.State === 0 ? 'Pending' : 'Declined'}
-                            </p>
+                        <div 
+                            key={realEstate.Id}
+                            className={`real-estate-card ${(realEstate.Id !== this.state.selectedRealEstate && this.state.isAdmin === true) ? 'not-selected-card' : 'selected-card'}`} 
+                            onClick={() => this.handleCardClick(realEstate.Id)}>
+                            <img alt='real-estate' src='/images/real_estate_example.png' className='real-estate-img' />
+                            <div className='real-estate-info'>
+                                <p className='real-estate-title'>{realEstate.Name}</p>
+                                <p className='real-estate-text'>Address: {realEstate.Address}</p>
+                                <p className='real-estate-text'>Square Footage: {realEstate.SquareFootage}</p>
+                                <p className='real-estate-text'>Number of Floors: {realEstate.NumberOfFloors}</p>
+                                <p className={`real-estate-text ${realEstate.State === 1 ? 'accepted' : realEstate.State === 0 ? 'pending' : 'declined'}`}>
+                                    {realEstate.State === 1 ? 'Accepted' : realEstate.State === 0 ? 'Pending' : 'Declined'}
+                                </p>
+                            </div>
                         </div>
-                    </div>
                     ))}
                 </div>
 
                 {this.state.isAdmin && (
                     <div id="bottom-bar">
-                    <button className='bottom-bar-btn' id='bottom-bar-approve' onClick={this.handleApprove}>APPROVE</button>
-                    <button className='bottom-bar-btn' id='bottom-bar-discard' onClick={this.handleDiscard}>DISCARD</button>
+                    <button className='bottom-bar-btn' id='bottom-bar-approve' onClick={this.handleApprove} disabled={this.state.isDisabled}>APPROVE</button>
+                    <button className='bottom-bar-btn' id='bottom-bar-discard' onClick={this.handleDiscard} disabled={this.state.isDisabled}>DISCARD</button>
                  </div>
                 )}
                  
