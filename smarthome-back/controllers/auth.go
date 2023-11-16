@@ -123,3 +123,8 @@ func (uc AuthController) Validate(c *gin.Context) {
 	user, _ := c.Get("user")
 	c.JSON(http.StatusOK, gin.H{"message": user})
 }
+
+func (uc AuthController) Logout(c *gin.Context) {
+	c.SetCookie("Authorization", "", -1, "", "", false, true)
+	c.JSON(http.StatusOK, gin.H{"message": "Successful logout!"})
+}

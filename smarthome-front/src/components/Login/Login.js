@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import theme from '../../theme';
 import { ThemeProvider } from '@emotion/react';
 
@@ -22,6 +22,8 @@ const Login = () => {
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])(.{8,})$/;
+
+    const navigate = useNavigate();
 
     const handleClickShowPassword = () => {
         setShowPassword(!showPassword);
@@ -51,8 +53,8 @@ const Login = () => {
         const result = await authService.loginUser(username, password);
     
         if (result.success) {
-          console.log('Uspješno prijavljeni!');
-          // Dodajte daljnju logiku nakon uspješne prijave
+            console.log('Uspješno prijavljeni!');
+            navigate('/');
         } else {
           console.error('Greška prilikom prijave:', result.error);
           // Dodajte odgovarajući tretman grešaka

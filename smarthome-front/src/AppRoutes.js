@@ -7,7 +7,7 @@ import Registration from './components/Registration/Registration';
 
 const AppRoutes = [
   {
-    path: '/',
+    path: '/login',
     element: <Login />
   },
   {
@@ -15,7 +15,7 @@ const AppRoutes = [
     element: <Registration />
   },
   {
-    path: '/real-estates',
+    path: '/',
     element: <RealEstates />
   },
   {

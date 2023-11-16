@@ -2,9 +2,20 @@ import React, { Component } from 'react';
 import { Navbar, NavItem, NavLink, Collapse, NavbarToggler } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import './Navigation.css';
+import authService from '../../services/AuthService'
 
 export class Navigation extends Component {
     static displayName = Navigation.name;
+
+    handleLogout = async () => {
+        const result = await authService.logoutUser();
+    
+        if (result.success) {
+          console.log('Uspešno ste se odjavili!');
+        } else {
+          console.error('Greška prilikom odjavljivanja:', result.error);
+        }
+      };
 
     constructor(props) {
         super(props);
@@ -29,7 +40,7 @@ export class Navigation extends Component {
                                 <NavLink tag={Link} className="text-light" to="/reports">Nekaj</NavLink>
                             </NavItem>
                             <NavItem className="logout">
-                                <NavLink tag={Link} className="text-light" to="/">Log out</NavLink>
+                                <NavLink tag={Link} className="text-light" to="/login" onClick={this.handleLogout}>Log out</NavLink>
                             </NavItem>
                         </ul>
                     )}
@@ -46,7 +57,7 @@ export class Navigation extends Component {
                                 <NavLink tag={Link} className="text-light" to="/reports">ADmin2</NavLink>
                             </NavItem>
                             <NavItem className="logout">
-                                <NavLink tag={Link} className="text-light" to="/">Log out</NavLink>
+                                <NavLink tag={Link} className="text-light" to="/login" onClick={this.handleLogout}>Log out</NavLink>
                             </NavItem>
                         </ul>
                     )}
