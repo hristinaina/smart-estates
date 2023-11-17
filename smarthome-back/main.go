@@ -12,7 +12,6 @@ import (
 
 func main() {
 	r := gin.Default()
-	// r.Use(cors.Default())
 	r.Use(config.SetupCORS())
 
 	db := config.SetupDatabase()

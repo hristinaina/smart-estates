@@ -44,7 +44,6 @@ func (res *UserRepositoryImpl) GetAll() []models.User {
 			return []models.User{}
 		}
 		users = append(users, user)
-		fmt.Println(user)
 	}
 
 	return users
@@ -52,7 +51,6 @@ func (res *UserRepositoryImpl) GetAll() []models.User {
 
 func (res *UserRepositoryImpl) SaveUser(user models.User) error {
 	user.Id = res.generateId()
-	fmt.Println(user.Id)
 	// TODO: add some validation for pictures
 	if user.Email != "" && user.Password != "" && user.Name != "" && user.Surname != "" {
 		query := "INSERT INTO User (Id, Email, Password, Name, Surname, Picture, Role)" +

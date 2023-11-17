@@ -7,6 +7,7 @@ import (
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
+	"smarthome-back/services"
 	"strconv"
 	"time"
 
@@ -16,11 +17,12 @@ import (
 )
 
 type AuthController struct {
-	repo repositories.UserRepository
+	repo         repositories.UserRepository
+	mail_service services.MailService
 }
 
 func NewAuthController(db *sql.DB) AuthController {
-	return AuthController{repo: repositories.NewUserRepository(db)}
+	return AuthController{repo: repositories.NewUserRepository(db), mail_service: services.NewMailService()}
 }
 
 // request body
@@ -132,4 +134,9 @@ func (uc AuthController) Validate(c *gin.Context) {
 func (uc AuthController) Logout(c *gin.Context) {
 	c.SetCookie("Authorization", "", -1, "", "", false, true)
 	c.JSON(http.StatusOK, gin.H{"message": "Successful logout!"})
+}
+
+func (uc AuthController) SendVerificationMail(c *gin.Context) {
+	uc.mail_service.SendVerificationMail()
+	c.JSON(http.StatusOK, gin.H{"message": "Mejl je poslat!"})
 }
