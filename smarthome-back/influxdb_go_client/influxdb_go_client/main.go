@@ -14,8 +14,8 @@ import (
 
 func main() {
 	// connecting to database
-	//err := os.Setenv("INFLUXDB_TOKEN", "fl351wwqky2cPaL4xiu3OaUP63A7isB6UtAsB7ikJS8WSL83RQs3zMK2htU5wAtGjCa9tGbEoX2Ay9ga09v9FA==")
-	token := os.Getenv("INFLUXDB_TOKEN")
+	err := os.Setenv("INFLUXDB_TOKEN", "fl351wwqky2cPaL4xiu3OaUP63A7isB6UtAsB7ikJS8WSL83RQs3zMK2htU5wAtGjCa9tGbEoX2Ay9ga09v9FA==")
+	token := "fl351wwqky2cPaL4xiu3OaUP63A7isB6UtAsB7ikJS8WSL83RQs3zMK2htU5wAtGjCa9tGbEoX2Ay9ga09v9FA=="
 	fmt.Println("Variableee")
 	fmt.Println(token)
 	url := "http://127.0.0.1:8086"

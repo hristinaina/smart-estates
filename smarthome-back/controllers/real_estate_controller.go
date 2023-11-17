@@ -67,7 +67,7 @@ func (rec RealEstateController) ChangeState(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error happened while sending mail..."})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, realEstate)
 }
 
