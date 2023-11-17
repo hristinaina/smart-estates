@@ -196,7 +196,7 @@ export class NewDevice extends Component {
                 this.setState({ isButtonDisabled: true })
             }
             else if (this.state.selectedPowerSupply === 'home' && (this.state.powerConsumption> 60000 ||this.state.powerConsumption<= 0) 
-            && (this.state.selectedType != 'solar-panel' && this.state.selectedType != 'battery-storage' && this.state.selectedType != 'electric-vehicle-charger')){
+            && (this.state.selectedType !== 'solar-panel' && this.state.selectedType !== 'battery-storage' && this.state.selectedType !== 'electric-vehicle-charger')){
                 this.setState({ isButtonDisabled: true })
             }
             else if (this.state.selectedType === 'electric-vehicle-charger' && (this.state.connections < 1 ||this.state.connections> 20
@@ -269,7 +269,7 @@ export class NewDevice extends Component {
                         )}
                         {this.state.showAirConditioner && (
                             <div>
-                                <p className="new-real-estate-label">Minimal temperature (celsius):</p>
+                                <p className="new-real-estate-label">Minimum temperature (celsius):</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"
@@ -278,7 +278,7 @@ export class NewDevice extends Component {
                                     value={this.state.minTemp}
                                     onChange={this.handleMinTemp}
                                 />
-                                <p className="new-real-estate-label">Maximal temperature: (celsius)</p>
+                                <p className="new-real-estate-label">Maximum temperature: (celsius)</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"
@@ -335,7 +335,7 @@ export class NewDevice extends Component {
                                 style={{ display: 'none' }}
                                 ref={(fileInput) => (this.fileInput = fileInput)}
                             />
-                            <img id="upload-image" src="/images/photo.png" />
+                            <img id="upload-image" src="/images/photo.png" alt="icon"/>
                             <p id="upload-image-p">Upload image</p>
                         </div>
                         {/* Show choosen image */}
