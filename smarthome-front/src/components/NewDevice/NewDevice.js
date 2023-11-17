@@ -15,8 +15,8 @@ export class NewDevice extends Component {
             powerConsumption: 200,
             minTemp: 16,
             maxTemp: 31,
-            batterySize: 1,
-            chargingPower: 0,
+            batterySize: 13,
+            chargingPower: 2.3,
             connections: 1,
             selectedPowerSupply: 'autonomous',
             showPowerSupply: true,
@@ -110,6 +110,22 @@ export class NewDevice extends Component {
         });
     }
 
+    handleChargingPower = (event) => {
+        const chargingPower = event.target.value;
+
+        this.setState({ chargingPower }, () => {
+            this.checkButton();
+        });
+    }
+
+    handleConnections = (event) => {
+        const connections = event.target.value;
+
+        this.setState({ connections }, () => {
+            this.checkButton();
+        });
+    }
+
     handleMinTemp = (event) => {
         const minTemp = event.target.value;
       
@@ -176,10 +192,15 @@ export class NewDevice extends Component {
             if (this.state.selectedType === 'air' && (this.state.minTemp>= this.state.maxTemp ||this.state.minTemp< -40 || this.state.maxTemp > 60)){
                 this.setState({ isButtonDisabled: true })
             }
-            else if (this.state.selectedType === 'battery-storage' && (this.state.batterySize> 80 ||this.state.batterySize< 1)){
+            else if (this.state.selectedType === 'battery-storage' && (this.state.batterySize> 100000 ||this.state.batterySize< 1)){
                 this.setState({ isButtonDisabled: true })
             }
-            else if (this.state.selectedPowerSupply === 'home' && (this.state.powerConsumption> 60000 ||this.state.powerConsumption<= 0) && (this.state.selectedType != 'solar-panel' && this.state.selectedType != 'battery-storage' && this.state.selectedType != 'electric-vehicle-charger')){
+            else if (this.state.selectedPowerSupply === 'home' && (this.state.powerConsumption> 60000 ||this.state.powerConsumption<= 0) 
+            && (this.state.selectedType != 'solar-panel' && this.state.selectedType != 'battery-storage' && this.state.selectedType != 'electric-vehicle-charger')){
+                this.setState({ isButtonDisabled: true })
+            }
+            else if (this.state.selectedType === 'electric-vehicle-charger' && (this.state.connections < 1 ||this.state.connections> 20
+                ||this.state.chargingPower< 1 ||this.state.chargingPower> 360)){
                 this.setState({ isButtonDisabled: true })
             }
             else{
@@ -290,7 +311,7 @@ export class NewDevice extends Component {
                                     name="charging-power"
                                     placeholder="Enter the charging power (in kwatts)"
                                     value={this.state.chargingPower}
-                                    onChange={(e) => this.setState({ chargingPower: e.target.value })}
+                                    onChange={this.handleChargingPower}
                                 />
                                 <p className="new-real-estate-label">Number of connections:</p>
                                 <input
@@ -299,7 +320,7 @@ export class NewDevice extends Component {
                                     name="connections"
                                     placeholder="Enter the number of connections"
                                     value={this.state.connections}
-                                    onChange={(e) => this.setState({ connections: e.target.value })}
+                                    onChange={this.handleConnections}
                                 />
                             </div>
                         )}
@@ -331,7 +352,8 @@ export class NewDevice extends Component {
                                 </button>
                             </Link>
                             <button
-                                id="confirm-button" className={`btn ${this.state.isButtonDisabled ? 'disabled' : ''}`} disabled={this.state.isButtonDisabled} onClick={this.createDevice}>
+                                id="confirm-button" className={`btn ${this.state.isButtonDisabled ? 'disabled' : ''}`} disabled={this.state.isButtonDisabled}
+                                 onClick={this.createDevice}>
                                 CONFIRM
                             </button>
                         </span>
