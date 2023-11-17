@@ -42,3 +42,19 @@ func (dto *DeviceDTO) ToAirConditioner() models.AirConditioner {
 		MaxTemperature: dto.MaxTemperature,
 	}
 }
+
+func (dto *DeviceDTO) ToEVCharger() models.EVCharger {
+	return models.EVCharger{
+		//todo change according to code from front.
+		Device: models.Device{
+			Id:         dto.Id,
+			Name:       dto.Name,
+			Type:       dto.Type,
+			Picture:    dto.Picture,
+			RealEstate: dto.RealEstate,
+			IsOnline:   dto.IsOnline,
+		},
+		ChargingPower: dto.ChargingPower,
+		Connections:   dto.Connections,
+	}
+}

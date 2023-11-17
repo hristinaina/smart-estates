@@ -25,3 +25,14 @@ func NewEVChargerParam(name string, deviceType enumerations.DeviceType, img stri
 		Connections:   connections,
 	}
 }
+
+func (ac EVCharger) ToDevice() Device {
+	return Device{
+		Id:         ac.Device.Id,
+		Name:       ac.Device.Name,
+		Type:       ac.Device.Type,
+		Picture:    ac.Device.Picture,
+		RealEstate: ac.Device.RealEstate,
+		IsOnline:   ac.Device.IsOnline,
+	}
+}
