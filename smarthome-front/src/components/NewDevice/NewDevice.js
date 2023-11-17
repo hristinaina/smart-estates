@@ -12,7 +12,7 @@ export class NewDevice extends Component {
             selectedImage: null,
             imagePreview: null,
             name: "",
-            powerConsumption: 0,
+            powerConsumption: 200,
             minTemp: 16,
             maxTemp: 31,
             batterySize: 1,
@@ -46,7 +46,6 @@ export class NewDevice extends Component {
         this.setState({ selectedType }, () => {
             // Callback function after state is updated
             this.setState({
-                showPowerConsumption: false,
                 showAirConditioner: false,
                 showBatterySize: false,
                 showCharger: false,
@@ -55,12 +54,17 @@ export class NewDevice extends Component {
             if (selectedType === 'solar-panel' || selectedType === 'battery-storage' || selectedType === 'electric-vehicle-charger') {
                 this.setState({
                     showPowerSupply: false,
+                    showPowerConsumption: false,
                 });
             } else {
                 this.setState({
                     showPowerSupply: true,
-                    selectedPowerSupply: 'autonomous',
                 });
+                if(this.state.selectedPowerSupply==="home"){
+                    this.setState({
+                        showPowerConsumption: true,
+                    });
+                }
             }
 
             if (selectedType === 'battery-storage') {
@@ -76,6 +80,7 @@ export class NewDevice extends Component {
                     showCharger: true,
                 });
             }
+            this.checkButton();
         });
     };
 
@@ -93,6 +98,7 @@ export class NewDevice extends Component {
                     showPowerConsumption: false,
                 });
             }
+            this.checkButton();
         });
     };
 
@@ -126,6 +132,28 @@ export class NewDevice extends Component {
         });
       }
 
+      handleBatterySize = (event) => {
+        const batterySize = event.target.value;
+      
+        this.setState((prevState) => ({
+          ...prevState,
+          batterySize,
+        }), () => {
+          this.checkButton();
+        });
+      }
+
+      handlePowerConsumption = (event) => {
+        const powerConsumption = event.target.value;
+      
+        this.setState((prevState) => ({
+          powerConsumption,
+        }), () => {
+          this.checkButton();
+        });
+      }
+
+
     handleImageChange = (event) => {
         const file = event.target.files[0];
 
@@ -145,7 +173,13 @@ export class NewDevice extends Component {
             this.setState({ isButtonDisabled: true })
         }
         else {
-            if (this.state.selectedType === 'air' && this.state.minTemp>= this.state.maxTemp){
+            if (this.state.selectedType === 'air' && (this.state.minTemp>= this.state.maxTemp ||this.state.minTemp< -40 || this.state.maxTemp > 60)){
+                this.setState({ isButtonDisabled: true })
+            }
+            else if (this.state.selectedType === 'battery-storage' && (this.state.batterySize> 80 ||this.state.batterySize< 1)){
+                this.setState({ isButtonDisabled: true })
+            }
+            else if (this.state.selectedPowerSupply === 'home' && (this.state.powerConsumption> 60000 ||this.state.powerConsumption<= 0) && (this.state.selectedType != 'solar-panel' && this.state.selectedType != 'battery-storage' && this.state.selectedType != 'electric-vehicle-charger')){
                 this.setState({ isButtonDisabled: true })
             }
             else{
@@ -208,7 +242,7 @@ export class NewDevice extends Component {
                                     name="power-consumption"
                                     placeholder="Enter the power consumption of your device (in watts)"
                                     value={this.state.powerConsumption}
-                                    onChange={(e) => this.setState({ powerConsumption: e.target.value })}
+                                    onChange={this.handlePowerConsumption}
                                 />
                             </div>
                         )}
@@ -243,7 +277,7 @@ export class NewDevice extends Component {
                                     name="battery-size"
                                     placeholder="Enter the battery size (in kWh)"
                                     value={this.state.batterySize}
-                                    onChange={(e) => this.setState({ batterySize: e.target.value })}
+                                    onChange={this.handleBatterySize}
                                 />
                             </div>
                         )}
