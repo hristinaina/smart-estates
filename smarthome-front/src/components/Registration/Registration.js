@@ -127,10 +127,10 @@ const Registration = () => {
       const result = await authService.regUser(email, password, name, surname, "allaalal");
     
       if (result.success) {
-          setSnackbarMessage("Successfully registered. Check your email!");
-          handleClick()
           resetFormFields()
           setIsButtonDisabled(true)
+          setSnackbarMessage("Successfully registered. Check your email!");
+          handleClick()       
           // TODO posalji mejl
       } else {
         setSnackbarMessage(result.error);

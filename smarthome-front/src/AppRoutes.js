@@ -4,19 +4,20 @@ import { NewRealEstate } from './components/RealEstate/NewRealEstate';
 import { Devices } from './components/Devices/Devices';
 import Login from './components/Login/Login';
 import Registration from './components/Registration/Registration';
+import { ActivationPage } from './components/Auth/ActivationPage';
 
 const AppRoutes = [
   {
-    path: '/login',
+    path: '/real-estates',
+    element: <RealEstates />
+  },
+  {
+    path: '/',
     element: <Login />
   },
   {
     path: '/reg',
     element: <Registration />
-  },
-  {
-    path: '/',
-    element: <RealEstates />
   },
   {
     path: '/new-real-estate',
@@ -25,6 +26,10 @@ const AppRoutes = [
   {
     path: '/devices',
     element: <Devices />
+  },
+  {
+    path: '/activate',
+    element: <ActivationPage />
   }
 ];
 

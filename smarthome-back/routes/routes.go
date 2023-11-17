@@ -18,7 +18,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 
 		authController := controllers.NewAuthController(db)
 		middleware := middleware.NewMiddleware(db)
-		userRoutes.POST("/reg", authController.Register)
 		userRoutes.POST("/login", authController.Login)
 		userRoutes.GET("/validate", middleware.RequireAuth, authController.Validate)
 		userRoutes.POST("/logout", authController.Logout)

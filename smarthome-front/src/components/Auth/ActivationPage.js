@@ -1,34 +1,80 @@
-import React, { useState, useEffect } from 'react';
-import authService from '../../services/AuthService';
+import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
+import theme from '../../theme';
+import authService from '../../services/AuthService'
+import Button from '@mui/material/Button';
 
-const ActivationPage = () => {
-  const [activationStatus, setActivationStatus] = useState(null);
 
-  useEffect(() => {
-    const activateAccount = async () => {
-      try {
-        const result = await authService.activateAccount();
+export class ActivationPage extends Component {
+  static displayName = ActivationPage.name;
 
-        if (result.success) {
-          setActivationStatus('Nalog je uspešno aktiviran!');
-        } else {
-          setActivationStatus('Došlo je do greške prilikom aktivacije naloga.');
-        }
-      } catch (error) {
-        setActivationStatus('Došlo je do greške prilikom slanja zahteva.');
-        console.error('Greška prilikom slanja zahteva:', error);
-      }
+  constructor(props) {
+    super(props);
+    this.state = {
+      activationStatus: "",
+      isMounted: false,
     };
+  }
 
-    activateAccount();
-  }, []);
+  componentDidMount() {
+    this.setState({ isMounted: true }, () => {
+      this.activateAccount();
+    });
+  }
 
-  return (
-    <div>
-      <h1>Provera aktivacije naloga</h1>
-      {activationStatus && <p>{activationStatus}</p>}
-    </div>
-  );
-};
+  componentWillUnmount() {
+    this.setState({ isMounted: false });
+  }
 
-export default ActivationPage;
+  activateAccount = async () => {
+    try {
+      const result = await authService.activateAccount();
+
+      if (this.state.isMounted) {
+        if (result.success) {
+          this.setState({ activationStatus: 'You have successfully activated your account!' });
+        } else {
+          this.setState({
+            activationStatus:
+              'An error occurred while activating the account.',
+          });
+        }
+      }
+    } catch (error) {
+      if (this.state.isMounted) {
+        this.setState({
+          activationStatus: 'An error occurred while activating the account.',
+        });
+        console.error('Greska:', error);
+      }
+    }
+  };
+
+  render() {
+    const { activationStatus } = this.state;
+
+    return (
+      <div>
+        <h1>Provera aktivacije naloga</h1>
+        {activationStatus !== null && (
+          <>
+            <p>{activationStatus}</p>
+            {activationStatus === 'You have successfully activated your account!' && (
+              <Link to="/">
+                <Button
+                  sx={theme.customStyles.myCustomButton}
+                  variant="contained"
+                  color="primary"
+                >
+                  Go to login
+                </Button>
+              </Link>
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
+}
+
+

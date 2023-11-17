@@ -3,18 +3,18 @@ package services
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
 type MailService interface {
-	SendVerificationMail(c *gin.Context)
+	// SendVerificationMail(c *gin.Context)
 	IsValidToken(tokeString string) bool
+	CreateVarificationMail(name, surname, token string)
+	GenerateToken(email, name, surname string, expiration time.Time) (string, error)
 }
 
 type MailServiceImpl struct{}
@@ -23,32 +23,10 @@ func NewMailService() MailService {
 	return &MailServiceImpl{}
 }
 
-// request body
-type RegisterInput struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
-	Name     string `json:"name" binding:"required"`
-	Surname  string `json:"surname" binding:"required"`
-	Picture  string `json:"picture" binding:"required"`
-	Role     int    `json:"role" binding:"required"`
-}
-
-func (ms *MailServiceImpl) SendVerificationMail(c *gin.Context) {
-	var input RegisterInput
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
-	}
-	expiration := time.Now().Add(time.Hour * 24)
-	token, _ := generateToken(input.Email, input.Name, input.Surname, expiration)
-
-	createVarificationMail(token)
-}
-
-func createVarificationMail(token string) {
+func (ms *MailServiceImpl) CreateVarificationMail(name, surname, token string) {
 	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
 	subject := "You're almost done! Activate your account now"
-	to := mail.NewEmail("Example User", "anastasijas557@gmail.com") // todo ovo izmeni da bude dinamicki
+	to := mail.NewEmail(name+" "+surname, "anastasijas557@gmail.com")
 	plainTextContent := fmt.Sprintf("Click the following link to activate your account: %s", "http://localhost:3000/activate?token="+token)
 	htmlContent := fmt.Sprintf(`<strong>Click the following link to activate your account:</strong> <a href="%s">%s</a>`, "http://localhost:3000/activate?token="+token, "http://localhost:3000/activate?token="+token)
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
@@ -71,7 +49,7 @@ type Claims struct {
 
 var secretKey = []byte("JHAS43532fsandjaskndewui217362ebwdsa")
 
-func generateToken(email, name, surname string, expiration time.Time) (string, error) {
+func (ms *MailServiceImpl) GenerateToken(email, name, surname string, expiration time.Time) (string, error) {
 	claims := &Claims{
 		Email:   email,
 		Name:    name,

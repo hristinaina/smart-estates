@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 	"os"
 	"smarthome-back/enumerations"
@@ -31,6 +30,8 @@ type LoginInput struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
+var u = models.User{}
 
 func (uc AuthController) Login(c *gin.Context) {
 
@@ -90,7 +91,7 @@ type RegisterInput struct {
 	Role     int    `json:"role" binding:"required"`
 }
 
-func (uc AuthController) Register(c *gin.Context) {
+func (uc AuthController) SendVerificationMail(c *gin.Context) {
 
 	// get values from req body
 	var input RegisterInput
@@ -109,8 +110,6 @@ func (uc AuthController) Register(c *gin.Context) {
 	}
 
 	// create the user
-	u := models.User{}
-
 	u.Email = input.Email
 	u.Password = string(hash)
 	u.Name = input.Name
@@ -118,13 +117,18 @@ func (uc AuthController) Register(c *gin.Context) {
 	u.Picture = input.Picture
 	u.Role = enumerations.IntToRole(input.Role)
 
-	if err := uc.repo.SaveUser(u); err != nil {
+	if _, err := uc.repo.GetUserByEmail(u.Email); err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Account with that email already exists!"})
 		return
 	}
 
+	// send mail
+	expiration := time.Now().Add(time.Hour * 24)
+	token, _ := uc.mail_service.GenerateToken(input.Email, input.Name, input.Surname, expiration)
+	uc.mail_service.CreateVarificationMail(input.Name, input.Surname, token)
+
 	// respond
-	c.JSON(http.StatusOK, gin.H{"message": "registration success"})
+	c.JSON(http.StatusOK, gin.H{"message": "check mail"})
 }
 
 func (uc AuthController) Validate(c *gin.Context) {
@@ -137,28 +141,24 @@ func (uc AuthController) Logout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Successful logout!"})
 }
 
-func (uc AuthController) SendVerificationMail(c *gin.Context) {
-	uc.mail_service.SendVerificationMail(c)
-	c.JSON(http.StatusOK, gin.H{"message": "Mejl je poslat!"})
-}
-
 // request body
 type ActivateAccount struct {
 	Token string `json:"token" binding:"required"`
 }
 
 func (uc AuthController) ActivateAccount(c *gin.Context) {
-	fmt.Println("pozvana je funkcija")
 	var input ActivateAccount
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
 	}
-	fmt.Println("ovde jeee")
+
 	if uc.mail_service.IsValidToken(input.Token) {
-		c.JSON(http.StatusOK, gin.H{"message": "Token je validan!"})
+		// add to database
+		uc.repo.SaveUser(u)
+		c.JSON(http.StatusOK, gin.H{"message": "Valid token!"})
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Token je nevalidan!"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid token!"})
 	}
 }
