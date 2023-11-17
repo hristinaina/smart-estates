@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"os"
 	"smarthome-back/enumerations"
@@ -137,6 +138,27 @@ func (uc AuthController) Logout(c *gin.Context) {
 }
 
 func (uc AuthController) SendVerificationMail(c *gin.Context) {
-	uc.mail_service.SendVerificationMail()
+	uc.mail_service.SendVerificationMail(c)
 	c.JSON(http.StatusOK, gin.H{"message": "Mejl je poslat!"})
+}
+
+// request body
+type ActivateAccount struct {
+	Token string `json:"token" binding:"required"`
+}
+
+func (uc AuthController) ActivateAccount(c *gin.Context) {
+	fmt.Println("pozvana je funkcija")
+	var input ActivateAccount
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+	fmt.Println("ovde jeee")
+	if uc.mail_service.IsValidToken(input.Token) {
+		c.JSON(http.StatusOK, gin.H{"message": "Token je validan!"})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Token je nevalidan!"})
+	}
 }

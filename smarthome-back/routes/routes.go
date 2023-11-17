@@ -22,7 +22,8 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		userRoutes.POST("/login", authController.Login)
 		userRoutes.GET("/validate", middleware.RequireAuth, authController.Validate)
 		userRoutes.POST("/logout", authController.Logout)
-		userRoutes.GET("/verificationMail", authController.SendVerificationMail)
+		userRoutes.POST("/verificationMail", authController.SendVerificationMail)
+		userRoutes.POST("/activate", authController.ActivateAccount)
 	}
 
 	realEstateRoutes := r.Group("/api/real-estates")

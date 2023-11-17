@@ -1,6 +1,8 @@
 package models
 
-import "smarthome-back/enumerations"
+import (
+	"smarthome-back/enumerations"
+)
 
 type User struct {
 	Id       int
