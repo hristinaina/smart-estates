@@ -31,7 +31,7 @@ export class Devices extends Component {
             <div>
                 <Navigation />
                 <div id="tools">
-                    <Link to="/"><img src='/images/arrow.png' id='arrow' /></Link>
+                    <Link to="/real-estates"><img src='/images/arrow.png' id='arrow' /></Link>
                     <span className='estate-title'>Ta i ta nekretnina</span>
                     <p id="add-device">
                         <Link to="/new-device">
