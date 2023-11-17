@@ -58,3 +58,18 @@ func (dto *DeviceDTO) ToEVCharger() models.EVCharger {
 		Connections:   dto.Connections,
 	}
 }
+
+func (dto *DeviceDTO) ToHomeBattery() models.HomeBattery {
+	return models.HomeBattery{
+		//todo change according to code from front.
+		Device: models.Device{
+			Id:         dto.Id,
+			Name:       dto.Name,
+			Type:       dto.Type,
+			Picture:    dto.Picture,
+			RealEstate: dto.RealEstate,
+			IsOnline:   dto.IsOnline,
+		},
+		Size: dto.Size,
+	}
+}

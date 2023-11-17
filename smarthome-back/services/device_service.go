@@ -21,10 +21,12 @@ type DeviceServiceImpl struct {
 	db                    *sql.DB
 	airConditionerService AirConditionerService
 	evChargerService      EVChargerService
+	homeBatteryService    HomeBatteryService
 }
 
 func NewDeviceService(db *sql.DB) DeviceService {
-	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db), evChargerService: NewEVChargerService(db)}
+	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db), evChargerService: NewEVChargerService(db),
+		homeBatteryService: NewHomeBatteryService(db)}
 }
 
 func (res *DeviceServiceImpl) GetAllByEstateId(estateId int) []models.Device {
@@ -82,6 +84,8 @@ func (res *DeviceServiceImpl) Add(device dto.DeviceDTO) models.Device {
 		return res.airConditionerService.Add(device).ToDevice()
 	} else if device.Type == 8 {
 		return res.evChargerService.Add(device).ToDevice()
+	} else if device.Type == 7 {
+		return res.homeBatteryService.Add(device).ToDevice()
 	}
 	return models.Device{}
 }
