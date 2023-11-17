@@ -12,7 +12,8 @@ export class RealEstates extends Component {
         super(props);
 
         this.state = {
-            isAdmin: true,
+            isAdmin: false,
+            userId: 2,
             isDisabled: true,
             showApproveDialog: false,
             showDiscardDialog: false,
@@ -24,13 +25,11 @@ export class RealEstates extends Component {
     async componentDidMount() {
         try {
             if (!this.state.isAdmin) {
-                const result = await RealEstateService.get();
+                const result = await RealEstateService.getAllByUserId(this.state.userId);
                 this.setState({realEstates: result})
-                console.log(result);
             } else {
                 const result = await RealEstateService.getPending();
                 this.setState({realEstates: result})
-                console.log(result);
             }
            
         } catch (error) {
@@ -53,14 +52,11 @@ export class RealEstates extends Component {
 
     handleConfirmDiscard = (reason) => {
         this.setState({showDiscardDialog: false, isDisabled: true, selectedRealEstate: -1});
-        console.log("Request discarted...");
-        console.log("Reason:", reason);
         this.changeState(1, reason);
     }
 
     handleConfirmApprove = () => {
         this.setState({showApproveDialog: false, isDisabled: true, selectedRealEstate: -1});
-        console.log("Approved");
         this.changeState(0, '');
     }
 
@@ -68,7 +64,6 @@ export class RealEstates extends Component {
         this.setState({showApproveDialog: false,
                        showDiscardDialog: false,
                       });
-        console.log("Cancelled...");
     }
 
     handleAddRealEstateClick = () => {
@@ -82,8 +77,6 @@ export class RealEstates extends Component {
     changeState = async (state, reason) => {
         try {
             const result = await RealEstateService.changeState(state, this.state.selectedRealEstate, reason);
-            console.log("Success");
-            console.log(result);
             this.componentDidMount();
         } catch (error) {
             console.log("Error");
@@ -92,7 +85,6 @@ export class RealEstates extends Component {
     }
  
     render() {
-
         return (
             <div id="real-estates-parent-container">
                 <Navigation />
@@ -113,6 +105,8 @@ export class RealEstates extends Component {
                             <img alt='real-estate' src='/images/real_estate_example.png' className='real-estate-img' />
                             <div className='real-estate-info'>
                                 <p className='real-estate-title'>{realEstate.Name}</p>
+                                <p className='real-estate-text'>
+                                Type: {realEstate.Type === 0 ? 'HOME' : realEstate.Type === 1 ? 'APARTMENT' : 'VILLA'} </p>
                                 <p className='real-estate-text'>Address: {realEstate.Address}</p>
                                 <p className='real-estate-text'>Square Footage: {realEstate.SquareFootage}</p>
                                 <p className='real-estate-text'>Number of Floors: {realEstate.NumberOfFloors}</p>

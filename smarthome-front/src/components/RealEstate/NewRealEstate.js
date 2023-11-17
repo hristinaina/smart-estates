@@ -6,6 +6,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaf
 import 'leaflet/dist/leaflet.css';
 import axios from 'axios';
 import { RealEstates } from "./RealEstates";
+import { Navigation } from "../Navigation/Navigation";
+import RealEstateService from "../../services/RealEstateService";
 
 
 function LocationMarker({ onMapClick }) {
@@ -41,7 +43,8 @@ export class NewRealEstate extends Component {
         super(props);
 
         this.state = {
-            selectedType: 'apartment',
+            userId: 2,
+            selectedType: '0',
             selectedCity: 'Novi Sad',
             searchCity: '',
             address: '',
@@ -56,6 +59,7 @@ export class NewRealEstate extends Component {
     cities = [
         { vlaue: 'novi-sad', label: 'NOVI SAD, SERBIA'},
         { value: 'belgrade', label: 'BELGRADE, SERBIA'},
+        { value: 'zrenjanin', label: 'ZRENJANIN, SREBIA'}
     ];
 
     getFilteredCities = () => {
@@ -103,30 +107,63 @@ export class NewRealEstate extends Component {
     
         // here image can be uploaded to server
         console.log('Selected Image:', file);
-    };
+    }
+
+    confirm = async () => {
+        console.log("opet je usao");
+        var estate = {
+            "Name": document.getElementsByName("name")[0].value,
+            "Type": Number(this.state.selectedType),
+            "Address": this.state.address,
+            "City": this.state.selectedCity,
+            "SquareFootage": Number(document.getElementsByName("footage")[0].value),
+            "NumberOfFloors": Number(document.getElementsByName("floors")[0].value),
+            "Picture": "blabla",
+            "State": 0,
+            "User": this.state.userId,
+        }
+
+        try {
+            const result = await RealEstateService.add(estate);
+            console.log(result);
+        } catch (error) {
+            console.log("Error")
+            console.error(error);
+        }
+
+        window.location.href = '/real-estates';
+    }
 
     cancel = () => {
-        window.location.href = '/real-estates'
+        window.location.href = '/real-estates';
     }
     
     render() {
         const filteredCities = this.getFilteredCities();
         return (
             <div>
+                <Navigation/>
                 {this.state.showRealEstates ? (
                 <RealEstates />
                 ) : (
                 <div id="new-real-estate-container-parent">
                     <div id="new-real-estate-container">
                         <p id="new-real-estate-title">New Real Estate</p>
+                        <p className="new-real-estate-label">Name</p>
+                        <input 
+                            className="new-real-estate-input" 
+                            type="text" 
+                            name="name" 
+                            placeholder="Type the name of your real estate"
+                            />
                         <p className="new-real-estate-label">Type</p>
                         <select 
                             className="new-real-estate-select"
                             value={this.state.selectedType}
                             onChange={this.handleTypeChange}>
-                            <option value="apartment">APARTMENT</option>
-                            <option value="house">HOUSE</option>
-                            <option value="villa">VILLA</option>
+                            <option value='0'>APARTMENT</option>
+                            <option value='1'>HOUSE</option>
+                            <option value="2">VILLA</option>
                         </select>
                         <p className="new-real-estate-label">City and country</p>
                         <select 
@@ -202,7 +239,7 @@ export class NewRealEstate extends Component {
                                     CANCEL
                             </button>
                             <button
-                            id="confirm-button" className="btn" onClick={this.cancel}>
+                            id="confirm-button" className="btn" onClick={this.confirm}>
                                 CONFIRM
                             </button>
                         </span>
