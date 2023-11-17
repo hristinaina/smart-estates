@@ -1,4 +1,4 @@
-package devices
+package models
 
 // AirConditioner inherits ConsumptionDevice declared as Device attribute
 type AirConditioner struct {
