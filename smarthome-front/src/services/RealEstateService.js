@@ -22,27 +22,6 @@ class RealEstateService {
       }
     }
 
-    // static async changeState(state, id) {
-    //   console.log("usaoo " + state);
-    //   console.log(id.toString());
-    //   try {
-    //     if (state === 0) {
-    //       console.log("............................");
-    //       console.log('http://localhost:8081/api/real-estates/' + id.toString() + "/0");
-    //       const response = await fetch('http://localhost:8081/api/real-estates/' + id.toString() + "/0");
-    //       const data = await response.json();
-    //       return data;
-    //     } else {
-    //       const response = await fetch('http://localhost:8081/api/real-estates/' + toString(id) + "/1");
-    //       const data = await response.json();
-    //       return data;
-    //     }
-    //   } catch (error) {
-    //     console.error("Error fetching data: ", error);
-    //     throw error;
-    //   }
-    // }
-
     static async changeState(state, id, reason) {
       var url  = '';
       if (state === 0) url = `http://localhost:8081/api/real-estates/${id}/0`;
