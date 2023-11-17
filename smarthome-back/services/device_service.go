@@ -13,7 +13,6 @@ import (
 type DeviceService interface {
 	GetAllByEstateId(id int) []models.Device
 	Get(id int) (models.Device, error)
-	Add(estate models.Device) models.Device
 }
 
 type DeviceServiceImpl struct {
@@ -25,7 +24,7 @@ func NewDeviceService(db *sql.DB) DeviceService {
 }
 
 func (res *DeviceServiceImpl) GetAllByEstateId(estateId int) []models.Device {
-	query := "SELECT * FROM devices WHERE REALESTATE = ?"
+	query := "SELECT * FROM device WHERE REALESTATE = ?"
 	rows, err := res.db.Query(query, estateId)
 	if CheckIfError(err) {
 		//todo raise an exception and catch it in controller?
@@ -50,7 +49,7 @@ func (res *DeviceServiceImpl) GetAllByEstateId(estateId int) []models.Device {
 }
 
 func (res *DeviceServiceImpl) Get(id int) (models.Device, error) {
-	query := "SELECT * FROM devices WHERE ID = ?"
+	query := "SELECT * FROM device WHERE ID = ?"
 	rows, err := res.db.Query(query, id)
 
 	if CheckIfError(err) {
@@ -70,23 +69,4 @@ func (res *DeviceServiceImpl) Get(id int) (models.Device, error) {
 		return device, nil
 	}
 	return models.Device{}, err
-}
-
-func (res *DeviceServiceImpl) Add(device models.Device) models.Device {
-
-	// TODO: add some validation for pictures
-	// todo zavisno od tipa uredjaja sprovoditi drugaciju logiku
-	if device.Name != "" && device.Picture != "" {
-		query := "INSERT INTO devices (Name, Type, Picture, RealEstate, IsOnline)" +
-			"VALUES ( ?, ?, ?, ?, ?);"
-		result, err := res.db.Exec(query, device.Name, device.Type, device.Picture, device.RealEstate,
-			device.IsOnline)
-		if CheckIfError(err) {
-			return models.Device{}
-		}
-		id, err := result.LastInsertId()
-		device.Id = int(id)
-		return device
-	}
-	return models.Device{}
 }
