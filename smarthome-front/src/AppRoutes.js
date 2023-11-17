@@ -4,7 +4,7 @@ import { NewRealEstate } from './components/RealEstate/NewRealEstate';
 import { Devices } from './components/Devices/Devices';
 import Login from './components/Login/Login';
 import Registration from './components/Registration/Registration';
-import { NewDevice } from './components/NewDevice/NewDevice';
+import { NewDevice } from './components/Devices/NewDevice';
 
 const AppRoutes = [
   {

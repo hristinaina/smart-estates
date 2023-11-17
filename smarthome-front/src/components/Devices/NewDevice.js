@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import './NewDevice.css';
+import './Devices.css';
 import { Link } from 'react-router-dom';
 
 
