@@ -12,12 +12,11 @@ import (
 )
 
 type RealEstateController struct {
-	service     services.RealEstateService
-	mailService services.MailService
+	service services.RealEstateService
 }
 
 func NewRealEstateController(db *sql.DB) RealEstateController {
-	return RealEstateController{service: services.NewRealEstateService(db), mailService: services.NewMailService(db)}
+	return RealEstateController{service: services.NewRealEstateService(db)}
 }
 
 func (rec RealEstateController) GetAll(c *gin.Context) {
@@ -60,11 +59,6 @@ func (rec RealEstateController) ChangeState(c *gin.Context) {
 	realEstate := rec.service.ChangeState(id, state, reason.DiscardReason)
 	if realEstate.SquareFootage == 0 {
 		c.JSON(http.StatusBadRequest, "Only pending real estates can be accepted/declined.")
-		return
-	}
-
-	if err = rec.mailService.DiscardRealEstate("kvucic6@gmail.com"); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Error happened while sending mail..."})
 		return
 	}
 

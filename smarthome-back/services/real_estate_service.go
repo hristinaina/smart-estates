@@ -18,11 +18,12 @@ type RealEstateService interface {
 }
 
 type RealEstateServiceImpl struct {
-	db *sql.DB
+	db          *sql.DB
+	mailService MailService
 }
 
 func NewRealEstateService(db *sql.DB) RealEstateService {
-	return &RealEstateServiceImpl{db: db}
+	return &RealEstateServiceImpl{db: db, mailService: NewMailService(db)}
 }
 
 func (res *RealEstateServiceImpl) GetAll() []models.RealEstate {
@@ -148,9 +149,14 @@ func (res *RealEstateServiceImpl) ChangeState(id int, state int, reason string) 
 	// insert updated data
 	if state == 0 {
 		realEstate.State = enumerations.ACCEPTED
+		err = res.mailService.ApproveRealEstate(realEstate)
 	} else {
 		realEstate.State = enumerations.DECLINED
 		realEstate.DiscardReason = reason
+		err = res.mailService.DiscardRealEstate(realEstate)
+	}
+	if CheckIfError(err) {
+		return models.RealEstate{}
 	}
 
 	query = "INSERT INTO realestate (Id, Name, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId, DiscardReason)" +
