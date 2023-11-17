@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"smarthome-back/dto"
 	"smarthome-back/services"
 	"strconv"
 )
@@ -32,4 +33,15 @@ func (rec DeviceController) GetAllByEstateId(c *gin.Context) {
 	CheckIfError(err, c)
 	realEstates := rec.service.GetAllByEstateId(id)
 	c.JSON(http.StatusOK, realEstates)
+}
+
+func (rec DeviceController) Add(c *gin.Context) {
+	var deviceDTO dto.DeviceDTO
+	// convert json object to model device
+	if err := c.BindJSON(&deviceDTO); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid JSON"})
+		return
+	}
+	device := rec.service.Add(deviceDTO)
+	c.JSON(http.StatusOK, device)
 }

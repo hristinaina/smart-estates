@@ -7,20 +7,23 @@ import (
 	_ "fmt"
 	_ "github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"smarthome-back/dto"
 	"smarthome-back/models/devices"
 )
 
 type DeviceService interface {
 	GetAllByEstateId(id int) []models.Device
 	Get(id int) (models.Device, error)
+	Add(estate dto.DeviceDTO) models.Device
 }
 
 type DeviceServiceImpl struct {
-	db *sql.DB
+	db                    *sql.DB
+	airConditionerService AirConditionerService
 }
 
 func NewDeviceService(db *sql.DB) DeviceService {
-	return &DeviceServiceImpl{db: db}
+	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db)}
 }
 
 func (res *DeviceServiceImpl) GetAllByEstateId(estateId int) []models.Device {
@@ -69,4 +72,13 @@ func (res *DeviceServiceImpl) Get(id int) (models.Device, error) {
 		return device, nil
 	}
 	return models.Device{}, err
+}
+
+func (res *DeviceServiceImpl) Add(device dto.DeviceDTO) models.Device {
+	// TODO: add some validation for pictures
+	// todo zavisno od tipa uredjaja sprovoditi drugaciju logiku
+	if device.Type == 1 {
+		return res.airConditionerService.Add(device).ToDevice()
+	}
+	return models.Device{}
 }

@@ -14,3 +14,14 @@ func NewAirConditioner(device ConsumptionDevice, minTemp int, maxTemp int) AirCo
 		MaxTemperature: maxTemp,
 	}
 }
+
+func (ac AirConditioner) ToDevice() Device {
+	return Device{
+		Id:         ac.Device.Device.Id,
+		Name:       ac.Device.Device.Name,
+		Type:       ac.Device.Device.Type,
+		Picture:    ac.Device.Device.Picture,
+		RealEstate: ac.Device.Device.RealEstate,
+		IsOnline:   ac.Device.Device.IsOnline,
+	}
+}

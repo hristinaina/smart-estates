@@ -30,5 +30,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		deviceController := controllers.NewDeviceController(db)
 		deviceRoutes.GET("/:id", deviceController.Get)
 		deviceRoutes.GET("/estate/:estateId", deviceController.GetAllByEstateId)
+		deviceRoutes.POST("/", deviceController.Add)
 	}
 }
