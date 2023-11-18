@@ -83,22 +83,22 @@ export class NewRealEstate extends Component {
 
     handleAddressChange = (newAddress) => {
         axios
-                .get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newAddress.lat}&lon=${newAddress.lng}`)
-                .then((response) => {
-                    const obj = response.data.address;
-                    if (obj.house_number != undefined)
-                        this.setState({'address': response.data.address.road + " " + response.data.address.house_number + 
-                        ", " + response.data.address.city_district});
-                    else 
-                        this.setState({'address': response.data.address.road + 
-                        ", " + response.data.address.city_district});
-                    this.handleCityChange(response.data.address.city_district);
-                    return response.data;
+            .get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newAddress.lat}&lon=${newAddress.lng}`)
+            .then((response) => {
+                const obj = response.data.address;
+                if (obj.house_number != undefined)
+                    this.setState({'address': response.data.address.road + " " + response.data.address.house_number + 
+                    ", " + response.data.address.city_district});
+                else 
+                    this.setState({'address': response.data.address.road + 
+                    ", " + response.data.address.city_district});
+                this.handleCityChange(response.data.address.city_district);
+                return response.data;
 
-                })
-                .catch((error) => {
-                    console.error('Error fetching address:', error);
-                });
+            })
+            .catch((error) => {
+                console.error('Error fetching address:', error);
+            });
     }
 
     handleImageChange = (e) => {
