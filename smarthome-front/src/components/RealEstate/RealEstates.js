@@ -1,11 +1,12 @@
-
 import React,{ Component, useState } from 'react';
 import './RealEstates.css';
 import { NewRealEstate } from './NewRealEstate';
-
 import { Navigation } from '../Navigation/Navigation';
+import { AuthProvider } from '../Auth/AuthContext';
 
 export class RealEstates extends Component {
+    static contextType = AuthProvider;
+
     constructor(props) {
         super(props);
 
@@ -20,7 +21,19 @@ export class RealEstates extends Component {
         }));
     }
 
+    componentDidMount() {
+        const { user } = this.context;
+    
+        if (!user) {
+          window.location.href = '/';
+        }
+      }
+
     render() {
+        const { user } = this.context;
+
+        if (!user) return null;
+        
         return (
             <div>
                 <Navigation />

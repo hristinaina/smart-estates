@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Navbar, NavItem, NavLink, Collapse, NavbarToggler } from 'reactstrap';
+import { Navbar, NavItem, NavLink } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import './Navigation.css';
 import authService from '../../services/AuthService'
@@ -27,11 +27,15 @@ export class Navigation extends Component {
     }
 
     componentDidMount() {
-        // Dohvati podatke iz lokalnog skladišta
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user) {
-            this.setState({ role: user['Role'] });
-          }
+        authService.getCurrentUser()
+      .then(result => {
+        if (result) {
+          this.setState({ role: result['Role'] });
+        }
+      })
+      .catch(error => {
+        console.error('Greška prilikom izvršavanja promisa:', error);
+      });
       }
 
     render() {
@@ -40,7 +44,7 @@ export class Navigation extends Component {
         return (
             <header>
                 <Navbar className="navbar">
-                    {role==1 && (
+                    {role===1 && (
                         <ul>
                             <span className="logo">Smart Home</span>
                             <NavItem>
@@ -57,7 +61,7 @@ export class Navigation extends Component {
                             </NavItem>
                         </ul>
                     )}
-                    {role==0 && (
+                    {(role===0 || role===2) && (
                         <ul>
                             <span className="logo">Smart Home</span>
                             <NavItem>
