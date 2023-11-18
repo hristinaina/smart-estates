@@ -55,7 +55,7 @@ export class ActivationPage extends Component {
 
     return (
       <div>
-        <h1>Provera aktivacije naloga</h1>
+        <h1>Account activation check</h1>
         {activationStatus !== null && (
           <>
             <p>{activationStatus}</p>

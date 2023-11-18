@@ -13,7 +13,7 @@ import (
 type MailService interface {
 	// SendVerificationMail(c *gin.Context)
 	IsValidToken(tokeString string) bool
-	CreateVarificationMail(name, surname, token string)
+	CreateVarificationMail(email, name, surname, token string)
 	GenerateToken(email, name, surname string, expiration time.Time) (string, error)
 }
 
@@ -23,10 +23,10 @@ func NewMailService() MailService {
 	return &MailServiceImpl{}
 }
 
-func (ms *MailServiceImpl) CreateVarificationMail(name, surname, token string) {
+func (ms *MailServiceImpl) CreateVarificationMail(email, name, surname, token string) {
 	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
 	subject := "You're almost done! Activate your account now"
-	to := mail.NewEmail(name+" "+surname, "anastasijas557@gmail.com")
+	to := mail.NewEmail(name+" "+surname, email)
 	plainTextContent := fmt.Sprintf("Click the following link to activate your account: %s", "http://localhost:3000/activate?token="+token)
 	htmlContent := fmt.Sprintf(`<strong>Click the following link to activate your account:</strong> <a href="%s">%s</a>`, "http://localhost:3000/activate?token="+token, "http://localhost:3000/activate?token="+token)
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)

@@ -125,7 +125,7 @@ func (uc AuthController) SendVerificationMail(c *gin.Context) {
 	// send mail
 	expiration := time.Now().Add(time.Hour * 24)
 	token, _ := uc.mail_service.GenerateToken(input.Email, input.Name, input.Surname, expiration)
-	uc.mail_service.CreateVarificationMail(input.Name, input.Surname, token)
+	uc.mail_service.CreateVarificationMail(input.Email, input.Name, input.Surname, token)
 
 	// respond
 	c.JSON(http.StatusOK, gin.H{"message": "check mail"})
