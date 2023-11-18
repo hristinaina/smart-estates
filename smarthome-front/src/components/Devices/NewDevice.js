@@ -211,7 +211,7 @@ export class NewDevice extends Component {
     }
 
     createDevice = async () => {
-        console.log("api sent");
+        console.log("api for new device sent");
         try {
             const data = {
                 Name: this.state.name,

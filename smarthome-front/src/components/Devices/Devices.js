@@ -17,8 +17,9 @@ export class Devices extends Component {
 
     async componentDidMount() {
         try {
-            const result = await DeviceService.getDevices(1);
+            const result = await DeviceService.getDevices(2);
             this.setState({ data: result });
+            console.log(result)
         } catch (error) {
             // Handle error
         }
@@ -66,14 +67,14 @@ const DevicesList = ({ devices }) => {
                         <div key={index} className='device-card'>
                             <img
                                 alt='device'
-                                src={device.image}
+                                src={device.Picture}
                                 className='device-img'
                             />
                             <div className='device-info'>
-                                <p className='device-title'>{device.name}</p>
-                                <p className='device-text'>{device.type}</p>
-                                {device.status=="Online" && (<p className='device-text' style={{color: 'green'}}>{device.status}</p>)}
-                                {device.status=="Offline" && (<p className='device-text' style={{color: 'red'}}>{device.status}</p>)}
+                                <p className='device-title'>{device.Name}</p>
+                                <p className='device-text'>{device.Type}</p>
+                                {device.IsOnline && (<p className='device-text' style={{color: 'green'}}>Online</p>)}
+                                {!device.IsOnline && (<p className='device-text' style={{color: 'red'}}>Offline</p>)}
                             </div>
                         </div>
                     ))}
