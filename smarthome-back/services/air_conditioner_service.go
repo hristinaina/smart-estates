@@ -2,16 +2,14 @@ package services
 
 import (
 	"database/sql"
-	_ "database/sql"
-	_ "fmt"
-	_ "github.com/gin-gonic/gin"
-	_ "github.com/go-sql-driver/mysql"
+	"fmt"
 	"smarthome-back/dto"
 	"smarthome-back/models/devices"
 )
 
 type AirConditionerService interface {
 	Add(estate dto.DeviceDTO) models.AirConditioner
+	Get(id int) models.AirConditioner
 }
 
 type AirConditionerServiceImpl struct {
@@ -20,6 +18,59 @@ type AirConditionerServiceImpl struct {
 
 func NewAirConditionerService(db *sql.DB) AirConditionerService {
 	return &AirConditionerServiceImpl{db: db}
+}
+
+func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
+	query := `
+		SELECT
+			Device.Id,
+			Device.Name,
+			Device.Type,
+			Device.Picture,
+			Device.RealEstate,
+			Device.IsOnline,
+			ConsumptionDevice.PowerSupply,
+			ConsumptionDevice.PowerConsumption,
+			AirConditioner.MinTemperature,
+			AirConditioner.MaxTemperature
+		FROM
+			AirConditioner
+		JOIN ConsumptionDevice ON AirConditioner.DeviceId = ConsumptionDevice.DeviceId
+		JOIN Device ON ConsumptionDevice.DeviceId = Device.Id
+		WHERE
+			Device.Id = ?
+	`
+
+	// Execute the query
+	row := s.db.QueryRow(query, id)
+
+	var ac models.AirConditioner
+	var device models.Device
+	var consDevice models.ConsumptionDevice
+
+	err := row.Scan(
+		&device.Id,
+		&device.Name,
+		&device.Type,
+		&device.Picture,
+		&device.RealEstate,
+		&device.IsOnline,
+		&consDevice.PowerSupply,
+		&consDevice.PowerConsumption,
+		&ac.MinTemperature,
+		&ac.MaxTemperature,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			fmt.Println("No air conditioner found with the specified ID")
+		} else {
+			fmt.Println("Error retrieving air conditioner:", err)
+		}
+		return models.AirConditioner{}
+	}
+	consDevice.Device = device
+	ac.Device = consDevice
+	return ac
 }
 
 func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner {

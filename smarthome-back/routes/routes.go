@@ -32,4 +32,9 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		deviceRoutes.GET("/estate/:estateId", deviceController.GetAllByEstateId)
 		deviceRoutes.POST("/", deviceController.Add)
 	}
+	airConditionerRoutes := r.Group("/api/ac")
+	{
+		airConditionerController := controllers.NewAirConditionerController(db)
+		airConditionerRoutes.GET("/:id", airConditionerController.Get)
+	}
 }

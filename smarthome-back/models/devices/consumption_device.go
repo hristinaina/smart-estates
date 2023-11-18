@@ -2,7 +2,7 @@ package models
 
 import "smarthome-back/enumerations"
 
-// ConsumptionDevice Here belong all devices except Air conditioner and VEU group
+// ConsumptionDevice Here belong all devices except VEU group
 type ConsumptionDevice struct {
 	Device           Device
 	PowerSupply      enumerations.PowerSupplyType
