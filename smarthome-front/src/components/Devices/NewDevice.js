@@ -219,12 +219,12 @@ export class NewDevice extends Component {
                 Picture: "/images/" + this.state.selectedImage.name,
                 RealEstate: 2,  // todo change this
                 PowerSupply: parseInt(this.state.selectedPowerSupply),
-                PowerConsumption: this.state.powerConsumption,
-                MinTemperature: this.state.minTemp,
-                MaxTemperature: this.state.maxTemp,
-                ChargingPower: this.state.chargingPower,
-                Connections: this.state.connections,
-                Size: this.state.batterySize,
+                PowerConsumption: parseFloat(this.state.powerConsumption),
+                MinTemperature: parseInt(this.state.minTemp),
+                MaxTemperature: parseInt(this.state.maxTemp),
+                ChargingPower: parseFloat(this.state.chargingPower),
+                Connections: parseInt(this.state.connections),
+                Size: parseFloat(this.state.batterySize),
               };
             const result = await DeviceService.createDevice(data);
             console.log(result);
