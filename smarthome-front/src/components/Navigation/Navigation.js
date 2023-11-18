@@ -4,13 +4,18 @@ import { Link } from 'react-router-dom';
 import './Navigation.css';
 import authService from '../../services/AuthService'
 
+
 export class Navigation extends Component {
-    static displayName = Navigation.name;
+    static displayName = Navigation.name;  
+    state = {
+        role: null,
+      };
 
     handleLogout = async () => {
         const result = await authService.logoutUser();
     
         if (result.success) {
+            localStorage.removeItem('user')
           console.log('Uspešno ste se odjavili!');
         } else {
           console.error('Greška prilikom odjavljivanja:', result.error);
@@ -21,13 +26,21 @@ export class Navigation extends Component {
         super(props);
     }
 
+    componentDidMount() {
+        // Dohvati podatke iz lokalnog skladišta
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user) {
+            this.setState({ role: user['Role'] });
+          }
+      }
+
     render() {
-        const isAdmin = true; //todo call function to get user role
+        const { role } = this.state;
 
         return (
             <header>
                 <Navbar className="navbar">
-                    {isAdmin && (
+                    {role==1 && (
                         <ul>
                             <span className="logo">Smart Home</span>
                             <NavItem>
@@ -44,7 +57,7 @@ export class Navigation extends Component {
                             </NavItem>
                         </ul>
                     )}
-                    {!isAdmin && (
+                    {role==0 && (
                         <ul>
                             <span className="logo">Smart Home</span>
                             <NavItem>

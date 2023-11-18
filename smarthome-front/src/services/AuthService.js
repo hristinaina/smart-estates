@@ -40,7 +40,7 @@ class AuthService {
 
     if (response.status === 200) {
       const data = await response.json();
-      // todo set current user
+      this.setUser(data["message"])
       return true
 
     } else if (response.status === 401) {
@@ -81,8 +81,6 @@ class AuthService {
         body: JSON.stringify({ email, password, name, surname, picture, role })
       });
 
-      this.setUser(email, name, surname, picture, role)
-
       if (response.ok) {
         return { success: true };
       } else {
@@ -121,20 +119,18 @@ class AuthService {
     }
   }; 
 
-  async setUser(email, name, surname, picture, role) {
-    console.log("uslooo")
-    console.log("email", email)
-    this.user.email = email
-    this.user.name = name
-    this.user.surname = surname
-    this.user.picture = picture
-    this.user.role = role
-    console.log("user", this.user);
+  async setUser(user) {
+    // this.user.email = user["Email"]
+    // this.user.name = user["Name"]
+    // this.user.surname = user["Surname"]
+    // this.user.picture = user["Picture"]
+    // this.user.role = user["Role"]
+    localStorage.setItem('user', JSON.stringify(user));
   }
   
   async getCurrentUser() {
-    console.log(this.user);
-    return this.user;
+    console.log(JSON.parse(localStorage.getItem('user')));
+    return JSON.parse(localStorage.getItem('user'));
   }
 }
 
