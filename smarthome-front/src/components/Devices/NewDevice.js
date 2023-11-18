@@ -228,6 +228,7 @@ export class NewDevice extends Component {
               };
             const result = await DeviceService.createDevice(data);
             console.log(result);
+            window.location.assign("/devices")
         } catch (error) {
             // todo Handle error
         }
