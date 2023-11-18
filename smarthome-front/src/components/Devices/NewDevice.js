@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import './Devices.css';
 import { Link } from 'react-router-dom';
+import DeviceService from "../../services/DeviceService";
 
 
 export class NewDevice extends Component {
@@ -8,7 +9,7 @@ export class NewDevice extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            selectedType: 'ambient-sensor',
+            selectedType: 0,
             selectedImage: null,
             imagePreview: null,
             name: "",
@@ -18,7 +19,7 @@ export class NewDevice extends Component {
             batterySize: 13,
             chargingPower: 2.3,
             connections: 1,
-            selectedPowerSupply: 'autonomous',
+            selectedPowerSupply: 0,
             showPowerSupply: true,
             showPowerConsumption: false,
             showAirConditioner: false,
@@ -29,15 +30,15 @@ export class NewDevice extends Component {
     }
 
     types = [
-        { value: 'ambient-sensor', label: 'Ambient Sensor' },
-        { value: 'air', label: 'Air conditioner' },
-        { value: 'washing-machine', label: 'Washing machine' },
-        { value: 'lamp', label: 'Lamp' },
-        { value: 'vehicle-gate', label: 'Vehicle gate' },
-        { value: 'sprinkler', label: 'Sprinkler' },
-        { value: 'solar-panel', label: 'Solar panel' },
-        { value: 'battery-storage', label: 'Battery storage' },
-        { value: 'electric-vehicle-charger', label: 'Electric vehicle charger' },
+        { value: 0, label: 'Ambient Sensor' },
+        { value: 1, label: 'Air conditioner' },
+        { value: 2, label: 'Washing machine' },
+        { value: 3, label: 'Lamp' },
+        { value: 4, label: 'Vehicle gate' },
+        { value: 5, label: 'Sprinkler' },
+        { value: 6, label: 'Solar panel' },
+        { value: 7, label: 'Battery storage' },
+        { value: 8, label: 'Electric vehicle charger' },
     ];
 
     handleTypeChange = (event) => {
@@ -51,7 +52,7 @@ export class NewDevice extends Component {
                 showCharger: false,
             });
 
-            if (selectedType === 'solar-panel' || selectedType === 'battery-storage' || selectedType === 'electric-vehicle-charger') {
+            if (selectedType == 6 || selectedType == 7 || selectedType == 8) {
                 this.setState({
                     showPowerSupply: false,
                     showPowerConsumption: false,
@@ -60,22 +61,22 @@ export class NewDevice extends Component {
                 this.setState({
                     showPowerSupply: true,
                 });
-                if(this.state.selectedPowerSupply==="home"){
+                if(this.state.selectedPowerSupply==1){
                     this.setState({
                         showPowerConsumption: true,
                     });
                 }
             }
 
-            if (selectedType === 'battery-storage') {
+            if (selectedType == 7) {
                 this.setState({
                     showBatterySize: true,
                 });
-            } else if (selectedType === 'air') {
+            } else if (selectedType == 1) {
                 this.setState({
                     showAirConditioner: true,
                 });
-            } else if (selectedType === 'electric-vehicle-charger') {
+            } else if (selectedType == 8) {
                 this.setState({
                     showCharger: true,
                 });
@@ -89,7 +90,7 @@ export class NewDevice extends Component {
         const selectedPowerSupply = event.target.value;
 
         this.setState({ selectedPowerSupply }, () => {
-            if (selectedPowerSupply === 'home') {
+            if (selectedPowerSupply == 1) {
                 this.setState({
                     showPowerConsumption: true,
                 });
@@ -185,21 +186,21 @@ export class NewDevice extends Component {
     };
 
     checkButton = () => {
-        if (this.state.name.trim() === '' || this.state.selectedImage === null) {
+        if (this.state.name.trim() == '' || this.state.selectedImage == null) {
             this.setState({ isButtonDisabled: true })
         }
         else {
-            if (this.state.selectedType === 'air' && (this.state.minTemp>= this.state.maxTemp ||this.state.minTemp< -40 || this.state.maxTemp > 60)){
+            if (this.state.selectedType == 1 && (this.state.minTemp>= this.state.maxTemp ||this.state.minTemp< -40 || this.state.maxTemp > 60)){
                 this.setState({ isButtonDisabled: true })
             }
-            else if (this.state.selectedType === 'battery-storage' && (this.state.batterySize> 100000 ||this.state.batterySize< 1)){
+            else if (this.state.selectedType == 7 && (this.state.batterySize> 100000 ||this.state.batterySize< 1)){
                 this.setState({ isButtonDisabled: true })
             }
-            else if (this.state.selectedPowerSupply === 'home' && (this.state.powerConsumption> 60000 ||this.state.powerConsumption<= 0) 
-            && (this.state.selectedType !== 'solar-panel' && this.state.selectedType !== 'battery-storage' && this.state.selectedType !== 'electric-vehicle-charger')){
+            else if (this.state.selectedPowerSupply == 1 && (this.state.powerConsumption> 60000 ||this.state.powerConsumption<= 0) 
+            && (this.state.selectedType != 6 && this.state.selectedType != 7 && this.state.selectedType != 8)){
                 this.setState({ isButtonDisabled: true })
             }
-            else if (this.state.selectedType === 'electric-vehicle-charger' && (this.state.connections < 1 ||this.state.connections> 20
+            else if (this.state.selectedType == 8 && (this.state.connections < 1 ||this.state.connections> 20
                 ||this.state.chargingPower< 1 ||this.state.chargingPower> 360)){
                 this.setState({ isButtonDisabled: true })
             }
@@ -209,8 +210,27 @@ export class NewDevice extends Component {
         }
     }
 
-    createDevice = () => {
+    createDevice = async () => {
         console.log("api sent");
+        try {
+            const data = {
+                Name: this.state.name,
+                Type: parseInt(this.state.selectedType),
+                Picture: "/images/" + this.state.selectedImage.name,
+                RealEstate: 2,  // todo change this
+                PowerSupply: parseInt(this.state.selectedPowerSupply),
+                PowerConsumption: this.state.powerConsumption,
+                MinTemperature: this.state.minTemp,
+                MaxTemperature: this.state.maxTemp,
+                ChargingPower: this.state.chargingPower,
+                Connections: this.state.connections,
+                Size: this.state.batterySize,
+              };
+            const result = await DeviceService.createDevice(data);
+            console.log(result);
+        } catch (error) {
+            // todo Handle error
+        }
     };
 
 
@@ -249,8 +269,8 @@ export class NewDevice extends Component {
                                     className="new-real-estate-select"
                                     value={this.state.selectedPowerSupply}
                                     onChange={this.handlePowerSupplyChange}>
-                                    <option value="autonomous">Autonomous</option>
-                                    <option value="home">Home (home battery/network)</option>
+                                    <option value="0">Autonomous</option>
+                                    <option value="1">Home (home battery/network)</option>
                                 </select>
                             </div>
                         )}
