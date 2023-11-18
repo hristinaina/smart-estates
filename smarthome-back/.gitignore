@@ -19,3 +19,5 @@
 *.xml
 *.iml
 *.env
+
+admin.json

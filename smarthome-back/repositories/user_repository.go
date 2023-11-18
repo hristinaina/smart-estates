@@ -52,15 +52,14 @@ func (res *UserRepositoryImpl) GetAll() []models.User {
 func (res *UserRepositoryImpl) SaveUser(user models.User) error {
 	user.Id = res.generateId()
 	// TODO: add some validation for pictures
-	if user.Email != "" && user.Password != "" && user.Name != "" && user.Surname != "" {
-		query := "INSERT INTO User (Id, Email, Password, Name, Surname, Picture, Role)" +
-			"VALUES (?, ?, ?, ?, ?, ?, ?);"
-		_, err := res.db.Exec(query, user.Id, user.Email, user.Password, user.Name, user.Surname,
-			user.Picture, user.Role)
-		if CheckIfError(err) {
-			return fmt.Errorf("Failed to save user: %v", err)
-		}
-		return nil
+
+	query := "INSERT INTO User (Id, Email, Password, Name, Surname, Picture, Role)" +
+		"VALUES (?, ?, ?, ?, ?, ?, ?);"
+	_, err := res.db.Exec(query, user.Id, user.Email, user.Password, user.Name, user.Surname,
+		user.Picture, user.Role)
+	if CheckIfError(err) {
+		return fmt.Errorf("Failed to save user: %v", err)
+
 	}
 	return fmt.Errorf("Invalid user data")
 }

@@ -11,7 +11,6 @@ import (
 )
 
 type MailService interface {
-	// SendVerificationMail(c *gin.Context)
 	IsValidToken(tokeString string) bool
 	CreateVarificationMail(name, surname, token string)
 	GenerateToken(email, name, surname string, expiration time.Time) (string, error)
