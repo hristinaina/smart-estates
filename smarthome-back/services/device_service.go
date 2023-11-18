@@ -77,15 +77,25 @@ func (res *DeviceServiceImpl) Get(id int) (models.Device, error) {
 	return models.Device{}, err
 }
 
-func (res *DeviceServiceImpl) Add(device dto.DeviceDTO) models.Device {
-	// TODO: add some validation for pictures
-	// todo zavisno od tipa uredjaja sprovoditi drugaciju logiku
-	if device.Type == 1 {
-		return res.airConditionerService.Add(device).ToDevice()
-	} else if device.Type == 8 {
-		return res.evChargerService.Add(device).ToDevice()
-	} else if device.Type == 7 {
-		return res.homeBatteryService.Add(device).ToDevice()
+func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) models.Device {
+	if dto.Type == 1 {
+		return res.airConditionerService.Add(dto).ToDevice()
+	} else if dto.Type == 8 {
+		return res.evChargerService.Add(dto).ToDevice()
+	} else if dto.Type == 7 {
+		return res.homeBatteryService.Add(dto).ToDevice()
+		// todo add new case after adding new Device Class
+	} else {
+		device := dto.ToDevice()
+		query := "INSERT INTO devices (Name, Type, Picture, RealEstate, IsOnline)" +
+			"VALUES ( ?, ?, ?, ?, ?);"
+		result, err := res.db.Exec(query, device.Name, device.Type, device.Picture, device.RealEstate,
+			device.IsOnline)
+		if CheckIfError(err) {
+			return models.Device{}
+		}
+		id, err := result.LastInsertId()
+		device.Id = int(id)
+		return device
 	}
-	return models.Device{}
 }

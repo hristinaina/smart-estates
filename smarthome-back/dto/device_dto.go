@@ -73,3 +73,15 @@ func (dto *DeviceDTO) ToHomeBattery() models.HomeBattery {
 		Size: dto.Size,
 	}
 }
+
+func (dto *DeviceDTO) ToDevice() models.Device {
+	return models.Device{
+		//todo change according to code from front.
+		Id:         dto.Id,
+		Name:       dto.Name,
+		Type:       dto.Type,
+		Picture:    dto.Picture,
+		RealEstate: dto.RealEstate,
+		IsOnline:   dto.IsOnline,
+	}
+}
