@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
@@ -10,12 +11,12 @@ import (
 
 type RealEstateService interface {
 	GetAll() ([]models.RealEstate, error)
-	GetAllByUserId(userId int) []models.RealEstate
+	GetByUserId(id int) ([]models.RealEstate, error)
 	Get(id int) (models.RealEstate, error)
-	GetPending() []models.RealEstate
+	GetPending() ([]models.RealEstate, error)
 	// ChangeState if state == 0 it is accepted, in opposite it is declined
-	ChangeState(id int, state int, reason string) models.RealEstate
-	Add(estate models.RealEstate) models.RealEstate
+	ChangeState(id int, state int, reason string) (models.RealEstate, error)
+	Add(estate models.RealEstate) (models.RealEstate, error)
 }
 
 type RealEstateServiceImpl struct {
@@ -32,100 +33,31 @@ func (res *RealEstateServiceImpl) GetAll() ([]models.RealEstate, error) {
 	return res.repository.GetAll()
 }
 
-func (res *RealEstateServiceImpl) GetAllByUserId(userId int) []models.RealEstate {
-	query := "SELECT * FROM realestate WHERE USERID = ?"
-	rows, err := res.db.Query(query, userId)
-
-	if CheckIfError(err) {
-		return nil
-	}
-	defer rows.Close()
-
-	var realEstates []models.RealEstate
-	for rows.Next() {
-		var (
-			realEstate models.RealEstate
-		)
-		if err := rows.Scan(&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address,
-			&realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors,
-			&realEstate.Picture, &realEstate.State, &realEstate.User, &realEstate.DiscardReason); err != nil {
-			fmt.Println("Error: ", err.Error())
-			return []models.RealEstate{}
-		}
-		realEstates = append(realEstates, realEstate)
-		fmt.Println(realEstate)
-	}
-
-	return realEstates
+func (res *RealEstateServiceImpl) GetByUserId(userId int) ([]models.RealEstate, error) {
+	return res.repository.GetByUserId(userId)
 }
 
 func (res *RealEstateServiceImpl) Get(id int) (models.RealEstate, error) {
-	query := "SELECT * FROM realestate WHERE ID = ?"
-	rows, err := res.db.Query(query, id)
-
-	if CheckIfError(err) {
-		return models.RealEstate{}, nil
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var (
-			realEstate models.RealEstate
-		)
-		if err := rows.Scan(&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address,
-			&realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors,
-			&realEstate.Picture, &realEstate.State, &realEstate.User, &realEstate.DiscardReason); err != nil {
-			fmt.Println("Error: ", err.Error())
-			return models.RealEstate{}, err
-		}
-		return realEstate, nil
-	}
-	return models.RealEstate{}, err
+	return res.repository.Get(id)
 }
 
-func (res *RealEstateServiceImpl) GetPending() []models.RealEstate {
-	query := "SELECT * FROM realestate WHERE STATE = 0"
-	rows, err := res.db.Query(query)
-
-	if CheckIfError(err) {
-		return nil
-	}
-	var realEstates []models.RealEstate
-	for rows.Next() {
-		var (
-			realEstate models.RealEstate
-		)
-		if err := rows.Scan(&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address, &realEstate.City,
-			&realEstate.SquareFootage, &realEstate.NumberOfFloors, &realEstate.Picture, &realEstate.State,
-			&realEstate.User, &realEstate.DiscardReason); err != nil {
-			fmt.Println("Error: ", err.Error())
-			return nil
-		}
-		realEstates = append(realEstates, realEstate)
-	}
-	return realEstates
+func (res *RealEstateServiceImpl) GetPending() ([]models.RealEstate, error) {
+	return res.repository.GetPending()
 }
 
-func (res *RealEstateServiceImpl) ChangeState(id int, state int, reason string) models.RealEstate {
+func (res *RealEstateServiceImpl) ChangeState(id int, state int, reason string) (models.RealEstate, error) {
 	realEstate, err := res.Get(id)
-
 	if CheckIfError(err) {
-		return models.RealEstate{}
+		return models.RealEstate{}, err
 	}
 
 	if realEstate.State != enumerations.PENDING {
-		return models.RealEstate{}
+		return models.RealEstate{}, errors.New("only pending real estates can be accepted/declined")
 	}
-
-	// delete old data
-	query := "DELETE FROM realestate WHERE id = ?"
-	_, err = res.db.Exec(query, id)
 
 	if CheckIfError(err) {
-		return models.RealEstate{}
+		return models.RealEstate{}, err
 	}
-
-	// insert updated data
 	if state == 0 {
 		realEstate.State = enumerations.ACCEPTED
 		err = res.mailService.ApproveRealEstate(realEstate)
@@ -134,39 +66,20 @@ func (res *RealEstateServiceImpl) ChangeState(id int, state int, reason string) 
 		realEstate.DiscardReason = reason
 		err = res.mailService.DiscardRealEstate(realEstate)
 	}
-	if CheckIfError(err) {
-		return models.RealEstate{}
-	}
+	realEstate, err = res.repository.UpdateState(realEstate)
 
-	query = "INSERT INTO realestate (Id, Name, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId, DiscardReason)" +
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
-	_, err = res.db.Exec(query, realEstate.Id, realEstate.Name, realEstate.Type, realEstate.Address, realEstate.City,
-		realEstate.SquareFootage, realEstate.NumberOfFloors, realEstate.Picture, realEstate.State, realEstate.User,
-		realEstate.DiscardReason)
-
-	if CheckIfError(err) {
-		return models.RealEstate{}
-	}
-
-	return realEstate
-
+	return realEstate, err
 }
 
-func (res *RealEstateServiceImpl) Add(estate models.RealEstate) models.RealEstate {
+func (res *RealEstateServiceImpl) Add(estate models.RealEstate) (models.RealEstate, error) {
 	estate.Id = res.generateId()
 
 	// TODO: add some validation for pictures
 	if estate.Address != "" && estate.City != "" && estate.SquareFootage != 0.0 && estate.NumberOfFloors != 0 {
-		query := "INSERT INTO realestate (Id, Name, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId, DiscardReason)" +
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
-		_, err := res.db.Exec(query, estate.Id, estate.Name, estate.Type, estate.Address, estate.City, estate.SquareFootage,
-			estate.NumberOfFloors, estate.Picture, estate.State, estate.User, "")
-		if CheckIfError(err) {
-			return models.RealEstate{}
-		}
-		return estate
+		estate, err := res.repository.Add(estate)
+		return estate, err
 	}
-	return models.RealEstate{}
+	return models.RealEstate{}, errors.New("invalid input")
 }
 
 func (res *RealEstateServiceImpl) generateId() int {

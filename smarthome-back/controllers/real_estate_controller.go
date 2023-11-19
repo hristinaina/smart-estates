@@ -22,43 +22,64 @@ func NewRealEstateController(db *sql.DB) RealEstateController {
 func (rec RealEstateController) GetAll(c *gin.Context) {
 	realEstates, err := rec.service.GetAll()
 	if err != nil {
-		fmt.Println("Error happened!")
-		c.JSON(http.StatusBadRequest, "Error happened!")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 	c.JSON(http.StatusOK, realEstates)
 }
 
 func (rec RealEstateController) GetAllByUserId(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("userId"))
-	CheckIfError(err, c)
-	realEstates := rec.service.GetAllByUserId(id)
+	if IsError(err, c) {
+		return
+	}
+	realEstates, err := rec.service.GetByUserId(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, realEstates)
 }
 
 func (rec RealEstateController) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	CheckIfError(err, c)
+	if IsError(err, c) {
+		return
+	}
 	realEstate, err := rec.service.Get(id)
-	CheckIfError(err, c)
+	if IsError(err, c) {
+		return
+	}
 	c.JSON(http.StatusOK, realEstate)
 }
 
 func (rec RealEstateController) GetPending(c *gin.Context) {
-	realEstates := rec.service.GetPending()
+	realEstates, err := rec.service.GetPending()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, realEstates)
 }
 
 func (rec RealEstateController) ChangeState(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	CheckIfError(err, c)
+	if IsError(err, c) {
+		return
+	}
 	state, err := strconv.Atoi(c.Param("state"))
-	CheckIfError(err, c)
+	if IsError(err, c) {
+		return
+	}
 	var reason dtos.DiscardRealEstate
 	err = c.BindJSON(&reason)
-	CheckIfError(err, c)
-	realEstate := rec.service.ChangeState(id, state, reason.DiscardReason)
-	if realEstate.SquareFootage == 0 {
-		c.JSON(http.StatusBadRequest, "Only pending real estates can be accepted/declined.")
+	if IsError(err, c) {
+		return
+	}
+	realEstate, err := rec.service.ChangeState(id, state, reason.DiscardReason)
+	if err != nil {
+		fmt.Println("ERROR!!!")
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -73,15 +94,17 @@ func (rec RealEstateController) Add(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "Invalid JSON"})
 		return
 	}
-
-	estate = rec.service.Add(estate)
+	estate, err := rec.service.Add(estate)
+	if err != nil {
+		c.JSON(400, err)
+		return
+	}
 	c.JSON(http.StatusOK, estate)
 }
 
-func CheckIfError(err error, c *gin.Context) bool {
+func IsError(err error, c *gin.Context) bool {
 	if err != nil {
-		fmt.Println("Error: ", err.Error())
-		c.JSON(http.StatusBadRequest, "Error happened!")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return true
 	}
 	return false
