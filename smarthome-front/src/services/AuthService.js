@@ -1,13 +1,5 @@
 class AuthService {
 
-  user = {
-    email: '',
-    name: '',
-    surname: '',
-    picture: '',
-    role: 1,
-  };
-
   async loginUser(email, password) {
     try {
       const response = await fetch('http://localhost:8081/api/users/login', {
@@ -120,16 +112,15 @@ class AuthService {
   }; 
 
   async setUser(user) {
-    // this.user.email = user["Email"]
-    // this.user.name = user["Name"]
-    // this.user.surname = user["Surname"]
-    // this.user.picture = user["Picture"]
-    // this.user.role = user["Role"]
     localStorage.setItem('user', JSON.stringify(user));
   }
   
-  async getCurrentUser() {
-    return JSON.parse(localStorage.getItem('user'));
+  getCurrentUser() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      window.location.href = '/';
+    }
+    return user;
   }
 }
 

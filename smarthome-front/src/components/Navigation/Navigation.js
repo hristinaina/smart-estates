@@ -27,15 +27,8 @@ export class Navigation extends Component {
     }
 
     componentDidMount() {
-        authService.getCurrentUser()
-      .then(result => {
-        if (result) {
-          this.setState({ role: result['Role'] });
-        }
-      })
-      .catch(error => {
-        console.error('Greška prilikom izvršavanja promisa:', error);
-      });
+        const user = authService.getCurrentUser()
+        this.setState({ role: user['Role'] })
       }
 
     render() {

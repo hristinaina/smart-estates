@@ -2,16 +2,15 @@ import React,{ Component, useState } from 'react';
 import './RealEstates.css';
 import { NewRealEstate } from './NewRealEstate';
 import { Navigation } from '../Navigation/Navigation';
-import { AuthProvider } from '../Auth/AuthContext';
+import authService from '../../services/AuthService'
 
 export class RealEstates extends Component {
-    static contextType = AuthProvider;
-
     constructor(props) {
         super(props);
 
         this.state = {
             showNewRealEstate: false,
+            user : null
         };
     }
 
@@ -22,15 +21,12 @@ export class RealEstates extends Component {
     }
 
     componentDidMount() {
-        const { user } = this.context;
-    
-        if (!user) {
-          window.location.href = '/';
-        }
+        const currentUser = authService.getCurrentUser()
+        this.setState({user: currentUser})
       }
 
     render() {
-        const { user } = this.context;
+        const { user } = this.state;
 
         if (!user) return null;
         
