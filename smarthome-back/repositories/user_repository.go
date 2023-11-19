@@ -12,6 +12,7 @@ type UserRepository interface {
 	SaveUser(user models.User) error
 	GetUserByEmail(email string) (*models.User, error)
 	GetUserById(id int) (*models.User, error)
+	ResetSuperAdminPassword(password string, id int) error
 }
 
 type UserRepositoryImpl struct {
@@ -94,6 +95,13 @@ func (res *UserRepositoryImpl) GetUserById(id int) (*models.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (res *UserRepositoryImpl) ResetSuperAdminPassword(password string, id int) error {
+	updateStatement := "UPDATE user SET Password=?, IsLogin=? WHERE Id=?"
+
+	_, err := res.db.Exec(updateStatement, password, true, id)
+	return err
 }
 
 func (res *UserRepositoryImpl) generateId() int {

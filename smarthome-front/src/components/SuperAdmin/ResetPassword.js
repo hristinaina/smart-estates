@@ -14,6 +14,7 @@ import CloseIcon from '@mui/icons-material/Close';
 
 import './ResetPassword.css'; 
 import authService from '../../services/AuthService'
+import superAdminService from '../../services/SuperAdmin' 
 
 
 const ResetPassword = () => {
@@ -76,16 +77,14 @@ const ResetPassword = () => {
 
     // save reset password
     const handleResetPassword = async () => {
-        // const result = await authService.loginUser(username, password);
-    
-        // if (result.success) {
-        //     await authService.validateUser()
-        //     console.log("user", await authService.getCurrentUser())
-        //     navigate('/real-estates');
-        // } else {
-        //     setSnackbarMessage(result.error);
-        //     handleClick()
-        // }
+        const result = await superAdminService.ResetPassword(password);
+        if (result.success) {
+            authService.getCurrentUser();
+            navigate('/real-estates');
+        } else {
+            setSnackbarMessage(result.error);
+            handleClick()
+        }
     };
 
     const action = (
