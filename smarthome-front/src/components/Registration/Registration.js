@@ -131,7 +131,6 @@ const Registration = () => {
           setIsButtonDisabled(true)
           setSnackbarMessage("Successfully registered. Check your email!");
           handleClick()       
-          // TODO posalji mejl
       } else {
         setSnackbarMessage(result.error);
         handleClick()

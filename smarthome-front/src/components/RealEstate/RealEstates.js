@@ -1,4 +1,3 @@
-
 import React,{ Component, useState } from 'react';
 import './RealEstates.css';
 import { NewRealEstate } from './NewRealEstate';
