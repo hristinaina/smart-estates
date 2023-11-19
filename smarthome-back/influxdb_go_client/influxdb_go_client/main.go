@@ -7,14 +7,12 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	_ "github.com/influxdata/influxdb-client-go/v2/api/write"
 	"log"
-	"os"
 	"time"
 )
 
 func main() {
-	// connecting to database
-	err := os.Setenv("INFLUXDB_TOKEN", "fl351wwqky2cPaL4xiu3OaUP63A7isB6UtAsB7ikJS8WSL83RQs3zMK2htU5wAtGjCa9tGbEoX2Ay9ga09v9FA==")
-	token := "fl351wwqky2cPaL4xiu3OaUP63A7isB6UtAsB7ikJS8WSL83RQs3zMK2htU5wAtGjCa9tGbEoX2Ay9ga09v9FA=="
+	// connecting to mysql database
+	token := ""
 	fmt.Println("Variableee")
 	fmt.Println(token)
 

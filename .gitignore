@@ -1,2 +1,3 @@
 
 smarthome-back/config/config.json
+smarthome-back/influxdb_go_client/influxdb_go_client/config.json

@@ -14,7 +14,6 @@ func main() {
 	r := gin.Default()
 	r.Use(cors.Default())
 	db := config.SetupDatabase()
-
 	routes.SetupRoutes(r, db)
 	err := r.Run(":8081")
 	if err != nil {
