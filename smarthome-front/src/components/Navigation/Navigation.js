@@ -40,7 +40,7 @@ export class Navigation extends Component {
         return (
             <header>
                 <Navbar className="navbar">
-                    {role==1 && (
+                    {role===1 && (
                         <ul>
                             <span className="logo">Smart Home</span>
                             <NavItem>
@@ -57,7 +57,7 @@ export class Navigation extends Component {
                             </NavItem>
                         </ul>
                     )}
-                    {role==0 && (
+                    {role===0 || role===2 && (
                         <ul>
                             <span className="logo">Smart Home</span>
                             <NavItem>

@@ -36,7 +36,7 @@ func (gs GenerateSuperadmin) GenerateSuperadmin() {
 		}
 
 		// save super admin account
-		newSuperadmin := models.User{Email: "admin", Password: hashPassword(generatePassword), Role: enumerations.SUPERADMIN}
+		newSuperadmin := models.User{Email: "admin", Password: hashPassword(generatePassword), Role: enumerations.SUPERADMIN, IsLogin: false}
 		gs.repo.SaveUser(newSuperadmin)
 	}
 }
@@ -45,7 +45,7 @@ const (
 	lowercaseLetters = "abcdefghijklmnopqrstuvwxyz"
 	uppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	digits           = "0123456789"
-	specialChars     = "!@#$%^&*()-=_+[]{}|;:'\",.<>/?"
+	specialChars     = "!@#$%^*()-=_+[]{}|;:,.?"
 )
 
 func generateRandomPassword(length int) string {

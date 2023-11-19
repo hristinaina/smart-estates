@@ -40,6 +40,7 @@ class AuthService {
 
     if (response.status === 200) {
       const data = await response.json();
+      
       this.setUser(data["message"])
       return true
 

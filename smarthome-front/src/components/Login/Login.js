@@ -40,7 +40,7 @@ const Login = () => {
 
     const handleUsernameChange = (event) => {
         setUsername(event.target.value);
-        event.target.value.trim() ===  '' || !emailRegex.test(event.target.value.trim()) || password.trim() === '' 
+        event.target.value.trim() ===  '' ||  !(!emailRegex.test(event.target.value.trim()) && event.target.value.trim() !==  'admin') || password.trim() === '' 
         ? checkButtonDisabled(true) : checkButtonDisabled(false)
     };
 
