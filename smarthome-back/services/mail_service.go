@@ -53,14 +53,14 @@ func (ms *MailServiceImpl) Send(to, subject, body string) error {
 }
 
 func (ms *MailServiceImpl) ApproveRealEstate(estate models.RealEstate) error {
-	// TODO : use this after user is implemented
+	// TODO : use this after A&A is implemented
 	// user := ms.service.GetUser(estate.User)
 	// toAddress := user.Email
 	toAddress := "kacorinav@gmail.com"
 	subject := "New Real Estate State"
-	// TODO : change parameter in content
+	// TODO : change parameter name in content
 	content := fmt.Sprintf("<h1>Hi %s,</h1> <br/> We have some good news. Your real estate request has been approved!"+
-		"<br/>Real Estate Name: %s. <br/> Smart Home Support Team", "Katarina", estate.Name)
+		"<br/>Real Estate Name: %s. <br/> Smart Home Support Team", "User", estate.Name)
 
 	err := ms.Send(toAddress, subject, content)
 	if err != nil {
@@ -76,10 +76,10 @@ func (ms *MailServiceImpl) DiscardRealEstate(estate models.RealEstate) error {
 	// toAddress := user.Email
 	toAddress := "kacorinav@gmail.com"
 	subject := "New Real Estate State"
-	// TODO : change parameter in content
+	// TODO : change parameter name in content
 	content := fmt.Sprintf("<h1>Hi %s,</h1> <br/> We are very sorry, but your new real estate request has been rejected."+
 		"<br/>Real Estate Name: %s. <br/>Reason for rejection: %s.<br/> Stay safe!<br/> Smart Home Support Team",
-		"Katarina", estate.Name, estate.DiscardReason)
+		"User", estate.Name, estate.DiscardReason)
 
 	err := ms.Send(toAddress, subject, content)
 	if err != nil {
