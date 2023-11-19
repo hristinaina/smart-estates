@@ -8,6 +8,9 @@ import axios from 'axios';
 import { RealEstates } from "./RealEstates";
 import { Navigation } from "../Navigation/Navigation";
 import RealEstateService from "../../services/RealEstateService";
+import { Snackbar } from "@mui/material";
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 
 
 function LocationMarker({ onMapClick }) {
@@ -50,6 +53,9 @@ export class NewRealEstate extends Component {
             address: '',
             selectedImage: null,
             showRealEstates: false,
+            snackbarMessage: '',
+            showSnackbar: false,
+            open: false,
         };
 
         this.position = [45.23598471651923, 19.83932472361301]; // Initial map position
@@ -126,17 +132,44 @@ export class NewRealEstate extends Component {
         try {
             const result = await RealEstateService.add(estate);
             console.log(result);
+            window.location.href = '/real-estates';
         } catch (error) {
             console.log("Error")
             console.error(error);
+            this.setState({snackbarMessage: "Please check input fields!"})
+            this.handleClick()
         }
-
-        window.location.href = '/real-estates';
     }
 
     cancel = () => {
         window.location.href = '/real-estates';
     }
+
+     // snackbar
+    handleClick = () => {
+        this.setState({open: true});
+    };
+
+    handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+          return;
+        }
+        this.setState({open: false});
+      };
+
+    action = (
+        <React.Fragment>
+            <IconButton
+            size="small"
+            aria-label="close"
+            color="inherit"
+            onClick={this.handleClose}>
+            <CloseIcon fontSize="small" />
+            </IconButton>
+        </React.Fragment>
+        );
+    
+
     
     render() {
         const filteredCities = this.getFilteredCities();
@@ -245,6 +278,15 @@ export class NewRealEstate extends Component {
                         </span>
                     </div>
                 </div> )}
+
+                <Snackbar
+                    open={this.state.open}
+                    autoHideDuration={3000}
+                    onClose={this.handleClose}
+                    message={this.state.snackbarMessage}
+                    action={this.action}
+                />
+
                 
             </div>
         )
