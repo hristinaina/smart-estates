@@ -20,8 +20,8 @@ func NewRealEstateController(db *sql.DB) RealEstateController {
 }
 
 func (rec RealEstateController) GetAll(c *gin.Context) {
-	realEstates := rec.service.GetAll()
-	if realEstates == nil {
+	realEstates, err := rec.service.GetAll()
+	if err != nil {
 		fmt.Println("Error happened!")
 		c.JSON(http.StatusBadRequest, "Error happened!")
 	}

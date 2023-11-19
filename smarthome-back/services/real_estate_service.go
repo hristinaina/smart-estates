@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
+	"smarthome-back/repositories"
 )
 
 type RealEstateService interface {
-	GetAll() []models.RealEstate
+	GetAll() ([]models.RealEstate, error)
 	GetAllByUserId(userId int) []models.RealEstate
 	Get(id int) (models.RealEstate, error)
 	GetPending() []models.RealEstate
@@ -19,38 +20,16 @@ type RealEstateService interface {
 
 type RealEstateServiceImpl struct {
 	db          *sql.DB
+	repository  repositories.RealEstateRepository
 	mailService MailService
 }
 
 func NewRealEstateService(db *sql.DB) RealEstateService {
-	return &RealEstateServiceImpl{db: db, mailService: NewMailService(db)}
+	return &RealEstateServiceImpl{db: db, mailService: NewMailService(db), repository: *repositories.NewRealEstateRepository(db)}
 }
 
-func (res *RealEstateServiceImpl) GetAll() []models.RealEstate {
-	query := "SELECT * FROM realestate"
-	rows, err := res.db.Query(query)
-	if CheckIfError(err) {
-		return nil
-	}
-	defer rows.Close()
-
-	var realEstates []models.RealEstate
-	for rows.Next() {
-		var (
-			realEstate models.RealEstate
-		)
-
-		// TODO: create function for this -> DRY
-		if err := rows.Scan(&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address,
-			&realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors,
-			&realEstate.Picture, &realEstate.State, &realEstate.User, &realEstate.DiscardReason); err != nil {
-			fmt.Println("Error: ", err.Error())
-			return []models.RealEstate{}
-		}
-		realEstates = append(realEstates, realEstate)
-	}
-
-	return realEstates
+func (res *RealEstateServiceImpl) GetAll() ([]models.RealEstate, error) {
+	return res.repository.GetAll()
 }
 
 func (res *RealEstateServiceImpl) GetAllByUserId(userId int) []models.RealEstate {
@@ -192,7 +171,11 @@ func (res *RealEstateServiceImpl) Add(estate models.RealEstate) models.RealEstat
 
 func (res *RealEstateServiceImpl) generateId() int {
 	id := 0
-	estates := res.GetAll()
+	estates, err := res.GetAll()
+
+	if err != nil {
+		return -1
+	}
 
 	for _, estate := range estates {
 		if estate.Id > id {
