@@ -96,7 +96,7 @@ func (rec RealEstateController) Add(c *gin.Context) {
 	}
 	estate, err := rec.service.Add(estate)
 	if err != nil {
-		c.JSON(400, err)
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, estate)

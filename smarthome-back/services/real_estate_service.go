@@ -75,7 +75,7 @@ func (res *RealEstateServiceImpl) Add(estate models.RealEstate) (models.RealEsta
 	estate.Id = res.generateId()
 
 	// TODO: add some validation for pictures
-	if estate.Address != "" && estate.City != "" && estate.SquareFootage != 0.0 && estate.NumberOfFloors != 0 {
+	if estate.Address != "" && estate.City != "" && estate.SquareFootage > 0.0 && estate.NumberOfFloors > 0 {
 		estate, err := res.repository.Add(estate)
 		return estate, err
 	}
