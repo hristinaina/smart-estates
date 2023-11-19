@@ -17,8 +17,9 @@ export class Devices extends Component {
 
     async componentDidMount() {
         try {
-            const result = await DeviceService.getDevices(1);
+            const result = await DeviceService.getDevices(2);
             this.setState({ data: result });
+            console.log(result)
         } catch (error) {
             // Handle error
         }
@@ -31,11 +32,13 @@ export class Devices extends Component {
             <div>
                 <Navigation />
                 <div id="tools">
-                    <Link to="/"><img src='/images/arrow.png' id='arrow' /></Link>
+                    <Link to="/real-estates"><img src='/images/arrow.png' id='arrow' /></Link>
                     <span className='estate-title'>Ta i ta nekretnina</span>
                     <p id="add-device">
-                        <img alt="." src="/images/plus.png" id="plus" />
-                        Add Device
+                        <Link to="/new-device">
+                            <img alt="." src="/images/plus.png" id="plus" />
+                            Add Device
+                        </Link>
                     </p>
                 </div>
                 <Divider style={{width: "87%", marginLeft: 'auto', marginRight: 'auto', marginBottom: '20px'}}/>
@@ -64,14 +67,14 @@ const DevicesList = ({ devices }) => {
                         <div key={index} className='device-card'>
                             <img
                                 alt='device'
-                                src={device.image}
+                                src={device.Picture}
                                 className='device-img'
                             />
                             <div className='device-info'>
-                                <p className='device-title'>{device.name}</p>
-                                <p className='device-text'>{device.type}</p>
-                                {device.status=="Online" && (<p className='device-text' style={{color: 'green'}}>{device.status}</p>)}
-                                {device.status=="Offline" && (<p className='device-text' style={{color: 'red'}}>{device.status}</p>)}
+                                <p className='device-title'>{device.Name}</p>
+                                <p className='device-text'>{device.Type}</p>
+                                {device.IsOnline && (<p className='device-text' style={{color: 'green'}}>Online</p>)}
+                                {!device.IsOnline && (<p className='device-text' style={{color: 'red'}}>Offline</p>)}
                             </div>
                         </div>
                     ))}

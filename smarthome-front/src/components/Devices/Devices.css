@@ -79,3 +79,15 @@
 .state-color {
     color: green;
 }
+
+#tools a{
+    text-decoration: none;
+    color: inherit;
+}
+
+#confirm-button.disabled {
+    color: rgba(0, 0, 0, 0.26);
+    box-shadow: none;
+    background-color: rgba(0, 0, 0, 0.12);
+    cursor: default;
+  }
