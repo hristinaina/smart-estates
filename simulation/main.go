@@ -2,10 +2,19 @@ package main
 
 import (
 	_ "database/sql"
-	"fmt"
 	_ "fmt"
+	"simulation/devices"
 )
 
 func main() {
-	fmt.Println("Simulation app started")
+	//TODO zovni preuzimanje liste uredjaja
+	client := devices.CreateConnection()
+	//for (device in devices){
+	//	if (device.Type == "") {
+	go devices.ConnectLamp(client)
+	//	} else if (device.Type == "") {
+	//		go devices.ConnectLamp(client)
+	//	}
+	//}
+	select {}
 }
