@@ -32,6 +32,7 @@ func NewImageUploadController() ImageUploadController {
 }
 
 func (iup ImageUploadController) UploadImage(c *gin.Context) {
+	name := c.Param("real-estate-name")
 	file, err := c.FormFile("image")
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -58,6 +59,7 @@ func (iup ImageUploadController) UploadImage(c *gin.Context) {
 
 	if !userBucketExists {
 		// TODO : replace with actual email
+		// create new bucket
 		err := createBucket(s3Bucket)
 		if err != nil {
 			fmt.Println("Error: ", "Failed to create user's bucket")
@@ -67,7 +69,7 @@ func (iup ImageUploadController) UploadImage(c *gin.Context) {
 		}
 	}
 
-	err = uploadToS3(fileBytes, file.Filename)
+	err = uploadToS3(fileBytes, name)
 	if err != nil {
 		fmt.Println("Error: ", "Failed to upload file")
 		fmt.Println(err)
@@ -106,7 +108,8 @@ func uploadToS3(fileBytes []byte, fileName string) error {
 	uploader := s3.New(sess)
 
 	_, err = uploader.PutObject(&s3.PutObjectInput{
-		Bucket:      aws.String(s3Bucket),
+		Bucket: aws.String(s3Bucket),
+		// TODO : change key for real estate name
 		Key:         aws.String(fileName),
 		Body:        bytes.NewReader(fileBytes),
 		ContentType: aws.String(http.DetectContentType(fileBytes)),

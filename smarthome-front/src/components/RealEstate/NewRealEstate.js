@@ -12,6 +12,7 @@ import { Snackbar } from "@mui/material";
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { TripOriginSharp } from "@mui/icons-material";
+import UploadImageService from "../../services/UploadImageService";
 
 
 function LocationMarker({ onMapClick }) {
@@ -181,20 +182,19 @@ export class NewRealEstate extends Component {
 
         const formData = new FormData();
         formData.append('image', this.state.selectedImage);
-
+        
         try {
-            // Replace 'http://your-backend-url' with the actual URL of your backend
-            await axios.post('http://localhost:8081/api/upload', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-
-            // Optional: handle success, e.g., show a success message or update the UI
-            console.log('Image uploaded successfully');
+            var name = String(document.getElementsByName('name')[0].value);
+            const substr = this.state.selectedImage.name.split(".")[1];
+            name += "." + substr;
+            console.log("NAME: ", name)
+            await UploadImageService.uploadImage(formData, name);
+            window.location.href = '/real-estates';
         } catch (error) {
-            // Optional: handle error, e.g., show an error message or update the UI
-            console.error('Error uploading image', error);
+            console.log("Error")
+            console.error(error);
+            this.setState({snackbarMessage: "Error uploading image!"})
+            this.handleClick()
         }
     };
     

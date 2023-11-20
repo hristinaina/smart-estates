@@ -29,6 +29,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 	uploadImageRoutes := r.Group("/api/upload")
 	{
 		imageUploadController := controllers.NewImageUploadController()
-		uploadImageRoutes.POST("", imageUploadController.UploadImage)
+		uploadImageRoutes.POST("/:real-estate-name", imageUploadController.UploadImage)
 	}
 }
