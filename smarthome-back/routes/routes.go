@@ -25,4 +25,10 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		realEstateRoutes.PUT("/:id/:state", realEstateController.ChangeState)
 		realEstateRoutes.POST("/", realEstateController.Add)
 	}
+
+	uploadImageRoutes := r.Group("/api/upload")
+	{
+		imageUploadController := controllers.NewImageUploadController()
+		uploadImageRoutes.POST("", imageUploadController.UploadImage)
+	}
 }

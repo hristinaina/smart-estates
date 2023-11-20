@@ -12,7 +12,7 @@ export class RealEstates extends Component {
         super(props);
 
         this.state = {
-            isAdmin: true,
+            isAdmin: false,
             userId: 2,
             isDisabled: true,
             showApproveDialog: false,

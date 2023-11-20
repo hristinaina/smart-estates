@@ -11,6 +11,7 @@ import RealEstateService from "../../services/RealEstateService";
 import { Snackbar } from "@mui/material";
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
+import { TripOriginSharp } from "@mui/icons-material";
 
 
 function LocationMarker({ onMapClick }) {
@@ -132,7 +133,8 @@ export class NewRealEstate extends Component {
         try {
             const result = await RealEstateService.add(estate);
             console.log(result);
-            window.location.href = '/real-estates';
+            this.handleUpload()
+            // window.location.href = '/real-estates';
         } catch (error) {
             console.log("Error")
             console.error(error);
@@ -170,6 +172,31 @@ export class NewRealEstate extends Component {
         );
     
 
+    
+    handleUpload = async () => {
+        if (!this.state.selectedImage) {
+            alert('Please select an image to upload.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('image', this.state.selectedImage);
+
+        try {
+            // Replace 'http://your-backend-url' with the actual URL of your backend
+            await axios.post('http://localhost:8081/api/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            // Optional: handle success, e.g., show a success message or update the UI
+            console.log('Image uploaded successfully');
+        } catch (error) {
+            // Optional: handle error, e.g., show an error message or update the UI
+            console.error('Error uploading image', error);
+        }
+    };
     
     render() {
         const filteredCities = this.getFilteredCities();
@@ -286,8 +313,6 @@ export class NewRealEstate extends Component {
                     message={this.state.snackbarMessage}
                     action={this.action}
                 />
-
-                
             </div>
         )
     }
