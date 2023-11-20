@@ -100,7 +100,7 @@ func writePasswordToFile(password string) error {
 		return err
 	}
 
-	fmt.Println("\nFOR EMAIL AND PASSWORD LOOK admin.json FILE\n")
+	fmt.Println("\nFOR EMAIL AND PASSWORD LOOK smart-home/smarthome-back/admin.json FILE\n")
 	return nil
 }
 

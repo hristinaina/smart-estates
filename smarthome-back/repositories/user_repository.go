@@ -63,7 +63,7 @@ func (res *UserRepositoryImpl) SaveUser(user models.User) error {
 		return fmt.Errorf("Failed to save user: %v", err)
 
 	}
-	return fmt.Errorf("Invalid user data")
+	return nil
 }
 
 func (res *UserRepositoryImpl) GetUserByEmail(email string) (*models.User, error) {

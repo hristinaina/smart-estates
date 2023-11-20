@@ -99,10 +99,11 @@ func (sas *SuperAdminControllerImpl) AddAdmin(c *gin.Context) {
 	password := sas.superadmin_service.GenerateRandomPassword(12)
 
 	// save admin in database
-	newAdmin := models.User{Email: input.Email, Password: sas.superadmin_service.HashPassword(password), Name: input.Name, Surname: input.Surname, Role: enumerations.ADMIN, IsLogin: false}
+	newAdmin := models.User{Email: input.Email, Password: sas.superadmin_service.HashPassword(password), Name: input.Name, Surname: input.Surname, Role: enumerations.ADMIN}
 	err := sas.repo.SaveUser(newAdmin)
 
 	if err != nil {
+		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "There is already an account with the entered email"})
 		return
 	}
