@@ -10,6 +10,8 @@ import (
 type ConfigService interface {
 	GetToken(path string) (string, error)
 	GetAppPassword(path string) (string, error)
+	GetAccessKey(path string) (string, error)
+	GetSecretAccessKey(path string) (string, error)
 	getConfiguration(path string) (models.Configuration, error)
 }
 
@@ -34,6 +36,22 @@ func (cs *ConfigServiceImpl) GetAppPassword(path string) (string, error) {
 		return "", err
 	}
 	return config.AppPassword, nil
+}
+
+func (cs *ConfigServiceImpl) GetAccessKey(path string) (string, error) {
+	config, err := cs.getConfiguration(path)
+	if err != nil {
+		return "", err
+	}
+	return config.AccessKey, nil
+}
+
+func (cs *ConfigServiceImpl) GetSecretAccessKey(path string) (string, error) {
+	config, err := cs.getConfiguration(path)
+	if err != nil {
+		return "", err
+	}
+	return config.SecretAccessKey, nil
 }
 
 func (cs *ConfigServiceImpl) getConfiguration(path string) (models.Configuration, error) {
