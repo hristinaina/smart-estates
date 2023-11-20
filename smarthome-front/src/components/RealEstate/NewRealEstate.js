@@ -12,7 +12,7 @@ import { Snackbar } from "@mui/material";
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { TripOriginSharp } from "@mui/icons-material";
-import UploadImageService from "../../services/UploadImageService";
+import ImageService from "../../services/ImageService";
 
 
 function LocationMarker({ onMapClick }) {
@@ -94,7 +94,7 @@ export class NewRealEstate extends Component {
             .get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newAddress.lat}&lon=${newAddress.lng}`)
             .then((response) => {
                 const obj = response.data.address;
-                if (obj.house_number != undefined)
+                if (obj.house_number !== undefined)
                     this.setState({'address': response.data.address.road + " " + response.data.address.house_number + 
                     ", " + response.data.address.city_district});
                 else 
@@ -188,7 +188,7 @@ export class NewRealEstate extends Component {
             const substr = this.state.selectedImage.name.split(".")[1];
             name += "." + substr;
             console.log("NAME: ", name)
-            await UploadImageService.uploadImage(formData, name);
+            await ImageService.uploadImage(formData, name);
             window.location.href = '/real-estates';
         } catch (error) {
             console.log("Error")
@@ -290,7 +290,7 @@ export class NewRealEstate extends Component {
                                     style={{ display: 'none' }}
                                     ref={(fileInput) => (this.fileInput = fileInput)}
                                 />
-                            <img id="upload-image" src="/images/photo.png"/>
+                            <img alt="Real Estate" id="upload-image" src="/images/photo.png"/>
                             <p id="upload-image-p">Upload image</p>
                         </div>
                         <span>

@@ -5,6 +5,7 @@ import Dialog from '../Dialog/Dialog';
 import RealEstateService from '../../services/RealEstateService';
 
 import { Navigation } from '../Navigation/Navigation';
+import ImageService from '../../services/ImageService';
 
 export class RealEstates extends Component {
 
@@ -19,6 +20,7 @@ export class RealEstates extends Component {
             showDiscardDialog: false,
             selectedRealEstate: -1,
             realEstates: [],
+            realEstateImages: {},
         };
     }
 
@@ -27,10 +29,17 @@ export class RealEstates extends Component {
             if (!this.state.isAdmin) {
                 const result = await RealEstateService.getAllByUserId(this.state.userId);
                 this.setState({realEstates: result})
+
             } else {
                 const result = await RealEstateService.getPending();
                 this.setState({realEstates: result})
             }
+            const realEstateImages = {};
+            for (const realEstate of this.state.realEstates) {
+                const imageUrl = await ImageService.getImage(realEstate.Name);
+                realEstateImages[realEstate.Id] = imageUrl;
+            }
+            this.setState({realEstateImages});
            
         } catch (error) {
             console.log("error");
@@ -90,7 +99,7 @@ export class RealEstates extends Component {
                 <Navigation />
                 {!this.state.isAdmin && (
                 <p id="add-real-estate" onClick={this.handleAddRealEstateClick}>
-                    <img alt="." src="/images/plus.png" id="plus" />
+                    <img alt="" src="/images/plus.png" id="plus" />
                     Add Real-Estate
                 </p>
                 )}
@@ -102,7 +111,7 @@ export class RealEstates extends Component {
                             key={realEstate.Id}
                             className={`real-estate-card ${(realEstate.Id !== this.state.selectedRealEstate && this.state.isAdmin === true) ? 'not-selected-card' : 'selected-card'}`} 
                             onClick={() => this.handleCardClick(realEstate.Id)}>
-                            <img alt='real-estate' src='/images/real_estate_example.png' className='real-estate-img' />
+                            <img alt='real-estate' src={this.state.realEstateImages[realEstate.Id]} className='real-estate-img' />
                             <div className='real-estate-info'>
                                 <p className='real-estate-title'>{realEstate.Name}</p>
                                 <p className='real-estate-text'>

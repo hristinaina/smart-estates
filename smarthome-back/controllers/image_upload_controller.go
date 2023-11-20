@@ -12,6 +12,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"smarthome-back/services"
+	"strings"
 )
 
 var service = services.NewConfigService()
@@ -29,6 +30,25 @@ type ImageUploadController struct {
 
 func NewImageUploadController() ImageUploadController {
 	return ImageUploadController{}
+}
+
+func (iup ImageUploadController) GetImageURL(c *gin.Context) {
+	// TODO : change this later
+	username := "examplegmail.com"
+	filename := c.Param("file-name")
+
+	fullName, err := findFullFileName(filename)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error while searching for file"})
+		return
+	}
+
+	// Replace 'your-s3-bucket-name' with your actual S3 bucket name
+	s3URL := fmt.Sprintf("https://s3.%s.amazonaws.com/%s/%s", awsRegion, username, fullName)
+	fmt.Println("RETURNNN")
+	fmt.Println(s3URL)
+	c.JSON(http.StatusOK, gin.H{"imageUrl": s3URL})
 }
 
 func (iup ImageUploadController) UploadImage(c *gin.Context) {
@@ -94,6 +114,40 @@ func (iup ImageUploadController) readFile(file *multipart.FileHeader) ([]byte, e
 	}
 
 	return buf.Bytes(), nil
+}
+
+func findFullFileName(fileName string) (string, error) {
+	// TODO : change this later
+	username := "examplegmail.com"
+	sess, err := session.NewSession(&aws.Config{
+		Region:      aws.String(awsRegion),
+		Credentials: credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, ""),
+	})
+	if err != nil {
+		return "", err
+	}
+	svc := s3.New(sess)
+
+	input := &s3.ListObjectsV2Input{
+		Bucket: aws.String(username),
+	}
+
+	result, err := svc.ListObjectsV2(input)
+	if err != nil {
+		return "", err
+	}
+
+	// iterate through objects
+	fmt.Println("Objects in the bucket:")
+	for _, item := range result.Contents {
+		if strings.Split(*item.Key, ".")[0] == fileName {
+			fmt.Println("FOUND!")
+			return *item.Key, nil
+		}
+		fmt.Printf("Name: %s, Size: %d\n", *item.Key, *item.Size)
+	}
+
+	return "", nil
 }
 
 func uploadToS3(fileBytes []byte, fileName string) error {

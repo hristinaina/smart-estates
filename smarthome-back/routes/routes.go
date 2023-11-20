@@ -30,5 +30,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 	{
 		imageUploadController := controllers.NewImageUploadController()
 		uploadImageRoutes.POST("/:real-estate-name", imageUploadController.UploadImage)
+		uploadImageRoutes.GET("/:file-name", imageUploadController.GetImageURL)
 	}
 }
