@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"smarthome-back/dto"
@@ -26,6 +27,15 @@ func (uc DeviceController) Get(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, device)
+}
+
+func (uc DeviceController) GetAll(c *gin.Context) {
+	devices := uc.service.GetAll()
+	if devices == nil {
+		fmt.Println("Error happened!")
+		c.JSON(http.StatusBadRequest, "Error happened!")
+	}
+	c.JSON(http.StatusOK, devices)
 }
 
 func (rec DeviceController) GetAllByEstateId(c *gin.Context) {

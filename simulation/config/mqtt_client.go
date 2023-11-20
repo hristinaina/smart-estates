@@ -1,4 +1,4 @@
-package devices
+package config
 
 import (
 	"fmt"
@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	topicOnline  = "device/online"
-	topicPayload = "device/data"
+	TopicOnline  = "device/online"
+	TopicPayload = "device/data"
 )
 
 func CreateConnection() mqtt.Client {
-	opts := mqtt.NewClientOptions().AddBroker("tcp://mqtt.eclipse.org:1883")
+	opts := mqtt.NewClientOptions().AddBroker("tcp://test.mosquitto.org:1883")
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
@@ -25,7 +25,7 @@ func CreateConnection() mqtt.Client {
 // SendHeartBeat Periodically send online status
 func SendHeartBeat(client mqtt.Client) {
 	for {
-		SendMessage(client, topicOnline, "online")
+		SendMessage(client, TopicOnline, "online")
 		time.Sleep(10 * time.Second)
 	}
 }

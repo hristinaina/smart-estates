@@ -15,6 +15,7 @@ type DeviceService interface {
 	GetAllByEstateId(id int) []models.Device
 	Get(id int) (models.Device, error)
 	Add(estate dto.DeviceDTO) models.Device
+	GetAll() []models.Device
 }
 
 type DeviceServiceImpl struct {
@@ -27,6 +28,30 @@ type DeviceServiceImpl struct {
 func NewDeviceService(db *sql.DB) DeviceService {
 	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db), evChargerService: NewEVChargerService(db),
 		homeBatteryService: NewHomeBatteryService(db)}
+}
+
+func (res *DeviceServiceImpl) GetAll() []models.Device {
+	query := "SELECT * FROM device"
+	rows, err := res.db.Query(query)
+	if CheckIfError(err) {
+		return nil
+	}
+	defer rows.Close()
+
+	var devices []models.Device
+	for rows.Next() {
+		var device models.Device
+
+		if err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.Picture, &device.RealEstate,
+			&device.IsOnline); err != nil {
+			fmt.Println("Error: ", err.Error())
+			return []models.Device{}
+		}
+		devices = append(devices, device)
+		fmt.Println(device)
+	}
+
+	return devices
 }
 
 func (res *DeviceServiceImpl) GetAllByEstateId(estateId int) []models.Device {
