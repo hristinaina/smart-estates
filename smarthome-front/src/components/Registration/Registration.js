@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import theme from '../../theme';
 import { ThemeProvider } from '@emotion/react';
 
@@ -9,14 +9,21 @@ import InputAdornment from '@mui/material/InputAdornment';
 import TextField from '@mui/material/TextField';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import Snackbar from '@mui/material/Snackbar';
+import CloseIcon from '@mui/icons-material/Close';
 
 import './Registration.css';
+import authService from '../../services/AuthService'
 
 const Registration = () => {
+    const [name, setName] = useState('');
+    const [surname, setSurname] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+    const [open, setOpen] = React.useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -26,6 +33,8 @@ const Registration = () => {
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])(.{8,})$/;
+
+    const navigate = useNavigate();
 
     const handleImageChange = (event) => {
       const file = event.target.files[0];
@@ -51,6 +60,18 @@ const Registration = () => {
 
     const handleMouseDownConfirmPassword = (event) => {
         event.preventDefault();
+    };
+
+    const handleNameChange = (event) => {
+      setName(event.target.value);
+      event.target.value.trim() ===  '' || password.trim() === '' || confirmPassword.trim() === '' || confirmPassword !== password || surname.trim() === ''
+      ? checkButtonDisabled(true) : checkButtonDisabled(false)
+    };
+
+    const handleSurnameChange = (event) => {
+      setSurname(event.target.value);
+      event.target.value.trim() ===  '' || password.trim() === '' || confirmPassword.trim() === '' || confirmPassword !== password || name.trim() === ''
+      ? checkButtonDisabled(true) : checkButtonDisabled(false)
     };
 
     const handleEmailChange = (event) => {
@@ -79,9 +100,55 @@ const Registration = () => {
         value ? setIsButtonDisabled(true) : setIsButtonDisabled(false);
     };
 
-    const handleSignUp = () => {
-        // send values form to server
+    // snackbar
+    const handleClick = () => {
+      setOpen(true);
+    };
+
+    const handleClose = (event, reason) => {
+      if (reason === 'clickaway') {
+        return;
+      }
+      setOpen(false);
+    };
+
+    const resetFormFields = () => {
+      setName('');
+      setSurname('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      // TODO refresh slike
+    };
+
+    // sign up
+    const handleSignUp = async () => {
+      // TODO promeni sliku
+      const result = await authService.regUser(email, password, name, surname, "allaalal");
+    
+      if (result.success) {
+          resetFormFields()
+          setIsButtonDisabled(true)
+          setSnackbarMessage("Successfully registered. Check your email!");
+          handleClick()       
+          // TODO posalji mejl
+      } else {
+        setSnackbarMessage(result.error);
+        handleClick()
+      }
     }
+
+    const action = (
+      <React.Fragment>
+          <IconButton
+          size="small"
+          aria-label="close"
+          color="inherit"
+          onClick={handleClose}>
+          <CloseIcon fontSize="small" />
+          </IconButton>
+      </React.Fragment>
+      );
 
   return (
     <ThemeProvider theme={theme}>
@@ -91,6 +158,32 @@ const Registration = () => {
         <p className='title-reg'>Sign up</p>
 
         <form>
+        <div className='input-fields'>
+            <div className='label'> Name:</div>
+            <TextField
+                value={name}
+                onChange={handleNameChange}
+                id="name"
+                className='text-field'
+                sx={{ m: 1, width: '30ch' }}
+                placeholder="John"
+                helperText="Required"
+            />
+        </div> 
+
+        <div className='input-fields'>
+            <div className='label'> Surname:</div>
+            <TextField
+                value={surname}
+                onChange={handleSurnameChange}
+                id="surname"
+                className='text-field'
+                sx={{ m: 1, width: '30ch' }}
+                placeholder="Smith"
+                helperText="Required"
+            />
+        </div> 
+
         <div className='input-fields'>
             <div className='label'> Email:</div>
             <TextField
@@ -183,6 +276,13 @@ const Registration = () => {
           sx={{ m: 1, width: '39ch' }}>
             Sign up
         </Button>
+
+        <Snackbar
+        open={open}
+        autoHideDuration={3000}
+        onClose={handleClose}
+        message={snackbarMessage}
+        action={action}/>
         </form>
       </div>
 

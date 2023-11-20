@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import theme from '../../theme';
 import { ThemeProvider } from '@emotion/react';
 
@@ -9,8 +9,11 @@ import InputAdornment from '@mui/material/InputAdornment';
 import TextField from '@mui/material/TextField';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import Snackbar from '@mui/material/Snackbar';
+import CloseIcon from '@mui/icons-material/Close';
 
 import './Login.css'; 
+import authService from '../../services/AuthService'
 
 
 const Login = () => {
@@ -21,6 +24,11 @@ const Login = () => {
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])(.{8,})$/;
+
+    const navigate = useNavigate();
+
+    const [open, setOpen] = React.useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState(''); 
 
     const handleClickShowPassword = () => {
         setShowPassword(!showPassword);
@@ -46,9 +54,43 @@ const Login = () => {
         value ? setIsButtonDisabled(true) : setIsButtonDisabled(false);
     };
 
-    const handleLogin = () => {
-        // send values form to server
-    }
+    // snackbar
+    const handleClick = () => {
+        setOpen(true);
+    };
+
+    const handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+          return;
+        }
+        setOpen(false);
+      };
+
+    // login
+    const handleLogin = async () => {
+        const result = await authService.loginUser(username, password);
+    
+        if (result.success) {
+            await authService.validateUser()
+            console.log("user", await authService.getCurrentUser())
+            navigate('/real-estates');
+        } else {
+            setSnackbarMessage(result.error);
+            handleClick()
+        }
+    };
+
+    const action = (
+    <React.Fragment>
+        <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={handleClose}>
+        <CloseIcon fontSize="small" />
+        </IconButton>
+    </React.Fragment>
+    );
 
 
   return (
@@ -104,6 +146,13 @@ const Login = () => {
                 sx={{ m: 1, width: '39ch' }}>
                     Login
             </Button>
+            <Snackbar
+        open={open}
+        autoHideDuration={1000}
+        onClose={handleClose}
+        message={snackbarMessage}
+        action={action}
+      />
         </form>
       </div>
       <div className='right-side'>

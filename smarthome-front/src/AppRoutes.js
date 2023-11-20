@@ -4,9 +4,14 @@ import { NewRealEstate } from './components/RealEstate/NewRealEstate';
 import { Devices } from './components/Devices/Devices';
 import Login from './components/Login/Login';
 import Registration from './components/Registration/Registration';
+import { ActivationPage } from './components/Auth/ActivationPage';
 import { NewDevice } from './components/Devices/NewDevice';
 
 const AppRoutes = [
+  {
+    path: '/real-estates',
+    element: <RealEstates />
+  },
   {
     path: '/',
     element: <Login />
@@ -16,16 +21,16 @@ const AppRoutes = [
     element: <Registration />
   },
   {
-    path: '/real-estates',
-    element: <RealEstates />
-  },
-  {
     path: '/new-real-estate',
     element: <NewRealEstate/>
   },
   {
     path: '/devices',
     element: <Devices />
+  },
+  {
+    path: '/activate',
+    element: <ActivationPage />
   },
   {
     path: '/new-device',

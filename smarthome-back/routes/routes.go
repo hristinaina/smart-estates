@@ -2,8 +2,10 @@ package routes
 
 import (
 	"database/sql"
-	"github.com/gin-gonic/gin"
 	"smarthome-back/controllers"
+	"smarthome-back/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes(r *gin.Engine, db *sql.DB) {
@@ -13,6 +15,14 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		userRoutes.GET("/", userController.ListUsers)
 		userRoutes.GET("/:id", userController.GetUser)
 		userRoutes.GET("/test", userController.TestGetMethod)
+
+		authController := controllers.NewAuthController(db)
+		middleware := middleware.NewMiddleware(db)
+		userRoutes.POST("/login", authController.Login)
+		userRoutes.GET("/validate", middleware.RequireAuth, authController.Validate)
+		userRoutes.POST("/logout", authController.Logout)
+		userRoutes.POST("/verificationMail", authController.SendVerificationMail)
+		userRoutes.POST("/activate", authController.ActivateAccount)
 	}
 
 	realEstateRoutes := r.Group("/api/real-estates")
@@ -21,8 +31,8 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		realEstateRoutes.GET("/", realEstateController.GetAll)
 		realEstateRoutes.GET("/user/:userId", realEstateController.GetAllByUserId)
 		realEstateRoutes.GET("/:id", realEstateController.Get)
-		realEstateRoutes.PUT("/:id/:state", realEstateController.ChangeState)
-		realEstateRoutes.POST("/", realEstateController.Add)
+		realEstateRoutes.PUT("/:id/:state", middleware.AdminMiddleware, realEstateController.ChangeState) // user can't use this
+		realEstateRoutes.POST("/", middleware.UserMiddleware, realEstateController.Add)                   // admin can't use this
 	}
 
 	deviceRoutes := r.Group("/api/devices")
