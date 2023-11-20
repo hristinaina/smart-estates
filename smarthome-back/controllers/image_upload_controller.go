@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -23,6 +22,7 @@ var (
 	awsSecretAccessKey, _ = service.GetSecretAccessKey("config/config.json")
 	// TODO : replace this after A&A implementation
 	s3Bucket = "examplegmail.com"
+	username = "examplegmail.com"
 )
 
 type ImageUploadController struct {
@@ -34,7 +34,6 @@ func NewImageUploadController() ImageUploadController {
 
 func (iup ImageUploadController) GetImageURL(c *gin.Context) {
 	// TODO : change this later
-	username := "examplegmail.com"
 	filename := c.Param("file-name")
 
 	fullName, err := findFullFileName(filename)
@@ -45,7 +44,7 @@ func (iup ImageUploadController) GetImageURL(c *gin.Context) {
 	}
 
 	// Replace 'your-s3-bucket-name' with your actual S3 bucket name
-	s3URL := fmt.Sprintf("https://s3.%s.amazonaws.com/%s/%s", awsRegion, username, fullName)
+	s3URL := fmt.Sprintf("https://s3.%s.amazonaws.com/%s/%s", awsRegion, s3Bucket, fullName)
 	fmt.Println("RETURNNN")
 	fmt.Println(s3URL)
 	c.JSON(http.StatusOK, gin.H{"imageUrl": s3URL})
@@ -68,23 +67,21 @@ func (iup ImageUploadController) UploadImage(c *gin.Context) {
 	}
 
 	// check if bucket exists
-	// TODO : replace this with actual email
-	userBucketExists, err := doesBucketExist(s3Bucket)
+	folderExists, err := doesFolderExist(username)
 	if err != nil {
-		fmt.Println("Error: ", "Failed to check user's bucket")
+		fmt.Println("Error: ", "Failed to check folder")
 		fmt.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check user's bucket"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check user's folder"})
 		return
 	}
 
-	if !userBucketExists {
-		// TODO : replace with actual email
+	if !folderExists {
 		// create new bucket
-		err := createBucket(s3Bucket)
+		err := createFolder(username)
 		if err != nil {
-			fmt.Println("Error: ", "Failed to create user's bucket")
+			fmt.Println("Error: ", "Failed to create user's folder")
 			fmt.Println(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user's bucket"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user's folder"})
 			return
 		}
 	}
@@ -117,8 +114,6 @@ func (iup ImageUploadController) readFile(file *multipart.FileHeader) ([]byte, e
 }
 
 func findFullFileName(fileName string) (string, error) {
-	// TODO : change this later
-	username := "examplegmail.com"
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, ""),
@@ -140,7 +135,10 @@ func findFullFileName(fileName string) (string, error) {
 	// iterate through objects
 	fmt.Println("Objects in the bucket:")
 	for _, item := range result.Contents {
-		if strings.Split(*item.Key, ".")[0] == fileName {
+		lastDotIndex := strings.LastIndex(*item.Key, ".")
+		comparation := *item.Key
+		comparation = comparation[:lastDotIndex]
+		if comparation == username+"/"+fileName {
 			fmt.Println("FOUND!")
 			return *item.Key, nil
 		}
@@ -162,9 +160,8 @@ func uploadToS3(fileBytes []byte, fileName string) error {
 	uploader := s3.New(sess)
 
 	_, err = uploader.PutObject(&s3.PutObjectInput{
-		Bucket: aws.String(s3Bucket),
-		// TODO : change key for real estate name
-		Key:         aws.String(fileName),
+		Bucket:      aws.String(s3Bucket),
+		Key:         aws.String(username + "/" + fileName),
 		Body:        bytes.NewReader(fileBytes),
 		ContentType: aws.String(http.DetectContentType(fileBytes)),
 	})
@@ -175,7 +172,7 @@ func uploadToS3(fileBytes []byte, fileName string) error {
 	return nil
 }
 
-func doesBucketExist(bucketName string) (bool, error) {
+func doesFolderExist(folderName string) (bool, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, ""),
@@ -186,22 +183,20 @@ func doesBucketExist(bucketName string) (bool, error) {
 
 	svc := s3.New(sess)
 
-	_, err = svc.HeadBucket(&s3.HeadBucketInput{
-		Bucket: aws.String(bucketName),
+	resp, err := svc.ListObjectsV2(&s3.ListObjectsV2Input{
+		Bucket:    aws.String(s3Bucket),
+		Prefix:    aws.String(folderName + "/"),
+		Delimiter: aws.String("/"),
 	})
 
 	if err != nil {
-		fmt.Println("Error checking bucket:", err)
-		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "NotFound" {
-			return false, nil
-		}
 		return false, err
 	}
 
-	return true, nil
+	return len(resp.Contents) > 0, nil
 }
 
-func createBucket(bucketName string) error {
+func createFolder(folderName string) error {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, ""),
@@ -212,8 +207,10 @@ func createBucket(bucketName string) error {
 
 	svc := s3.New(sess)
 
-	_, err = svc.CreateBucket(&s3.CreateBucketInput{
-		Bucket: aws.String(bucketName),
+	_, err = svc.PutObject(&s3.PutObjectInput{
+		Bucket: aws.String(s3Bucket),
+		Key:    aws.String(folderName + "/"), // Note the trailing "/"
+		Body:   strings.NewReader(""),        // Empty content for a "folder"
 	})
 
 	if err != nil {
