@@ -27,7 +27,6 @@ export class Navigation extends Component {
     }
 
     componentDidMount() {
-        // Dohvati podatke iz lokalnog skladišta
         const user = JSON.parse(localStorage.getItem('user'));
         if (user) {
             this.setState({ role: user['Role'] });
@@ -57,7 +56,7 @@ export class Navigation extends Component {
                             </NavItem>
                         </ul>
                     )}
-                    {role===0 || role===2 && (
+                    {(role===0 || role===2) && (
                         <ul>
                             <span className="logo">Smart Home</span>
                             <NavItem>
