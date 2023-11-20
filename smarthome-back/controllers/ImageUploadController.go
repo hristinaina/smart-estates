@@ -14,8 +14,8 @@ import (
 
 var (
 	awsRegion          = "eu-central-1"
-	awsAccessKeyID     = "AKIAXTEDOKGSGESVDNWJ"
-	awsSecretAccessKey = "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"
+	awsAccessKeyID     = ""
+	awsSecretAccessKey = ""
 	s3Bucket           = "images-bucket-sh"
 )
 
