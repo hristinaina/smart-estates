@@ -3,11 +3,12 @@ package device_simulator
 import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"simulation/config"
+	"simulation/models"
 	"time"
 )
 
-func ConnectLamp(client mqtt.Client) {
-	go config.SendHeartBeat(client)
+func ConnectLamp(client mqtt.Client, device models.Device) {
+	go config.SendHeartBeat(client, device)
 	go GenerateLampData(client)
 }
 

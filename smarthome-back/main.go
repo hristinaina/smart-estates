@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"smarthome-back/config"
+	"smarthome-back/mqtt_client"
 	"smarthome-back/routes"
 )
 
@@ -24,6 +25,9 @@ func main() {
 		}
 		c.Next()
 	})
+
+	mqttCLient := mqtt_client.NewMQTTClient()
+	mqttCLient.StartListening()
 
 	routes.SetupRoutes(r, db)
 	r.Run(":8081")
