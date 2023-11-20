@@ -103,3 +103,10 @@ func writePasswordToFile(password string) error {
 	fmt.Println("For email and password look admin.json file")
 	return nil
 }
+
+func AddAdmin() {
+	// receive admin mail fron request
+	// generate admin password
+	// send admin mail with his password
+	// save admin in database
+}

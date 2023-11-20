@@ -1,0 +1,94 @@
+.user-profile-container {
+    display: flex;
+  }
+  
+  .side-menu {
+    height: 100vh;
+    width: 33%;
+    padding: 20px;
+    background-color: #f0f0f0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .container-image {
+    position: relative;
+  }
+  
+  #profile-image {
+    width: 75%;
+    border-radius: 50%;
+    margin-left: 10% !important;
+  }
+
+  #add-image {
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    right: 3px;
+    bottom: 7%;
+    cursor: pointer;
+    margin-right: 15%;
+  }
+  
+  .menu-option {
+    cursor: pointer;
+    padding: 10px;
+    margin-bottom: 10px;
+    margin-top: 20px;
+    transition: background-color 0.3s;
+  }
+  
+  .menu-option:hover {
+    background-color: #d3d3d3;
+  }
+  
+  .selected {
+    background-color: #b0b0b0;
+  }
+
+  .about-you {
+    color: #806894;
+    text-align: center;
+    margin-top: 0 !important;
+    font-size: 450%;
+    margin-bottom: 20px;
+  }
+  
+  .content {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .field-name {
+    text-align: left;
+    width: 95%;
+    margin: auto;
+  }
+
+  #update {
+    color: white;
+    margin-top: 20px;
+    width: 95% !important;
+  }
+  
+  .update-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 30px 0;
+  }
+  
+  .user-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  #add-admin-btn {
+    color: white;
+    margin-top: 20px;
+    width: 60% !important;
+  }
+  

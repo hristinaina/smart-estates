@@ -6,6 +6,7 @@ import Login from './components/Login/Login';
 import Registration from './components/Registration/Registration';
 import { ActivationPage } from './components/Auth/ActivationPage';
 import ResetPassword from './components/SuperAdmin/ResetPassword';
+import Account from './components/Account/Account';
 
 const AppRoutes = [
   {
@@ -35,6 +36,10 @@ const AppRoutes = [
   {
     path: '/reset-password',
     element: <ResetPassword />
+  },
+  {
+    path: '/account',
+    element: <Account />
   }
 ];
 
