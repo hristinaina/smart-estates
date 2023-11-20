@@ -5,16 +5,17 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"os"
 	"simulation/models"
+	"strconv"
 	"time"
 )
 
 const (
-	TopicOnline  = "device/online"
-	TopicPayload = "device/data"
+	TopicOnline  = "device/online/" //device/online/{deviceId}
+	TopicPayload = "device/data/"   //device/data/{deviceId}
 )
 
 func CreateConnection() mqtt.Client {
-	opts := mqtt.NewClientOptions().AddBroker("tcp://test.mosquitto.org:1883")
+	opts := mqtt.NewClientOptions().AddBroker("ws://broker.emqx.io:8083/mqtt")
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
@@ -26,7 +27,7 @@ func CreateConnection() mqtt.Client {
 // SendHeartBeat Periodically send online status
 func SendHeartBeat(client mqtt.Client, device models.Device) {
 	for {
-		err := SendMessage(client, TopicOnline, string(device.ID))
+		err := SendMessage(client, TopicOnline+strconv.Itoa(device.ID), "online")
 		if err != nil {
 			fmt.Printf("Error publishing message with the device: %s \n", device.Name)
 		} else {
