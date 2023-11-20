@@ -17,6 +17,7 @@ import (
 type SuperAdminController interface {
 	ResetPassword(c *gin.Context)
 	AddAdmin(c *gin.Context)
+	EditSuperAdmin(c *gin.Context)
 }
 
 type SuperAdminControllerImpl struct {
@@ -111,4 +112,23 @@ func (sas *SuperAdminControllerImpl) AddAdmin(c *gin.Context) {
 
 	// respond
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully added admin"})
+}
+
+func (sas *SuperAdminControllerImpl) EditSuperAdmin(c *gin.Context) {
+	var input Admin
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+
+	err := sas.repo.EditSuperAdmin(input.Name, input.Surname, input.Email)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Database error"})
+		return
+	}
+
+	// respond
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully edit profile"})
 }

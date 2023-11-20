@@ -82,16 +82,25 @@ const Account = () => {
     setSelectedOption(option);
   };
 
-  const handleUpdateProfile = () => {
-    // Logika za ažuriranje profila
-    console.log('Profil je ažuriran!');
+  const handleUpdateProfile = async () => {
+    const result = await superAdminService.EditSuperAdmin(name, surname, email)
+
+    if (result.success) {
+        setSnackbarMessage("Successful account change");
+        handleClick();
+        await authService.validateUser()
+        user.Name = name;
+        user.Surname = surname;
+    } else {
+        setSnackbarMessage(result.error);
+        handleClick()
+    }
   };
 
   const handleSignUpAdmin = async () => {
     const result = await superAdminService.AddAdmin(nameAdmin, surnameAdmin, emailAdmin)
 
     if (result.success) {
-        console.log("uslooo")
         setSnackbarMessage("New admin is added");
         handleClick()
         setEmailAdmin('')
@@ -149,7 +158,7 @@ const handleClose = (event, reason) => {
           onClick={() => handleOptionChange('PROFILE')}>
             PROFILE
         </div>
-        
+
         {user.Role === 2 && (
           <div
             className={`menu-option ${selectedOption === 'ADD_ADMIN' ? 'selected' : ''}`}
