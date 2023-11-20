@@ -71,10 +71,8 @@ const Login = () => {
         const result = await authService.loginUser(username, password);
     
         if (result.success) {
-            await authService.validateUser()
-            const user = authService.getCurrentUser()
-            console.log("user", user)
-            user['Role'] === 2 && !user['IsLogin'] ? navigate('/reset-password'): navigate('/real-estates');
+            const result = await authService.validateUser()
+            !result ? navigate('/reset-password'): navigate('/real-estates');
         } else {
             setSnackbarMessage(result.error);
             handleClick()

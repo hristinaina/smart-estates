@@ -79,7 +79,7 @@ const ResetPassword = () => {
     const handleResetPassword = async () => {
         const result = await superAdminService.ResetPassword(password);
         if (result.success) {
-            authService.getCurrentUser();
+            await authService.validateUser()
             navigate('/real-estates');
         } else {
             setSnackbarMessage(result.error);
