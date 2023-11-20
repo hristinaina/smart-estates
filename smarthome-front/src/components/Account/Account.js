@@ -2,10 +2,15 @@ import React, { useState, useEffect } from 'react';
 import './Account.css';
 import { Navigation } from '../Navigation/Navigation';
 import authService from '../../services/AuthService';
+import superAdminService from '../../services/SuperAdmin';
 import theme from '../../theme';
 
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
+import Snackbar from '@mui/material/Snackbar';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+
 
 const Account = () => {
   const [selectedOption, setSelectedOption] = useState('PROFILE');
@@ -22,6 +27,9 @@ const Account = () => {
 
   const [user, setUser] = useState({});
 
+  const [open, setOpen] = React.useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState(''); 
+
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   useEffect(() => {
@@ -29,7 +37,6 @@ const Account = () => {
     setName(user.Name)
     setSurname(user.Surname)
     setEmail(user.Email)
-    console.log("user ", user)
     setUser(user);
   }, [setUser]);
 
@@ -80,10 +87,47 @@ const Account = () => {
     console.log('Profil je ažuriran!');
   };
 
-  const handleSignUpAdmin = () => {
-    // Logika za registraciju admina
-    console.log('Admin je registrovan!');
+  const handleSignUpAdmin = async () => {
+    const result = await superAdminService.AddAdmin(nameAdmin, surnameAdmin, emailAdmin)
+
+    if (result.success) {
+        console.log("uslooo")
+        setSnackbarMessage("New admin is added");
+        handleClick()
+        setEmailAdmin('')
+        setNameAdmin('')
+        setSurnameAdmin('')
+        setIsButtonAddDisabled(true)
+    } else {
+        setSnackbarMessage(result.error);
+        handleClick()
+    }
   };
+
+  // snackbar
+  const handleClick = () => {
+    setOpen(true);
+};
+
+const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpen(false);
+  };
+
+  const action = (
+    <React.Fragment>
+        <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={handleClose}>
+        <CloseIcon fontSize="small" />
+        </IconButton>
+    </React.Fragment>
+    );
+
 
   return (
     <div>
@@ -94,7 +138,12 @@ const Account = () => {
             <img id='profile-image' src="/images/user.png" alt="User" />
             <img id='add-image' src="/images/plus_purple.png" alt="Add Image"/>
         </div>
-        <p></p>
+
+        <div className='name-surname'>
+          <p style={{display: 'inline'}}>{user.Name}</p>
+          <p style={{display: 'inline', marginLeft: '15px'}}>{user.Surname}</p>
+        </div>
+
         <div
           className={`menu-option ${selectedOption === 'PROFILE' ? 'selected' : ''}`}
           onClick={() => handleOptionChange('PROFILE')}
@@ -123,7 +172,7 @@ const Account = () => {
                     id="name"
                     placeholder="Add your name"
                     InputProps={{
-                        readOnly: user.Name !== '' // postavlja readOnly na true ako je surname različito od praznog stringa
+                        readOnly: user.Name !== ''
                       }} />
             </div> 
 
@@ -136,8 +185,9 @@ const Account = () => {
                     id="surname"
                     className='text-field'
                     placeholder="Add your surname"
+                    helperText={user.Surname !== '' ? '' : 'Required'}
                     InputProps={{
-                        readOnly: user.Surname !== '' // postavlja readOnly na true ako je surname različito od praznog stringa
+                        readOnly: user.Surname !== ''
                       }}  />
             </div> 
 
@@ -161,7 +211,15 @@ const Account = () => {
                 disabled={isButtonUpdateDisabled}
                 onClick={handleUpdateProfile}
                 sx={theme.customStyles.myCustomButton}
-                style={{ display: (user.Name === '' || user.Surname === '') ? 'block' : 'none' }}>UPDATE</Button> 
+                style={{ display: (user.Name === '' || user.Surname === '') ? 'block' : 'none' }}>UPDATE
+            </Button> 
+
+            <Snackbar
+              open={open}
+              autoHideDuration={1000}
+              onClose={handleClose}
+              message={snackbarMessage}
+              action={action}/>
           </form>
           </>
         )}
@@ -209,8 +267,14 @@ const Account = () => {
                         variant="contained" 
                         color="primary" 
                         disabled={isButtonAddDisabled}
-                        onClick={handleUpdateProfile}
+                        onClick={handleSignUpAdmin}
                         sx={theme.customStyles.myCustomButton}>ADD ADMIN</Button> 
+                    <Snackbar
+              open={open}
+              autoHideDuration={3000}
+              onClose={handleClose}
+              message={snackbarMessage}
+              action={action}/>
             </form>
             </div>
           </>

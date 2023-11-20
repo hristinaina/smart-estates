@@ -1,4 +1,4 @@
-package superadmin
+package services
 
 import (
 	"database/sql"
@@ -28,7 +28,7 @@ func (gs GenerateSuperadmin) GenerateSuperadmin() {
 	if err != nil {
 
 		// save password in file
-		generatePassword := generateRandomPassword(30)
+		generatePassword := gs.GenerateRandomPassword(30)
 
 		err = writePasswordToFile(generatePassword)
 		if err != nil {
@@ -36,7 +36,7 @@ func (gs GenerateSuperadmin) GenerateSuperadmin() {
 		}
 
 		// save super admin account
-		newSuperadmin := models.User{Email: "admin", Password: hashPassword(generatePassword), Role: enumerations.SUPERADMIN, IsLogin: false}
+		newSuperadmin := models.User{Email: "admin", Password: gs.HashPassword(generatePassword), Role: enumerations.SUPERADMIN, IsLogin: false}
 		gs.repo.SaveUser(newSuperadmin)
 	}
 }
@@ -48,7 +48,7 @@ const (
 	specialChars     = "!@#$%^*()-=_+[]{}|;:,.?"
 )
 
-func generateRandomPassword(length int) string {
+func (gs GenerateSuperadmin) GenerateRandomPassword(length int) string {
 	source := rand.NewSource(time.Now().UnixNano())
 	random := rand.New(source)
 
@@ -72,7 +72,7 @@ func generateRandomPassword(length int) string {
 	return string(password)
 }
 
-func hashPassword(password string) string {
+func (gs GenerateSuperadmin) HashPassword(password string) string {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
 		panic("Failed to hash password")
@@ -94,19 +94,16 @@ func writePasswordToFile(password string) error {
 		return err
 	}
 
-	err = os.WriteFile("admin.json", jsonData, 0644)
+	err = os.WriteFile("admin.json", jsonData, 0400)
 	if err != nil {
 		fmt.Println("Write file error:", err)
 		return err
 	}
 
-	fmt.Println("For email and password look admin.json file")
+	fmt.Println("\nFOR EMAIL AND PASSWORD LOOK admin.json FILE\n")
 	return nil
 }
 
-func AddAdmin() {
-	// receive admin mail fron request
-	// generate admin password
-	// send admin mail with his password
-	// save admin in database
+func EditSuperAdmin() {
+
 }

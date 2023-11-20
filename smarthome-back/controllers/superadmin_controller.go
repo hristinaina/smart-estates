@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"smarthome-back/enumerations"
+	"smarthome-back/models"
 	"smarthome-back/repositories"
+	"smarthome-back/services"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -13,15 +16,18 @@ import (
 
 type SuperAdminController interface {
 	ResetPassword(c *gin.Context)
+	AddAdmin(c *gin.Context)
 }
 
 type SuperAdminControllerImpl struct {
-	db   *sql.DB
-	repo repositories.UserRepository
+	db                 *sql.DB
+	repo               repositories.UserRepository
+	mail_service       services.MailService
+	superadmin_service services.GenerateSuperadmin
 }
 
 func NewSuperAdminController(db *sql.DB) SuperAdminController {
-	return &SuperAdminControllerImpl{db: db, repo: repositories.NewUserRepository(db)}
+	return &SuperAdminControllerImpl{db: db, repo: repositories.NewUserRepository(db), mail_service: services.NewMailService(), superadmin_service: services.NewGenerateSuperAdmin(db)}
 }
 
 // password dto
@@ -60,7 +66,7 @@ func (sas *SuperAdminControllerImpl) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	// todo remove admin.json file
+	// remove admin.json file
 	filePath := "admin.json"
 
 	err = os.Remove(filePath)
@@ -71,4 +77,38 @@ func (sas *SuperAdminControllerImpl) ResetPassword(c *gin.Context) {
 
 	// respond
 	c.JSON(http.StatusOK, gin.H{"message": "Password changed successfully"})
+}
+
+type Admin struct {
+	Name    string `json:"name"`
+	Surname string `json:"surname"`
+	Email   string `json:"email"`
+}
+
+func (sas *SuperAdminControllerImpl) AddAdmin(c *gin.Context) {
+	// receive admin mail from request
+	var input Admin
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+
+	// generate admin password
+	password := sas.superadmin_service.GenerateRandomPassword(12)
+
+	// save admin in database
+	newAdmin := models.User{Email: input.Email, Password: sas.superadmin_service.HashPassword(password), Name: input.Name, Surname: input.Surname, Role: enumerations.ADMIN, IsLogin: false}
+	err := sas.repo.SaveUser(newAdmin)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "There is already an account with the entered email"})
+		return
+	}
+
+	// send admin mail with his password
+	sas.mail_service.CreateAdminLoginRequest(input.Name, input.Surname, input.Email, password)
+
+	// respond
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully added admin"})
 }

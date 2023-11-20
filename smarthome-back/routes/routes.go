@@ -27,6 +27,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 
 		superadminController := controllers.NewSuperAdminController(db)
 		userRoutes.POST("/reset-password", middleware.RequireAuth, superadminController.ResetPassword)
+		userRoutes.POST("/add-admin", middleware.RequireAuth, superadminController.AddAdmin)
 	}
 
 	realEstateRoutes := r.Group("/api/real-estates")
