@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import theme from '../../theme';
 import { ThemeProvider } from '@emotion/react';
@@ -17,6 +17,20 @@ import authService from '../../services/AuthService'
 
 
 const Login = () => {
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const result = await authService.validateUser();
+                console.log(result)
+                !result ? navigate('/'): navigate('/real-estates');
+            } catch (error) {
+            console.error('Error:', error);
+            }
+        };
+        
+        fetchData();
+    }, []);
+
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);

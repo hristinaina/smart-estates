@@ -36,8 +36,7 @@ class AuthService {
       {
         this.setUser(data["message"])
         return true
-      }
-        
+      } 
       return false
 
     } else if (response.status === 401) {
