@@ -29,9 +29,8 @@ In the `smart-home/smarhome-back` folder, run the following command to start the
 
 In the `smart-home/smarthome-front` folder, install dependencies and start the frontend:
 
-```bash
-npm install
-npm start```
+`npm install`
+`npm start`
 
 ## Contribution
 [Anastasija Savić](https://gitlab.com/savic-a)
