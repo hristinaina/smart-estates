@@ -10,7 +10,7 @@ import (
 
 var heartBeats = make(map[int]time.Time)
 
-// HandleHeartBeat callback function called for subscription to topicOnline. Update heartbeat time when "online" message is received
+// HandleHeartBeat callback function called when subscribed to TopicOnline. Update heartbeat time when "online" message is received
 func HandleHeartBeat(client mqtt.Client, msg mqtt.Message) {
 	// Retrieve the last part of the split string, which is the device ID
 	parts := strings.Split(msg.Topic(), "/")
@@ -34,7 +34,7 @@ func CheckDeviceStatus(client mqtt.Client) {
 		if time.Since(timestamp) > offlineTimeout {
 			fmt.Printf("Device with id=%d is offline.\n", deviceID)
 			delete(heartBeats, deviceID)
-			err := SendMessage(client, topicOnline+strconv.Itoa(deviceID), "offline")
+			err := PublishToTopic(client, TopicOnline+strconv.Itoa(deviceID), "offline")
 			if err != nil {
 				return
 			}

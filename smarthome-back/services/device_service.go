@@ -9,6 +9,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"smarthome-back/dto"
 	"smarthome-back/models/devices"
+	"smarthome-back/mqtt_client"
+	"strconv"
 )
 
 type DeviceService interface {
@@ -103,15 +105,16 @@ func (res *DeviceServiceImpl) Get(id int) (models.Device, error) {
 }
 
 func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) models.Device {
+	var device models.Device
 	if dto.Type == 1 {
-		return res.airConditionerService.Add(dto).ToDevice()
+		device = res.airConditionerService.Add(dto).ToDevice()
 	} else if dto.Type == 8 {
-		return res.evChargerService.Add(dto).ToDevice()
+		device = res.evChargerService.Add(dto).ToDevice()
 	} else if dto.Type == 7 {
-		return res.homeBatteryService.Add(dto).ToDevice()
+		device = res.homeBatteryService.Add(dto).ToDevice()
 		// todo add new case after adding new Device Class
 	} else {
-		device := dto.ToDevice()
+		device = dto.ToDevice()
 		query := "INSERT INTO device (Name, Type, Picture, RealEstate, IsOnline)" +
 			"VALUES ( ?, ?, ?, ?, ?);"
 		result, err := res.db.Exec(query, device.Name, device.Type, device.Picture, device.RealEstate,
@@ -121,6 +124,8 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) models.Device {
 		}
 		id, err := result.LastInsertId()
 		device.Id = int(id)
-		return device
 	}
+	mqttClient := mqtt_client.NewMQTTClient()
+	mqttClient.Publish(mqtt_client.TopicNewDevice+strconv.Itoa(device.Id), "new device created")
+	return device
 }

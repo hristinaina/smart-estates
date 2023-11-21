@@ -11,7 +11,7 @@ import (
 )
 
 func ConnectLamp(client mqtt.Client, device models.Device) {
-	go config.SendHeartBeat(client, device)
+	go SendHeartBeat(client, device)
 	go GenerateLampData(client, device)
 }
 
@@ -22,7 +22,8 @@ func GenerateLampData(client mqtt.Client, device models.Device) {
 		unixTimestamp := float64(time.Now().Unix())
 		sineValue := math.Sin(unixTimestamp)
 		percentage := math.Abs(math.Round(sineValue * 100))
-		config.SendMessage(client, config.TopicPayload+strconv.Itoa(device.ID), strconv.FormatFloat(percentage, 'f', -1, 64))
+		config.PublishToTopic(client, config.TopicPayload+strconv.Itoa(device.ID), strconv.FormatFloat(percentage,
+			'f', -1, 64))
 		fmt.Printf("Lamp name=%s, id=%d, generated data: %f\n", device.Name, device.ID, percentage)
 		time.Sleep(5 * time.Second)
 	}

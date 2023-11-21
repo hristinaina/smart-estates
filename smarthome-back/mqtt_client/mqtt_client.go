@@ -13,12 +13,13 @@ type MQTTClient struct {
 }
 
 /*
-	   Topics:  	device/online/+ to subscribe to all messages
-					device/online/{deviceId} to subscribe to only with that id
+device/online/+ to subscribe to all messages
+device/online/{deviceId} to subscribe to only ones with that id
 */
 const (
-	topicOnline  = "device/online/"
-	topicPayload = "device/data/"
+	TopicOnline    = "device/online/"
+	TopicPayload   = "device/data/"
+	TopicNewDevice = "device/new/"
 )
 
 func NewMQTTClient() *MQTTClient {
@@ -35,8 +36,8 @@ func NewMQTTClient() *MQTTClient {
 }
 
 func (mc *MQTTClient) StartListening() {
-	mc.subscribeToTopic(topicOnline+"+", HandleHeartBeat)
-	//todo subscribe to all topics here and create your callback function otherplace (in other file)
+	mc.SubscribeToTopic(TopicOnline+"+", HandleHeartBeat)
+	//todo subscribe here to other topics. Create your callback functions in other file
 
 	// Periodically check if the device is still online
 	go func() {
@@ -47,18 +48,28 @@ func (mc *MQTTClient) StartListening() {
 	}()
 }
 
-func (mc *MQTTClient) subscribeToTopic(topic string, handler mqtt.MessageHandler) {
+func (mc *MQTTClient) SubscribeToTopic(topic string, handler mqtt.MessageHandler) {
 	token := mc.client.Subscribe(topic, 1, handler)
 	token.Wait()
 
-	// Check if the subscription was successful
 	if token.Error() != nil {
 		fmt.Println(token.Error())
 		os.Exit(1)
 	}
 }
 
-func SendMessage(client mqtt.Client, topic, message string) error {
+// Publish this function is the same as PublishToTopic, the only difference is that it belongs to MQTTClient class
+func (mc *MQTTClient) Publish(topic, message string) error {
+	token := mc.client.Publish(topic, 1, false, message)
+	token.Wait()
+	if token.Error() != nil {
+		fmt.Println("Error publishing message:", token.Error())
+	}
+	return token.Error()
+}
+
+// PublishToTopic this function is the same as Publish, the only difference is that it doesn't belong to MQTTClient class
+func PublishToTopic(client mqtt.Client, topic, message string) error {
 	token := client.Publish(topic, 1, false, message)
 	token.Wait()
 	if token.Error() != nil {
