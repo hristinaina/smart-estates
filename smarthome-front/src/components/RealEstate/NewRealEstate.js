@@ -55,6 +55,7 @@ export class NewRealEstate extends Component {
             snackbarMessage: '',
             showSnackbar: false,
             open: false,
+            imagePreview: null,
         };
 
         this.position = [45.23598471651923, 19.83932472361301]; // Initial map position
@@ -108,7 +109,7 @@ export class NewRealEstate extends Component {
 
     handleImageChange = (e) => {
         const file = e.target.files[0];
-        this.setState({selectedImage: file})
+        this.setState({selectedImage: file, imagePreview: URL.createObjectURL(file)})
     
         // here image can be uploaded to server
         console.log('Selected Image:', file);
@@ -289,6 +290,11 @@ export class NewRealEstate extends Component {
                                 />
                             <img alt="Real Estate" id="upload-image" src="/images/photo.png"/>
                             <p id="upload-image-p">Upload image</p>
+                            {this.state.imagePreview && (
+                            <div>
+                                <img className='cropped-image' src={this.state.imagePreview} alt="Uploaded Image Preview" />
+                            </div>
+                        )}
                         </div>
                         <span>
                             <button
