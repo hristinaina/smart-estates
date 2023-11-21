@@ -26,8 +26,8 @@ func main() {
 		c.Next()
 	})
 
-	mqttCLient := mqtt_client.NewMQTTClient()
-	mqttCLient.StartListening()
+	mqttClient := mqtt_client.NewMQTTClient()
+	mqttClient.StartListening()
 
 	routes.SetupRoutes(r, db)
 	r.Run(":8081")

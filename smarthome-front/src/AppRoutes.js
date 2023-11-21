@@ -5,6 +5,7 @@ import { Devices } from './components/Devices/Devices';
 import Login from './components/Login/Login';
 import Registration from './components/Registration/Registration';
 import { NewDevice } from './components/Devices/NewDevice';
+import { Lamp } from './components/Devices/Lamp';
 
 const AppRoutes = [
   {
@@ -30,6 +31,10 @@ const AppRoutes = [
   {
     path: '/new-device',
     element: <NewDevice />
+  },
+  {
+    path: "/lamp/:id",
+    element: <Lamp />
   }
 ];
 

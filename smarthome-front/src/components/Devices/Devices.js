@@ -74,10 +74,32 @@ export class Devices extends Component {
         });
     }
 
+    //todo navigate to appropriate page
+    handleClick(device) {
+        if (device.Type === 'Ambient Sensor')
+            window.location.assign("/lamp/" + device.Id)
+        else if (device.Type === 'Air conditioner')
+            window.location.assign("/lamp/" + device.Id)
+        else if (device.Type === 'Washing machine')
+            window.location.assign("/lamp/" + device.Id)
+        else if (device.Type === 'Lamp')
+            window.location.assign("/lamp/" + device.Id)
+        else if (device.Type === 'Vehicle gate')
+            window.location.assign("/lamp/" + device.Id)
+        else if (device.Type === 'Sprinkler')
+            window.location.assign("/lamp/" + device.Id)
+        else if (device.Type === 'Solar panel')
+            window.location.assign("/lamp/" + device.Id)
+        else if (device.Type === 'Battery storage')
+            window.location.assign("/lamp/" + device.Id)
+        else if (device.Type === 'Electric vehicle charger')
+            window.location.assign("/lamp/" + device.Id)
+    }
+
     extractDeviceIdFromTopic(topic) {
         const parts = topic.split('/');
         return parts[parts.length - 1];
-      }
+    }
 
     render() {
         const { data } = this.state;
@@ -96,13 +118,13 @@ export class Devices extends Component {
                     </p>
                 </div>
                 <Divider style={{ width: "87%", marginLeft: 'auto', marginRight: 'auto', marginBottom: '20px' }} />
-                <DevicesList devices={data} />
+                <DevicesList devices={data} onClick={this.handleClick} />
             </div>
         )
     }
 }
 
-const DevicesList = ({ devices }) => {
+const DevicesList = ({ devices, onClick }) => {
     const chunkSize = 5; // Number of items per row
 
     const chunkArray = (arr, size) => {
@@ -118,7 +140,7 @@ const DevicesList = ({ devices }) => {
             {rows.map((row, rowIndex) => (
                 <div key={rowIndex} className='device-row'>
                     {row.map((device, index) => (
-                        <div key={index} className='device-card'>
+                        <div key={index} className='device-card' onClick={() => onClick(device)}>
                             <img
                                 alt='device'
                                 src={device.Picture}
