@@ -176,7 +176,8 @@ export class NewRealEstate extends Component {
     
     handleUpload = async () => {
         if (!this.state.selectedImage) {
-            alert('Please select an image to upload.');
+            this.setState({snackbarMessage: "Please check input fields!"});
+            this.handleClick();
             return;
         }
 

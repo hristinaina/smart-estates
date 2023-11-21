@@ -1,4 +1,4 @@
-package controllers
+package services
 
 import (
 	"bytes"
@@ -7,97 +7,82 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/gin-gonic/gin"
 	"mime/multipart"
 	"net/http"
-	"smarthome-back/services"
 	"strings"
 )
 
-var service = services.NewConfigService()
+var service = NewConfigService()
 
 var (
 	awsRegion             = "eu-central-1"
 	awsAccessKeyID, _     = service.GetAccessKey("config/config.json")
 	awsSecretAccessKey, _ = service.GetSecretAccessKey("config/config.json")
+	s3Bucket              = "examplegmail.com"
 	// TODO : replace this after A&A implementation
-	s3Bucket = "examplegmail.com"
-	username = "examplegmail.com"
+	username = "example2gmail.com"
 )
 
-type ImageUploadController struct {
+type ImageService interface {
+	GetImageURL(fileName string) (string, error)
+	UploadImage(estateName string, file *multipart.FileHeader) error
+	readFile(file *multipart.FileHeader) ([]byte, error)
+	findFullFileName(fileName string) (string, error)
+	uploadToS3(fileBytes []byte, fileName string) error
+	doesFolderExist(folderName string) (bool, error)
+	createFolder(folderName string) error
 }
 
-func NewImageUploadController() ImageUploadController {
-	return ImageUploadController{}
+type ImageServiceImpl struct {
 }
 
-func (iup ImageUploadController) GetImageURL(c *gin.Context) {
-	// TODO : change this later
-	filename := c.Param("file-name")
+func NewImageService() ImageService {
+	return &ImageServiceImpl{}
+}
 
-	fullName, err := findFullFileName(filename)
-
+func (is *ImageServiceImpl) GetImageURL(fileName string) (string, error) {
+	fullName, err := is.findFullFileName(fileName)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Error while searching for file"})
-		return
+		return "", err
 	}
 
-	// Replace 'your-s3-bucket-name' with your actual S3 bucket name
 	s3URL := fmt.Sprintf("https://s3.%s.amazonaws.com/%s/%s", awsRegion, s3Bucket, fullName)
-	fmt.Println("RETURNNN")
-	fmt.Println(s3URL)
-	c.JSON(http.StatusOK, gin.H{"imageUrl": s3URL})
+	return s3URL, nil
 }
 
-func (iup ImageUploadController) UploadImage(c *gin.Context) {
-	name := c.Param("real-estate-name")
-	file, err := c.FormFile("image")
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	fileBytes, err := iup.readFile(file)
+func (is *ImageServiceImpl) UploadImage(estateName string, file *multipart.FileHeader) error {
+	fileBytes, err := is.readFile(file)
 	if err != nil {
 		fmt.Println("Error: ", "Failed to read file")
 		fmt.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read file"})
-		return
+		return err
 	}
 
-	// check if bucket exists
-	folderExists, err := doesFolderExist(username)
+	// check if folder for logged user exists
+	folderExists, err := is.doesFolderExist(username)
 	if err != nil {
-		fmt.Println("Error: ", "Failed to check folder")
-		fmt.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check user's folder"})
-		return
+		return err
 	}
 
 	if !folderExists {
-		// create new bucket
-		err := createFolder(username)
+		// create new folder
+		err := is.createFolder(username)
 		if err != nil {
-			fmt.Println("Error: ", "Failed to create user's folder")
-			fmt.Println(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user's folder"})
-			return
+			return err
 		}
 	}
 
-	err = uploadToS3(fileBytes, name)
+	err = is.uploadToS3(fileBytes, estateName)
 	if err != nil {
 		fmt.Println("Error: ", "Failed to upload file")
 		fmt.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload file"})
-		return
+		return err
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully"})
+	return nil
 }
 
-func (iup ImageUploadController) readFile(file *multipart.FileHeader) ([]byte, error) {
+func (is *ImageServiceImpl) readFile(file *multipart.FileHeader) ([]byte, error) {
 	src, err := file.Open()
 	if err != nil {
 		return nil, err
@@ -113,7 +98,7 @@ func (iup ImageUploadController) readFile(file *multipart.FileHeader) ([]byte, e
 	return buf.Bytes(), nil
 }
 
-func findFullFileName(fileName string) (string, error) {
+func (is *ImageServiceImpl) findFullFileName(fileName string) (string, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, ""),
@@ -124,7 +109,7 @@ func findFullFileName(fileName string) (string, error) {
 	svc := s3.New(sess)
 
 	input := &s3.ListObjectsV2Input{
-		Bucket: aws.String(username),
+		Bucket: aws.String(s3Bucket),
 	}
 
 	result, err := svc.ListObjectsV2(input)
@@ -148,7 +133,7 @@ func findFullFileName(fileName string) (string, error) {
 	return "", nil
 }
 
-func uploadToS3(fileBytes []byte, fileName string) error {
+func (is *ImageServiceImpl) uploadToS3(fileBytes []byte, fileName string) error {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, ""),
@@ -172,7 +157,7 @@ func uploadToS3(fileBytes []byte, fileName string) error {
 	return nil
 }
 
-func doesFolderExist(folderName string) (bool, error) {
+func (is *ImageServiceImpl) doesFolderExist(folderName string) (bool, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, ""),
@@ -196,7 +181,7 @@ func doesFolderExist(folderName string) (bool, error) {
 	return len(resp.Contents) > 0, nil
 }
 
-func createFolder(folderName string) error {
+func (is *ImageServiceImpl) createFolder(folderName string) error {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, ""),
