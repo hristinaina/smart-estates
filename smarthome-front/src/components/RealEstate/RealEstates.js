@@ -1,5 +1,5 @@
 
-import React,{ Component, setState } from 'react';
+import React,{ Component } from 'react';
 import './RealEstates.css';
 import Dialog from '../Dialog/Dialog';
 import RealEstateService from '../../services/RealEstateService';
@@ -85,7 +85,7 @@ export class RealEstates extends Component {
 
     changeState = async (state, reason) => {
         try {
-            const result = await RealEstateService.changeState(state, this.state.selectedRealEstate, reason);
+            await RealEstateService.changeState(state, this.state.selectedRealEstate, reason);
             this.componentDidMount();
         } catch (error) {
             console.log("Error");

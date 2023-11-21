@@ -82,6 +82,9 @@ export class NewRealEstate extends Component {
             this.state.imagePreview != null) {
                 this.setState({isButtonDisabled: false});
             }
+        else {
+            this.setState({isButtonDisabled: true});
+        }
     }
 
     handleTypeChange = (event) => {
@@ -117,6 +120,11 @@ export class NewRealEstate extends Component {
             });
 
             this.checkButton();
+    }
+
+    handleAddressInputChange = async (event) => {
+        await this.setState({ address: event.target.value });
+        this.checkButton();
     }
 
     handleImageChange = async (e) => {
@@ -253,7 +261,7 @@ export class NewRealEstate extends Component {
                             name="address" 
                             placeholder="Type address or choose on the map"
                             value={this.state.address} // Set the input value from the state
-                            onChange={(e) => this.setState({ address: e.target.value })}
+                            onChange={this.handleAddressInputChange}
                             />
                         
                         <div id="maps">
