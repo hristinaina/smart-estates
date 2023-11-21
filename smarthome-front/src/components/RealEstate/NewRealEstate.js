@@ -1,7 +1,5 @@
 import React, { Component, useState } from "react";
 import './NewRealEstate.css';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import axios from 'axios';
@@ -11,7 +9,6 @@ import RealEstateService from "../../services/RealEstateService";
 import { Snackbar } from "@mui/material";
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
-import { TripOriginSharp } from "@mui/icons-material";
 import ImageService from "../../services/ImageService";
 
 
@@ -120,10 +117,10 @@ export class NewRealEstate extends Component {
     confirm = async () => {
         console.log("opet je usao");
         var estate = {
-            "Name": document.getElementsByName("name")[0].value,
+            "Name": document.getElementsByName("name")[0].value.trim(),
             "Type": Number(this.state.selectedType),
-            "Address": this.state.address,
-            "City": this.state.selectedCity,
+            "Address": this.state.address.trim(),
+            "City": this.state.selectedCity.trim(),
             "SquareFootage": Number(document.getElementsByName("footage")[0].value),
             "NumberOfFloors": Number(document.getElementsByName("floors")[0].value),
             "Picture": "blabla",
@@ -135,7 +132,6 @@ export class NewRealEstate extends Component {
             const result = await RealEstateService.add(estate);
             console.log(result);
             this.handleUpload()
-            // window.location.href = '/real-estates';
         } catch (error) {
             console.log("Error")
             console.error(error);
@@ -185,17 +181,16 @@ export class NewRealEstate extends Component {
         formData.append('image', this.state.selectedImage);
         
         try {
-            var name = String(document.getElementsByName('name')[0].value);
-            const substr = this.state.selectedImage.name.split(".")[1];
+            var name = String(document.getElementsByName('name')[0].value).trim();
+            const substr = this.state.selectedImage.name.split(".")[1].trim();
             name += "." + substr;
-            console.log("NAME: ", name)
             await ImageService.uploadImage(formData, name);
             window.location.href = '/real-estates';
         } catch (error) {
-            console.log("Error")
+            console.log("Error");
             console.error(error);
-            this.setState({snackbarMessage: "Error uploading image!"})
-            this.handleClick()
+            this.setState({snackbarMessage: "Error uploading image!"});
+            this.handleClick();
         }
     };
     
@@ -215,6 +210,7 @@ export class NewRealEstate extends Component {
                             className="new-real-estate-input" 
                             type="text" 
                             name="name" 
+                            maxLength="50"
                             placeholder="Type the name of your real estate"
                             />
                         <p className="new-real-estate-label">Type</p>

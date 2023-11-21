@@ -20,7 +20,7 @@ var (
 	awsSecretAccessKey, _ = service.GetSecretAccessKey("config/config.json")
 	s3Bucket              = "examplegmail.com"
 	// TODO : replace this after A&A implementation
-	username = "example2gmail.com"
+	username = "examplegmail.com"
 )
 
 type ImageService interface {

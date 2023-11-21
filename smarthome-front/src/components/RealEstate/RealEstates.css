@@ -5,9 +5,10 @@
 
 #add-real-estate {
     text-align: right;
-    width: 98%;
+    width: fit-content;
+    text-align: right;
     font-size: large;
-    margin-right: 2%;
+    margin-left: 85%;
     font-weight: 500;
     margin-bottom: 0;
 }

@@ -7,6 +7,7 @@ import (
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
+	"strings"
 )
 
 type RealEstateService interface {
@@ -73,9 +74,12 @@ func (res *RealEstateServiceImpl) ChangeState(id int, state int, reason string) 
 
 func (res *RealEstateServiceImpl) Add(estate models.RealEstate) (models.RealEstate, error) {
 	estate.Id = res.generateId()
+	estate.Name = strings.Trim(estate.Name, " \t\n\r")
+	estate.Address = strings.Trim(estate.Address, " \t\n\r")
+	estate.City = strings.Trim(estate.City, " \t\n\r")
 
 	// TODO: add some validation for pictures
-	if estate.Address != "" && estate.City != "" && estate.SquareFootage > 0.0 && estate.NumberOfFloors > 0 {
+	if estate.Name != "" && estate.Address != "" && estate.City != "" && estate.SquareFootage > 0.0 && estate.NumberOfFloors > 0 {
 		estate, err := res.repository.Add(estate)
 		return estate, err
 	}
