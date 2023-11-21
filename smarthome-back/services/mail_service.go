@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log"
 	"time"
-
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	"database/sql"
+	"gopkg.in/gomail.v2"
+	"smarthome-back/models"
 )
 
 type MailService interface {
@@ -15,12 +17,18 @@ type MailService interface {
 	CreateVarificationMail(email, name, surname, token string)
 	GenerateToken(email, name, surname string, expiration time.Time) (string, error)
 	CreateAdminLoginRequest(name, surname, email, password string)
+	Send(toAddress, subject, content string) error
+	DiscardRealEstate(estate models.RealEstate) error
+	ApproveRealEstate(estate models.RealEstate) error
 }
 
-type MailServiceImpl struct{}
+type MailServiceImpl struct{
+	db      *sql.DB
+	service UserService
+}
 
 func NewMailService() MailService {
-	return &MailServiceImpl{}
+	return &MailServiceImpl{db: db, service: NewUserService(db)}
 }
 
 func (ms *MailServiceImpl) CreateVarificationMail(email, name, surname, token string) {
@@ -103,4 +111,71 @@ func (ms *MailServiceImpl) CreateAdminLoginRequest(name, surname, email, passwor
 	} else {
 		fmt.Println(response.StatusCode)
 	}
+}
+
+func (ms *MailServiceImpl) Send(to, subject, body string) error {
+	appPass, err := NewConfigService().GetAppPassword("config/config.json")
+
+	if err != nil {
+		return err
+	}
+
+	var emailConfig = map[string]string{
+		"host":     "smtp.gmail.com",
+		"port":     "587",
+		"username": "kacorinav@gmail.com",
+		"password": appPass,
+	}
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", emailConfig["username"])
+	m.SetHeader("To", to)
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/html", body)
+
+	d := gomail.NewDialer(emailConfig["host"], 587, emailConfig["username"], emailConfig["password"])
+
+	if err := d.DialAndSend(m); err != nil {
+		fmt.Println("Error: ", err)
+		return err
+	}
+
+	return nil
+}
+
+func (ms *MailServiceImpl) ApproveRealEstate(estate models.RealEstate) error {
+	// TODO : use this after A&A is implemented
+	// user := ms.service.GetUser(estate.User)
+	// toAddress := user.Email
+	toAddress := "kacorinav@gmail.com"
+	subject := "New Real Estate State"
+	// TODO : change parameter name in content
+	content := fmt.Sprintf("<h1>Hi %s,</h1> <br/> We have some good news. Your real estate request has been approved!"+
+		"<br/>Real Estate Name: %s. <br/> Smart Home Support Team", "User", estate.Name)
+
+	err := ms.Send(toAddress, subject, content)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return err
+	}
+	return nil
+}
+
+func (ms *MailServiceImpl) DiscardRealEstate(estate models.RealEstate) error {
+	// TODO : use this after user is implemented
+	// user := ms.service.GetUser(estate.User)
+	// toAddress := user.Email
+	toAddress := "kacorinav@gmail.com"
+	subject := "New Real Estate State"
+	// TODO : change parameter name in content
+	content := fmt.Sprintf("<h1>Hi %s,</h1> <br/> We are very sorry, but your new real estate request has been rejected."+
+		"<br/>Real Estate Name: %s. <br/>Reason for rejection: %s.<br/> Stay safe!<br/> Smart Home Support Team",
+		"User", estate.Name, estate.DiscardReason)
+
+	err := ms.Send(toAddress, subject, content)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return err
+	}
+	return nil
 }

@@ -37,6 +37,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		realEstateRoutes.GET("/", realEstateController.GetAll)
 		realEstateRoutes.GET("/user/:userId", realEstateController.GetAllByUserId)
 		realEstateRoutes.GET("/:id", realEstateController.Get)
+		realEstateRoutes.GET("/pending", realEstateController.GetPending)
 		realEstateRoutes.PUT("/:id/:state", middleware.AdminMiddleware, realEstateController.ChangeState) // user can't use this
 		realEstateRoutes.POST("/", middleware.UserMiddleware, realEstateController.Add)                   // admin can't use this
 	}
@@ -52,5 +53,12 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 	{
 		airConditionerController := controllers.NewAirConditionerController(db)
 		airConditionerRoutes.GET("/:id", airConditionerController.Get)
+	}
+
+	uploadImageRoutes := r.Group("/api/upload")
+	{
+		imageUploadController := controllers.NewImageController()
+		uploadImageRoutes.POST("/:real-estate-name", imageUploadController.Post)
+		uploadImageRoutes.GET("/:file-name", imageUploadController.Get)
 	}
 }

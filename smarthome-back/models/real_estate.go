@@ -1,9 +1,12 @@
 package models
 
-import "smarthome-back/enumerations"
+import (
+	"smarthome-back/enumerations"
+)
 
 type RealEstate struct {
 	Id             int
+	Name           string
 	Type           enumerations.RealEstateType
 	Address        string
 	City           string // predefined list of the cities from database
@@ -12,4 +15,5 @@ type RealEstate struct {
 	Picture        string // change this later (upload picture)
 	State          enumerations.State
 	User           int
+	DiscardReason  string
 }
