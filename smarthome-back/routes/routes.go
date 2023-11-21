@@ -22,8 +22,8 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		userRoutes.POST("/login", authController.Login)
 		userRoutes.GET("/validate", middleware.RequireAuth, authController.Validate)
 		userRoutes.POST("/logout", middleware.RequireAuth, authController.Logout)
-		userRoutes.POST("/verificationMail", middleware.RequireAuth, authController.SendVerificationMail)
-		userRoutes.POST("/activate", middleware.RequireAuth, authController.ActivateAccount)
+		userRoutes.POST("/verificationMail", authController.SendVerificationMail)
+		userRoutes.POST("/activate", authController.ActivateAccount)
 
 		superadminController := controllers.NewSuperAdminController(db)
 		userRoutes.POST("/reset-password", middleware.SuperAdminMiddleware, superadminController.ResetPassword)

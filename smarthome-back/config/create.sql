@@ -1,6 +1,18 @@
 CREATE DATABASE smart_home;
 use smart_home;
 
+CREATE TABLE user (
+                        Id INT PRIMARY KEY,
+                        Email VARCHAR(255) UNIQUE,
+                        Password VARCHAR(255),
+                        Name VARCHAR(255),
+                        Surname VARCHAR(255),
+                        Picture VARCHAR(255),
+                        Role INT,
+                        isLogin BOOLEAN DEFAULT false
+);
+
+
 CREATE TABLE realestate (
                             Id INT PRIMARY KEY,
                             Type INT,
