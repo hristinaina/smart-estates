@@ -20,8 +20,8 @@ const Dialog = ({ title, message, onConfirm, onCancel, isDiscard}) => {
                         onChange={(e) => setReason(e.target.value)}
                         placeholder="Write a reason here..."></textarea>
                 )}
-                <button onClick={handleConfirm}>CONFIRM</button>
                 <button onClick={onCancel}>CANCEL</button>
+                <button onClick={handleConfirm}>CONFIRM</button>
             </div>
         </div>
     )
