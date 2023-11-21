@@ -23,7 +23,7 @@ export class Lamp extends Component {
     }
 
     async componentDidMount() {
-        const { device } = this.state;  // todo instead of this get device data from back from device id
+        const { device } = this.state;  // todo instead of this get device from back by deviceId
         const updatedData =
         {
             ...device,
@@ -65,7 +65,6 @@ export class Lamp extends Component {
             switchOn: !prevState.switchOn,
         }));
         const message = (!this.state.switchOn).toString();
-        console.log(topic, message);
         this.mqttClient.publish(topic, message);
     };
 
@@ -97,7 +96,8 @@ export class Lamp extends Component {
                 <Link to="/devices"><img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px" }} /></Link>
                 <div style={{ width: "fit-content", marginLeft: "auto", marginRight: "auto", marginTop: "10%" }}>
                     <p className='device-title'>Id: {this.id}</p>
-                    {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null}
+                    {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
+                    <p className='device-text'>Last Value: {device.Value}</p>
                     <Stack direction="row" spacing={1} alignItems="center">
                         <Typography>Off</Typography>
                         <Switch
