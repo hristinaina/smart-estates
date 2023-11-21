@@ -41,6 +41,12 @@ func NewImageService() ImageService {
 }
 
 func (is *ImageServiceImpl) GetImageURL(fileName string) (string, error) {
+	if strings.Contains(fileName, "&") {
+		tokens := strings.Split(fileName, "&")
+		folder := tokens[0]
+		file := tokens[1]
+		fileName = folder + "/" + file
+	}
 	fullName, err := is.findFullFileName(fileName)
 	if err != nil {
 		return "", err
@@ -70,6 +76,13 @@ func (is *ImageServiceImpl) UploadImage(estateName string, file *multipart.FileH
 		if err != nil {
 			return err
 		}
+	}
+
+	if strings.Contains(estateName, "&") {
+		tokens := strings.Split(estateName, "&")
+		folder := tokens[0]
+		file := tokens[1]
+		estateName = folder + "/" + file
 	}
 
 	err = is.uploadToS3(fileBytes, estateName)

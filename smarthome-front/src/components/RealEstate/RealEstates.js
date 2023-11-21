@@ -46,7 +46,7 @@ export class RealEstates extends Component {
             }
             const realEstateImages = {};
             for (const realEstate of this.state.realEstates) {
-                const imageUrl = await ImageService.getImage(realEstate.Name);
+                const imageUrl = await ImageService.getImage("real-estates&" + realEstate.Name);
                 realEstateImages[realEstate.Id] = imageUrl;
             }
             this.setState({realEstateImages});

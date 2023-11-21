@@ -203,7 +203,7 @@ export class NewRealEstate extends Component {
             var name = String(document.getElementsByName('name')[0].value).trim();
             const substr = this.state.selectedImage.name.split(".")[1].trim();
             name += "." + substr;
-            await ImageService.uploadImage(formData, name);
+            await ImageService.uploadImage(formData, "real-estates&" + name);
             window.location.href = '/real-estates';
         } catch (error) {
             console.log("Error");
