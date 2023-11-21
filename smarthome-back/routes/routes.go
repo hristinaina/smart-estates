@@ -20,7 +20,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		authController := controllers.NewAuthController(db)
 		middleware := middleware.NewMiddleware(db)
 		userRoutes.POST("/login", authController.Login)
-		userRoutes.GET("/validate", authController.Validate)
+		userRoutes.GET("/validate", middleware.RequireAuth, authController.Validate)
 		userRoutes.POST("/logout", middleware.RequireAuth, authController.Logout)
 		userRoutes.POST("/verificationMail", authController.SendVerificationMail)
 		userRoutes.POST("/activate", authController.ActivateAccount)

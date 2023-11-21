@@ -10,10 +10,12 @@ import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
+import ImageService from '../../services/ImageService';
 
 
 const Account = () => {
   const [selectedOption, setSelectedOption] = useState('PROFILE');
+  const [profileImage, setProfileImage] = useState('');
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [email, setEmail] = useState('');
@@ -32,8 +34,14 @@ const Account = () => {
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-  useEffect(() => {
+  useEffect(async() => {
     const user = authService.getCurrentUser();
+    console.log("urlllllllllllll");
+    console.log(user);
+    console.log(user.Email.replace('@', ''));
+    const img = await ImageService.getImage(user.Email.replace('@', ''));
+    console.log(img);
+    setProfileImage(img);
     setName(user.Name)
     setSurname(user.Surname)
     setEmail(user.Email)
@@ -144,7 +152,7 @@ const handleClose = (event, reason) => {
     <div className="user-profile-container">
       <div className="side-menu">
         <div className='container-image'>
-            <img id='profile-image' src="/images/user.png" alt="User" />
+            <img id='profile-image' src={profileImage} alt="User" />
             <img id='add-image' src="/images/plus_purple.png" alt="Add Image"/>
         </div>
 
