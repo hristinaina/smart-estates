@@ -43,13 +43,16 @@ func StartSimulation(client mqtt.Client, d models.Device) {
 	switch d.Type {
 	case 0:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
-		go ConnectLamp(client, d)
+		lamp := NewLampSimulator(client, d)
+		go lamp.ConnectLamp()
 	case 1:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
-		go ConnectLamp(client, d)
+		lamp := NewLampSimulator(client, d)
+		go lamp.ConnectLamp()
 	default:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
-		go ConnectLamp(client, d)
+		lamp := NewLampSimulator(client, d)
+		go lamp.ConnectLamp()
 		//todo change this and add separate logic for each device type
 	}
 }

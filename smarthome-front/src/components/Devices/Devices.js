@@ -15,6 +15,7 @@ export class Devices extends Component {
             data: [],
         };
         this.mqttClient = null;
+        this.connecting = false; //change to true if you want to use this
     }
 
     async componentDidMount() {
@@ -32,7 +33,7 @@ export class Devices extends Component {
 
             // Subscribe to the MQTT topic for device status
             this.mqttClient.on('connect', () => {
-                this.mqttClient.subscribe('device/online/+');
+                this.mqttClient.subscribe('device/status/+');
             });
 
             // Handle incoming MQTT messages
@@ -43,7 +44,15 @@ export class Devices extends Component {
             console.log("Error trying to connect to broker");
             console.log(error);
         }
-    }
+
+        // setTimeout(() => {
+        //     const { data } = this.state;
+        //     this.connecting = false;
+        //     this.setState({
+        //         data: data,
+        //     });
+        // }, 5000);
+        }
 
     componentWillUnmount() {
         // Disconnect MQTT client on component unmount
@@ -103,6 +112,7 @@ export class Devices extends Component {
 
     render() {
         const { data } = this.state;
+        const connecting = this.connecting;
 
         return (
             <div>
@@ -118,13 +128,13 @@ export class Devices extends Component {
                     </p>
                 </div>
                 <Divider style={{ width: "87%", marginLeft: 'auto', marginRight: 'auto', marginBottom: '20px' }} />
-                <DevicesList devices={data} onClick={this.handleClick} />
+                <DevicesList devices={data} onClick={this.handleClick} connecting={connecting}/>
             </div>
         )
     }
 }
 
-const DevicesList = ({ devices, onClick }) => {
+const DevicesList = ({ devices, onClick, connecting }) => {
     const chunkSize = 5; // Number of items per row
 
     const chunkArray = (arr, size) => {
@@ -151,6 +161,8 @@ const DevicesList = ({ devices, onClick }) => {
                                 <p className='device-text'>{device.Type}</p>
                                 {device.IsOnline && (<p className='device-text' style={{ color: 'green' }}>Online</p>)}
                                 {!device.IsOnline && (<p className='device-text' style={{ color: 'red' }}>Offline</p>)}
+                                {/* {!device.IsOnline && !connecting && (<p className='device-text' style={{ color: 'red' }}>Offline</p>)}
+                                {connecting && !device.IsOnline && (<p className='device-text'>Connecting</p>)} */}
                             </div>
                         </div>
                     ))}

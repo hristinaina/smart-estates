@@ -125,7 +125,7 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) models.Device {
 		id, err := result.LastInsertId()
 		device.Id = int(id)
 	}
-	mqttClient := mqtt_client.NewMQTTClient()
+	mqttClient := mqtt_client.NewMQTTClient(res.db)
 	mqttClient.Publish(mqtt_client.TopicNewDevice+strconv.Itoa(device.Id), "new device created")
 	return device
 }

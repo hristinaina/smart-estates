@@ -6,6 +6,9 @@ import mqtt from 'mqtt';
 import { useParams } from 'react-router-dom';
 import { width } from '@mui/system';
 import { Link } from 'react-router-dom';
+import Switch from '@mui/material/Switch';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 
 
 export class Lamp extends Component {
@@ -13,17 +16,18 @@ export class Lamp extends Component {
         super(props);
         this.state = {
             device: {},
+            switchOn: false,
         };
         this.mqttClient = null;
         this.id = this.extractDeviceIdFromUrl();
     }
 
     async componentDidMount() {
-        const { device } = this.state;  // todo instead of this get device data from back having device id
-        const updatedData = 
+        const { device } = this.state;  // todo instead of this get device data from back from device id
+        const updatedData =
         {
             ...device,
-            Value: 0,
+            Value: "Loading...",
         }
         this.setState({
             device: updatedData,
@@ -54,14 +58,25 @@ export class Lamp extends Component {
         }
     }
 
+    handleSwitchToggle = () => {
+        const topic = "lamp/switch/"+this.id;
+
+        this.setState((prevState) => ({
+            switchOn: !prevState.switchOn,
+        }));
+        const message = (!this.state.switchOn).toString();
+        console.log(topic, message);
+        this.mqttClient.publish(topic, message);
+    };
+
     // Handle incoming MQTT messages
     handleMqttMessage(topic, message) {
         const { device } = this.state;
         const newValue = message.toString();
-        const updatedData = 
+        const updatedData =
         {
             ...device,
-            Value: newValue,
+            Value: newValue + "%",
         }
         this.setState({
             device: updatedData,
@@ -74,15 +89,23 @@ export class Lamp extends Component {
     }
 
     render() {
-        const { device } = this.state;
+        const { device, switchOn } = this.state;
 
         return (
             <div>
                 <Navigation />
-                <Link to="/devices"><img src='/images/arrow.png' id='arrow' style={{margin: "55px 0 0 90px"}} /></Link>
-                <div style={{width: "fit-content", marginLeft: "auto", marginRight: "auto", marginTop: "10%"}}>
+                <Link to="/devices"><img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px" }} /></Link>
+                <div style={{ width: "fit-content", marginLeft: "auto", marginRight: "auto", marginTop: "10%" }}>
                     <p className='device-title'>Id: {this.id}</p>
-                    <p className='device-text'>Value: {device.Value}%</p>
+                    {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null}
+                    <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography>Off</Typography>
+                        <Switch
+                            checked={switchOn}
+                            onChange={this.handleSwitchToggle}
+                        />
+                        <Typography>On</Typography>
+                    </Stack>
                 </div>
             </div>
         )

@@ -41,8 +41,8 @@ func (uc DeviceController) GetAll(c *gin.Context) {
 func (rec DeviceController) GetAllByEstateId(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("estateId"))
 	CheckIfError(err, c)
-	realEstates := rec.service.GetAllByEstateId(id)
-	c.JSON(http.StatusOK, realEstates)
+	devices := rec.service.GetAllByEstateId(id)
+	c.JSON(http.StatusOK, devices)
 }
 
 func (rec DeviceController) Add(c *gin.Context) {

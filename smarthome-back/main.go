@@ -1,7 +1,9 @@
 package main
 
 import (
+	"database/sql"
 	_ "database/sql"
+	"fmt"
 	_ "fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -25,10 +27,18 @@ func main() {
 		}
 		c.Next()
 	})
-
-	mqttClient := mqtt_client.NewMQTTClient()
+	resetDbOnStart(db)
+	mqttClient := mqtt_client.NewMQTTClient(db)
 	mqttClient.StartListening()
 
 	routes.SetupRoutes(r, db)
 	r.Run(":8081")
+}
+
+func resetDbOnStart(db *sql.DB) {
+	query := "UPDATE device SET IsOnline = false"
+	_, err := db.Exec(query)
+	if err != nil {
+		fmt.Println("Failed to update devices status")
+	}
 }
