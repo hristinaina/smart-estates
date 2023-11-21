@@ -56,12 +56,14 @@ export class NewRealEstate extends Component {
             showSnackbar: false,
             open: false,
             imagePreview: null,
+            isButtonDisabled: true,
         };
 
         this.position = [45.23598471651923, 19.83932472361301]; // Initial map position
 
     }
 
+    // TODO: get this from database
     cities = [
         { vlaue: 'novi-sad', label: 'NOVI SAD, SERBIA'},
         { value: 'belgrade', label: 'BELGRADE, SERBIA'},
@@ -73,6 +75,14 @@ export class NewRealEstate extends Component {
             city.label.toLowerCase().includes(this.state.searchCity.toLowerCase())
         );
     };
+
+    checkButton = () => {
+        if (document.getElementsByName("name")[0].value.trim() !== '' && this.state.address.trim() !== '' && 
+            document.getElementsByName("footage")[0].value !== '' && document.getElementsByName("floors")[0].value !== '' && 
+            this.state.imagePreview != null) {
+                this.setState({isButtonDisabled: false});
+            }
+    }
 
     handleTypeChange = (event) => {
         this.setState({ selectedType: event.target.value });
@@ -105,14 +115,14 @@ export class NewRealEstate extends Component {
             .catch((error) => {
                 console.error('Error fetching address:', error);
             });
+
+            this.checkButton();
     }
 
-    handleImageChange = (e) => {
+    handleImageChange = async (e) => {
         const file = e.target.files[0];
-        this.setState({selectedImage: file, imagePreview: URL.createObjectURL(file)})
-    
-        // here image can be uploaded to server
-        console.log('Selected Image:', file);
+        await this.setState({selectedImage: file, imagePreview: URL.createObjectURL(file)})
+        this.checkButton();
     }
 
     confirm = async () => {
@@ -193,6 +203,7 @@ export class NewRealEstate extends Component {
             this.setState({snackbarMessage: "Error uploading image!"});
             this.handleClick();
         }
+        this.checkButton();
     };
     
     render() {
@@ -213,6 +224,7 @@ export class NewRealEstate extends Component {
                             name="name" 
                             maxLength="50"
                             placeholder="Type the name of your real estate"
+                            onChange={this.checkButton}
                             />
                         <p className="new-real-estate-label">Type</p>
                         <select 
@@ -268,6 +280,7 @@ export class NewRealEstate extends Component {
                             name="footage" 
                             min="0"
                             placeholder="Type square footage of the real estate..."
+                            onChange={this.checkButton}
                             />
                         <p className="new-real-estate-label">Number of Floors</p>
                         <input 
@@ -276,6 +289,7 @@ export class NewRealEstate extends Component {
                             name="floors" 
                             min="1"
                             placeholder="Type number of floors..."
+                            onChange={this.checkButton}
                             />
                         <br/>
                         <div 
@@ -292,7 +306,7 @@ export class NewRealEstate extends Component {
                             <p id="upload-image-p">Upload image</p>
                             {this.state.imagePreview && (
                             <div>
-                                <img className='cropped-image' src={this.state.imagePreview} alt="Uploaded Image Preview" />
+                                <img className='cropped-image' src={this.state.imagePreview} alt="Upload Preview" />
                             </div>
                         )}
                         </div>
@@ -302,7 +316,7 @@ export class NewRealEstate extends Component {
                                     CANCEL
                             </button>
                             <button
-                            id="confirm-button" className="btn" onClick={this.confirm}>
+                            id="confirm-button" className={`btn ${this.state.isButtonDisabled ? 'disabled' : ''}`} disabled={this.state.isButtonDisabled} onClick={this.confirm}>
                                 CONFIRM
                             </button>
                         </span>
