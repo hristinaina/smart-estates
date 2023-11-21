@@ -22,7 +22,7 @@ type AuthController struct {
 }
 
 func NewAuthController(db *sql.DB) AuthController {
-	return AuthController{repo: repositories.NewUserRepository(db), mail_service: services.NewMailService()}
+	return AuthController{repo: repositories.NewUserRepository(db), mail_service: services.NewMailService(db)}
 }
 
 // request body

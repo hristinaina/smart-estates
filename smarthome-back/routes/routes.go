@@ -38,8 +38,8 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		realEstateRoutes.GET("/user/:userId", realEstateController.GetAllByUserId)
 		realEstateRoutes.GET("/:id", realEstateController.Get)
 		realEstateRoutes.GET("/pending", realEstateController.GetPending)
-		realEstateRoutes.PUT("/:id/:state", middleware.AdminMiddleware, realEstateController.ChangeState) // user can't use this
-		realEstateRoutes.POST("/", middleware.UserMiddleware, realEstateController.Add)                   // admin can't use this
+		realEstateRoutes.PUT("/:id/:state", realEstateController.ChangeState) // user can't use this
+		realEstateRoutes.POST("/", realEstateController.Add)                  // admin can't use this
 	}
 
 	deviceRoutes := r.Group("/api/devices")

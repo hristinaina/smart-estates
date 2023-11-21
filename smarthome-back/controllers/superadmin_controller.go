@@ -28,7 +28,7 @@ type SuperAdminControllerImpl struct {
 }
 
 func NewSuperAdminController(db *sql.DB) SuperAdminController {
-	return &SuperAdminControllerImpl{db: db, repo: repositories.NewUserRepository(db), mail_service: services.NewMailService(), superadmin_service: services.NewGenerateSuperAdmin(db)}
+	return &SuperAdminControllerImpl{db: db, repo: repositories.NewUserRepository(db), mail_service: services.NewMailService(db), superadmin_service: services.NewGenerateSuperAdmin(db)}
 }
 
 // password dto

@@ -1,6 +1,5 @@
 import React,{ Component, useState } from 'react';
 import './RealEstates.css';
-import { NewRealEstate } from './NewRealEstate';
 import { Navigation } from '../Navigation/Navigation';
 import authService from '../../services/AuthService'
 import Dialog from '../Dialog/Dialog';
@@ -16,7 +15,7 @@ export class RealEstates extends Component {
             showNewRealEstate: false,
             user : null,
             isAdmin: false,
-            userId: 2,
+            userId: -1,
             isDisabled: true,
             showApproveDialog: false,
             showDiscardDialog: false,
@@ -27,14 +26,23 @@ export class RealEstates extends Component {
     }
 
     async componentDidMount() {
+        const currentUser = authService.getCurrentUser();
+        if (currentUser['Role'] === 0 || currentUser['Role'] === 2) {
+            await this.setState({isAdmin: true});
+        } else {
+            await this.setState({isAdmin: false});
+        }
+        
+        await this.setState({user: currentUser, userId: currentUser.Id, });
+        console.log("comp did mount");
         try {
             if (!this.state.isAdmin) {
-                const result = await RealEstateService.getAllByUserId(this.state.userId);
-                this.setState({realEstates: result})
+                const result = await RealEstateService.getAllByUserId(currentUser.Id);
+                await this.setState({realEstates: result})
 
             } else {
                 const result = await RealEstateService.getPending();
-                this.setState({realEstates: result})
+                await this.setState({realEstates: result})
             }
             const realEstateImages = {};
             for (const realEstate of this.state.realEstates) {
@@ -48,11 +56,6 @@ export class RealEstates extends Component {
             console.error(error);
         }
     }
-
-    componentDidMount() {
-        const currentUser = authService.getCurrentUser()
-        this.setState({user: currentUser})
-      }
 
     handleApprove = () => {
         this.setState({showApproveDialog: true, 

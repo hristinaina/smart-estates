@@ -1,15 +1,15 @@
 package services
 
 import (
+	"database/sql"
 	"fmt"
-	"log"
-	"time"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
-	"database/sql"
 	"gopkg.in/gomail.v2"
+	"log"
 	"smarthome-back/models"
+	"time"
 )
 
 type MailService interface {
@@ -22,12 +22,12 @@ type MailService interface {
 	ApproveRealEstate(estate models.RealEstate) error
 }
 
-type MailServiceImpl struct{
+type MailServiceImpl struct {
 	db      *sql.DB
 	service UserService
 }
 
-func NewMailService() MailService {
+func NewMailService(db *sql.DB) MailService {
 	return &MailServiceImpl{db: db, service: NewUserService(db)}
 }
 

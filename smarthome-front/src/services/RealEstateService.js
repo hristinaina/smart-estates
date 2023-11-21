@@ -23,9 +23,11 @@ class RealEstateService {
     }
 
     static async getAllByUserId(id) {
+      console.log("usaoo");
       try {
         const response = await fetch('http://localhost:8081/api/real-estates/user/' + id);
         const data = await response.json();
+        console.log("data: ", data);
         return data;
       } catch(error) {
         console.error("Error fetching data:", error);

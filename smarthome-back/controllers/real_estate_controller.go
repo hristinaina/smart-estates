@@ -29,7 +29,7 @@ func (rec RealEstateController) GetAll(c *gin.Context) {
 
 func (rec RealEstateController) GetAllByUserId(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("userId"))
-	if IsError(err, c) {
+	if CheckIfError(err, c) {
 		return
 	}
 	realEstates, err := rec.service.GetByUserId(id)
@@ -42,11 +42,11 @@ func (rec RealEstateController) GetAllByUserId(c *gin.Context) {
 
 func (rec RealEstateController) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	if IsError(err, c) {
+	if CheckIfError(err, c) {
 		return
 	}
 	realEstate, err := rec.service.Get(id)
-	if IsError(err, c) {
+	if CheckIfError(err, c) {
 		return
 	}
 	c.JSON(http.StatusOK, realEstate)
@@ -63,16 +63,16 @@ func (rec RealEstateController) GetPending(c *gin.Context) {
 
 func (rec RealEstateController) ChangeState(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	if IsError(err, c) {
+	if CheckIfError(err, c) {
 		return
 	}
 	state, err := strconv.Atoi(c.Param("state"))
-	if IsError(err, c) {
+	if CheckIfError(err, c) {
 		return
 	}
 	var reason dtos.DiscardRealEstate
 	err = c.BindJSON(&reason)
-	if IsError(err, c) {
+	if CheckIfError(err, c) {
 		return
 	}
 	realEstate, err := rec.service.ChangeState(id, state, reason.DiscardReason)
@@ -102,7 +102,7 @@ func (rec RealEstateController) Add(c *gin.Context) {
 	c.JSON(http.StatusOK, estate)
 }
 
-func IsError(err error, c *gin.Context) bool {
+func CheckIfError(err error, c *gin.Context) bool {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return true
