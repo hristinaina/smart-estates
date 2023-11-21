@@ -31,7 +31,7 @@ In the `smart-home/smarthome-front` folder, install dependencies and start the f
 
 ```bash
 npm install
-npm start
+npm start```
 
 ## Contribution
 [Anastasija Savić](https://gitlab.com/savic-a)
