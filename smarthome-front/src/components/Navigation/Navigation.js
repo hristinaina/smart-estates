@@ -66,6 +66,9 @@ export class Navigation extends Component {
                             <NavItem>
                                 <NavLink tag={Link} className="text-light" to="/reports">ADmin2</NavLink>
                             </NavItem>
+                            <NavItem>
+                                <NavLink tag={Link} className="text-light" to="/account">Profile</NavLink>
+                            </NavItem>
                             <NavItem className="logout">
                                 <NavLink tag={Link} className="text-light" to="/" onClick={this.handleLogout}>Log out</NavLink>
                             </NavItem>

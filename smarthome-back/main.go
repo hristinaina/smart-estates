@@ -5,6 +5,7 @@ import (
 	_ "fmt"
 	"smarthome-back/config"
 	"smarthome-back/routes"
+	"smarthome-back/services"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -29,6 +30,9 @@ func main() {
 	})
 
 	routes.SetupRoutes(r, db)
+
+	gs := services.NewGenerateSuperAdmin(db)
+	gs.GenerateSuperadmin()
 
 	r.Run(":8081")
 }

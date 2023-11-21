@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import theme from '../../theme';
 import { ThemeProvider } from '@emotion/react';
@@ -12,31 +12,18 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Snackbar from '@mui/material/Snackbar';
 import CloseIcon from '@mui/icons-material/Close';
 
-import './Login.css'; 
+import './ResetPassword.css'; 
 import authService from '../../services/AuthService'
+import superAdminService from '../../services/SuperAdmin' 
 
 
-const Login = () => {
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const result = await authService.validateUser();
-                console.log(result)
-                !result ? navigate('/'): navigate('/real-estates');
-            } catch (error) {
-            console.error('Error:', error);
-            }
-        };
-        
-        fetchData();
-    }, []);
-
-    const [username, setUsername] = useState('');
+const ResetPassword = () => {
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])(.{8,})$/;
 
     const navigate = useNavigate();
@@ -52,16 +39,24 @@ const Login = () => {
         event.preventDefault();
     };
 
-    const handleUsernameChange = (event) => {
-        setUsername(event.target.value);
-        event.target.value.trim() ===  '' ||  !(!emailRegex.test(event.target.value.trim()) && event.target.value.trim() !==  'admin') || password.trim() === '' 
-        ? checkButtonDisabled(true) : checkButtonDisabled(false)
+    const handleClickShowConfirmPassword = () => {
+      setShowConfirmPassword(!showConfirmPassword);
+    };
+
+    const handleMouseDownConfirmPassword = (event) => {
+        event.preventDefault();
     };
 
     const handlePasswordChange = (event) => {
         setPassword(event.target.value);
-        event.target.value.trim() ===  '' || !passwordRegex.test(event.target.value.trim()) || username.trim() === '' 
+        event.target.value.trim() ===  '' || !passwordRegex.test(event.target.value.trim()) || confirmPassword.trim() === '' || event.target.value.trim() !== confirmPassword
         ? checkButtonDisabled(true) : checkButtonDisabled(false)
+    };
+
+    const handleConfirmPasswordChange = (event) => {
+      setConfirmPassword(event.target.value);
+      event.target.value.trim() ===  '' || !passwordRegex.test(event.target.value.trim()) || password.trim() === '' || event.target.value.trim() !== password
+      ? checkButtonDisabled(true) : checkButtonDisabled(false)
     };
 
     const checkButtonDisabled = (value) => {
@@ -80,13 +75,12 @@ const Login = () => {
         setOpen(false);
       };
 
-    // login
-    const handleLogin = async () => {
-        const result = await authService.loginUser(username, password);
-    
+    // save reset password
+    const handleResetPassword = async () => {
+        const result = await superAdminService.ResetPassword(password);
         if (result.success) {
-            const result = await authService.validateUser()
-            !result ? navigate('/reset-password'): navigate('/real-estates');
+            await authService.validateUser()
+            navigate('/real-estates');
         } else {
             setSnackbarMessage(result.error);
             handleClick()
@@ -108,28 +102,18 @@ const Login = () => {
 
   return (
     <ThemeProvider theme={theme}>
-    <div className='background'>
-      <div className='left-side'>
-        <p className='title-login'>Login</p>
+
+      <div className='container'>
+        <p className='almost-done'>Almost done...</p>
+        <p className='subtitle'>For security you must reset your password</p>
         <form>
+
         <div className='fields'>
-            <div className='label'> Email:</div>
-            <TextField
-                value={username}
-                onChange={handleUsernameChange}
-                id="username"
-                sx={{ m: 1, width: '30ch' }}
-                placeholder="someone@example.com"
-                helperText="Required"
-                type='email'
-            />
-        </div>    
-        <div className='fields'>
-            <div className='label'>Password:</div>
+            <div className='fields-name'>Password:</div>
             <TextField
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                sx={{ m: 1, width: '30ch' }}
+                sx={{ m: 1, width: '25ch' }}
                 placeholder='P@ssw0rd123'
                 helperText="Required. Min 8 characters, special character, capital latter"
                 value={password}
@@ -148,16 +132,42 @@ const Login = () => {
                 ),
                 }}
             />
+
+        <div className='input-fields'>
+          <div className='fields-name'>Confirm password:</div>
+          <TextField
+            id="confirm-password"
+            className='text-field'
+            type={showConfirmPassword ? 'text' : 'password'}
+            sx={{ m: 1, width: '25ch' }}
+            placeholder='P@ssw0rd123'
+            helperText="Required. Min 8 characters, special character, capital latter"
+            value={confirmPassword}
+            onChange={handleConfirmPasswordChange}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleClickShowConfirmPassword}
+                    onMouseDown={handleMouseDownConfirmPassword}>
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+          </div>
         </div>
             <Button 
-                id='login'
+                id='save'
                 variant="contained" 
                 color="primary" 
                 disabled={isButtonDisabled}
-                onClick={handleLogin}
+                onClick={handleResetPassword}
                 style={{marginTop: "50px", textTransform: 'none'}} 
-                sx={{ m: 1, width: '39ch' }}>
-                    Login
+                >
+                    Save
             </Button>
             <Snackbar
         open={open}
@@ -167,17 +177,9 @@ const Login = () => {
         action={action}
       />
         </form>
-      </div>
-      <div className='right-side'>
-        <p className='title'>Welcome to Smart Home!</p>
-        <p className='text'>One place to remotely manage all your devices!</p>
-        <Link to="/reg">
-            <Button className="reg" sx={theme.customStyles.myCustomButton} variant="contained" color="secondary">No account yet? Sign up</Button>
-        </Link>
-      </div>
-    </div>
+      </div>      
     </ThemeProvider>
   );
 };
 
-export default Login;
+export default ResetPassword;

@@ -122,3 +122,30 @@ func UserMiddleware(c *gin.Context) {
 	c.Next()
 	return
 }
+
+// functions which only super admin can use
+func (mw Middleware) SuperAdminMiddleware(c *gin.Context) {
+
+	cookie, err := c.Cookie("Authorization")
+
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	claims, err := utils.ParseToken(cookie)
+
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	// 2 is super admin
+	if claims["role"] != "2" {
+		c.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+
+	c.Next()
+	return
+}

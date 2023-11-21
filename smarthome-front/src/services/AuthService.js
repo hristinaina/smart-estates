@@ -1,5 +1,5 @@
 class AuthService {
-
+  
   async loginUser(email, password) {
     try {
       const response = await fetch('http://localhost:8081/api/users/login', {
@@ -32,8 +32,12 @@ class AuthService {
 
     if (response.status === 200) {
       const data = await response.json();
-      this.setUser(data["message"])
-      return true
+      if (data["message"].Role !== 2 || data["message"]["IsLogin"])
+      {
+        this.setUser(data["message"])
+        return true
+      } 
+      return false
 
     } else if (response.status === 401) {
       return false

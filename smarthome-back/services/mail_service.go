@@ -11,10 +11,10 @@ import (
 )
 
 type MailService interface {
-	// SendVerificationMail(c *gin.Context)
 	IsValidToken(tokeString string) bool
 	CreateVarificationMail(email, name, surname, token string)
 	GenerateToken(email, name, surname string, expiration time.Time) (string, error)
+	CreateAdminLoginRequest(name, surname, email, password string)
 }
 
 type MailServiceImpl struct{}
@@ -86,4 +86,21 @@ func (ms *MailServiceImpl) IsValidToken(tokenString string) bool {
 	}
 
 	return true
+}
+
+func (ms *MailServiceImpl) CreateAdminLoginRequest(name, surname, email, password string) {
+	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
+	subject := "Join our team!"
+	to := mail.NewEmail(name+" "+surname, email)
+	plainTextContent := fmt.Sprintf("Your login credentials to our system are:  E=mail: %s  Password: %s", email, password)
+	htmlContent := fmt.Sprintf(`<strong>Your login credentials to our system are:</strong> <br/> E-mail: <strong>%s</strong><br/> Password: <strong>%s</strong>`, email, password)
+	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+
+	client := sendgrid.NewSendClient("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")
+	response, err := client.Send(message)
+	if err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println(response.StatusCode)
+	}
 }
