@@ -44,10 +44,7 @@ export class Navigation extends Component {
                                 <NavLink tag={Link} className="text-light" to="/real-estates">Home</NavLink>
                             </NavItem>
                             <NavItem>
-                                <NavLink tag={Link} className="text-light" to="/database-manager">Nekaj</NavLink>
-                            </NavItem>
-                            <NavItem>
-                                <NavLink tag={Link} className="text-light" to="/reports">Nekaj</NavLink>
+                                <NavLink tag={Link} className="text-light" to="/account">Profile</NavLink>
                             </NavItem>
                             <NavItem className="logout">
                                 <NavLink tag={Link} className="text-light" to="/" onClick={this.handleLogout}>Log out</NavLink>
@@ -58,13 +55,7 @@ export class Navigation extends Component {
                         <ul>
                             <span className="logo">Smart Home</span>
                             <NavItem>
-                                <NavLink tag={Link} className="text-light" to="/home">Home</NavLink>
-                            </NavItem>
-                            <NavItem>
-                                <NavLink tag={Link} className="text-light" to="/database-manager">Admin1</NavLink>
-                            </NavItem>
-                            <NavItem>
-                                <NavLink tag={Link} className="text-light" to="/reports">ADmin2</NavLink>
+                                <NavLink tag={Link} className="text-light" to="/real-estates">Home</NavLink>
                             </NavItem>
                             <NavItem>
                                 <NavLink tag={Link} className="text-light" to="/account">Profile</NavLink>
