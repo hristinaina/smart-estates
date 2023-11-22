@@ -7,12 +7,15 @@ import { Divider } from '@mui/material';
 import { Link } from 'react-router-dom';
 import mqtt from 'mqtt';
 
+import ImageService from '../../services/ImageService';
+import { DeviceUnknown } from '@mui/icons-material';
 
 export class Devices extends Component {
     constructor(props) {
         super(props);
         this.state = {
             data: [],
+            deviceImages: {},
         };
         this.mqttClient = null;
         this.connecting = false; //change to true if you want to use this
@@ -21,8 +24,15 @@ export class Devices extends Component {
     async componentDidMount() {
         try {
             const result = await DeviceService.getDevices(2);
-            this.setState({ data: result });
-            console.log(result)
+            await this.setState({ data: result });
+
+
+            const deviceImages = {};
+            for (const device of result) {
+                const imageUrl = await ImageService.getImage("devices&" + device.Name);
+                deviceImages[device.Id] = imageUrl;
+            }
+            await this.setState({deviceImages});
         } catch (error) {
             console.log("Error fetching data from the server");
             console.log(error);
@@ -111,9 +121,8 @@ export class Devices extends Component {
     }
 
     render() {
-        const { data } = this.state;
+        const { data, deviceImages } = this.state;
         const connecting = this.connecting;
-
         return (
             <div>
                 <Navigation />
@@ -128,13 +137,13 @@ export class Devices extends Component {
                     </p>
                 </div>
                 <Divider style={{ width: "87%", marginLeft: 'auto', marginRight: 'auto', marginBottom: '20px' }} />
-                <DevicesList devices={data} onClick={this.handleClick} connecting={connecting}/>
+                <DevicesList devices={data} deviceImages={deviceImages} onClick={this.handleClick} connecting={connecting}/>
             </div>
         )
     }
 }
 
-const DevicesList = ({ devices, onClick, connecting }) => {
+const DevicesList = ({ devices, deviceImages, onClick, connecting }) => {
     const chunkSize = 5; // Number of items per row
 
     const chunkArray = (arr, size) => {
@@ -153,7 +162,7 @@ const DevicesList = ({ devices, onClick, connecting }) => {
                         <div key={index} className='device-card' onClick={() => onClick(device)}>
                             <img
                                 alt='device'
-                                src={device.Picture}
+                                src={deviceImages[device.Id]}
                                 className='device-img'
                             />
                             <div className='device-info'>

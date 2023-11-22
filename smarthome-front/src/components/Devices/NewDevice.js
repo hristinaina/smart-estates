@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import './Devices.css';
 import { Link } from 'react-router-dom';
 import DeviceService from "../../services/DeviceService";
+import ImageService from "../../services/ImageService";
 
 
 export class NewDevice extends Component {
@@ -228,9 +229,16 @@ export class NewDevice extends Component {
               };
             const result = await DeviceService.createDevice(data);
             console.log(result);
+            // uploading image
+            const formData = new FormData();
+            formData.append('image', this.state.selectedImage);
+            var name = String(document.getElementsByName('name')[0].value).trim();
+            const substr = this.state.selectedImage.name.split(".")[1].trim();
+            name += "." + substr;
+            await ImageService.uploadImage(formData, "devices&" + name);
             window.location.assign("/devices")
         } catch (error) {
-            // todo Handle error
+            console.error(error);
         }
     };
 

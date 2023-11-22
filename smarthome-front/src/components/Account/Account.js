@@ -10,10 +10,12 @@ import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
+import ImageService from '../../services/ImageService';
 
 
 const Account = () => {
   const [selectedOption, setSelectedOption] = useState('PROFILE');
+  const [profileImage, setProfileImage] = useState('');
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [email, setEmail] = useState('');
@@ -34,11 +36,17 @@ const Account = () => {
 
   useEffect(() => {
     const user = authService.getCurrentUser();
+    setImage(user.Email.replace('@', ''));
     setName(user.Name)
     setSurname(user.Surname)
     setEmail(user.Email)
     setUser(user);
   }, [setUser]);
+
+  const setImage = async(img) => {
+    const url = await ImageService.getImage(img);
+    setProfileImage(url);
+  };
 
   const handleNameChange = (event) => {
     setName(event.target.value);
@@ -144,7 +152,7 @@ const handleClose = (event, reason) => {
     <div className="user-profile-container">
       <div className="side-menu">
         <div className='container-image'>
-            <img id='profile-image' src="/images/user.png" alt="User" />
+            <img id='profile-image' src={profileImage} alt="User" />
             <img id='add-image' src="/images/plus_purple.png" alt="Add Image"/>
         </div>
 
