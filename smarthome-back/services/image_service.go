@@ -51,7 +51,9 @@ func (is *ImageServiceImpl) GetImageURL(fileName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
+	if strings.Contains(fullName, "+") {
+		fullName = strings.Replace(fullName, "+", "%2B", -1)
+	}
 	s3URL := fmt.Sprintf("https://s3.%s.amazonaws.com/%s/%s", awsRegion, s3Bucket, fullName)
 	return s3URL, nil
 }
