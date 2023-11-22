@@ -78,8 +78,14 @@ func (res *RealEstateServiceImpl) Add(estate models.RealEstate) (models.RealEsta
 	estate.Address = strings.Trim(estate.Address, " \t\n\r")
 	estate.City = strings.Trim(estate.City, " \t\n\r")
 
-	// TODO: add some validation for pictures
 	if estate.Name != "" && estate.Address != "" && estate.City != "" && estate.SquareFootage > 0.0 && estate.NumberOfFloors > 0 {
+		realEstateNames, err := res.getAllNamesByUser(estate.User)
+		if err != nil {
+			return estate, err
+		}
+		if containsElement(realEstateNames, estate.Name) {
+			return estate, errors.New("real estate with that name already exists")
+		}
 		estate, err := res.repository.Add(estate)
 		return estate, err
 	}
@@ -102,10 +108,32 @@ func (res *RealEstateServiceImpl) generateId() int {
 	return id + 1
 }
 
+func (res *RealEstateServiceImpl) getAllNamesByUser(id int) ([]string, error) {
+	realEstates, err := res.GetByUserId(id)
+	if err != nil {
+		return nil, err
+	}
+	realEstateNames := []string{}
+	for _, estate := range realEstates {
+		realEstateNames = append(realEstateNames, estate.Name)
+	}
+
+	return realEstateNames, nil
+}
+
 func CheckIfError(err error) bool {
 	if err != nil {
 		fmt.Println("Error: ", err.Error())
 		return true
+	}
+	return false
+}
+
+func containsElement(list []string, target string) bool {
+	for _, element := range list {
+		if element == target {
+			return true
+		}
 	}
 	return false
 }
