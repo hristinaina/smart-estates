@@ -91,7 +91,8 @@ export class RealEstates extends Component {
     handleCardClick = (id) => {
         this.setState({selectedRealEstate: id, isDisabled: false});
         if (!this.state.isAdmin){
-            window.location.assign("/devices/" + id)
+            localStorage.setItem("real-estate", id);
+            window.location.assign("/devices")
         }
     }
 

@@ -28,7 +28,7 @@ const AppRoutes = [
     element: <NewRealEstate/>
   },
   {
-    path: '/devices/:id',
+    path: '/devices',
     element: <Devices />
   },
   {
@@ -36,7 +36,7 @@ const AppRoutes = [
     element: <ActivationPage />
   },
   {
-    path: '/new-device/:id',
+    path: '/new-device',
     element: <NewDevice />
   },
   {

@@ -32,7 +32,7 @@ export class NewDevice extends Component {
             showSnackbar: false,
             open: false,
         };
-        this.id = parseInt(this.extractEstateFromUrl());
+        this.id = parseInt(localStorage.getItem("real-estate"));
     }
 
     types = [
@@ -234,7 +234,7 @@ export class NewDevice extends Component {
                 UserId: authService.getCurrentUser().Id,
             };
             const result = await DeviceService.createDevice(data);
-            window.history.back();
+            window.location.assign("/devices")
         } catch (error) {
             this.setState({ snackbarMessage: "Device name must be unique per user." });
             this.handleClick();
@@ -242,7 +242,7 @@ export class NewDevice extends Component {
     };
 
     cancel() {
-        window.history.back();
+        window.location.assign("/devices")
     }
 
     // snackbar
@@ -256,11 +256,6 @@ export class NewDevice extends Component {
         }
         this.setState({ open: false });
     };
-
-    extractEstateFromUrl() {
-        const parts = window.location.href.split('/');
-        return parts[parts.length - 1];
-    }
 
     render() {
         const types = this.types;

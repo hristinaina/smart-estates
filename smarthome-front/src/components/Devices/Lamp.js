@@ -88,7 +88,7 @@ export class Lamp extends Component {
     }
 
     handleBackArrow(){
-        window.history.back();
+        window.location.assign("/devices")
     }
 
     render() {
@@ -97,7 +97,7 @@ export class Lamp extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px" }} onClick={this.handleBackArrow}/>
+                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor:"pointer" }} onClick={this.handleBackArrow}/>
                 <div style={{ width: "fit-content", marginLeft: "auto", marginRight: "auto", marginTop: "10%" }}>
                     <p className='device-title'>Id: {this.id}</p>
                     {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
