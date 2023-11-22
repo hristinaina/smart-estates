@@ -5,28 +5,45 @@ import { Navigation } from '../Navigation/Navigation';
 import DeviceService from '../../services/DeviceService'
 import { Divider } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { color } from '@mui/system';
+import ImageService from '../../services/ImageService';
+import { DeviceUnknown } from '@mui/icons-material';
 
 export class Devices extends Component {
     constructor(props) {
         super(props);
         this.state = {
             data: [],
+            deviceImages: {},
         };
     }
 
     async componentDidMount() {
         try {
             const result = await DeviceService.getDevices(2);
-            this.setState({ data: result });
+            await this.setState({ data: result });
+            console.log("dataaaaaaaaaa");
             console.log(result)
+
+            const deviceImages = {};
+            for (const device of result) {
+                console.log("nameeeeeeee", device.Name);
+                const imageUrl = await ImageService.getImage("devices&" + device.Name);
+                console.log("urlllllll");
+                console.log(imageUrl);
+                deviceImages[device.Id] = imageUrl;
+            }
+            await this.setState({deviceImages});
+            console.log("devicessss");
+            console.log(this.state.deviceImages);
         } catch (error) {
             // Handle error
+            console.log("error");
+            console.error(error);
         }
     }
 
     render() {
-        const { data } = this.state;
+        const { data, deviceImages } = this.state;
 
         return (
             <div>
@@ -42,13 +59,13 @@ export class Devices extends Component {
                     </p>
                 </div>
                 <Divider style={{width: "87%", marginLeft: 'auto', marginRight: 'auto', marginBottom: '20px'}}/>
-                <DevicesList devices={data} />
+                <DevicesList devices={data} deviceImages={deviceImages}/>
             </div>
         )
     }
 }
 
-const DevicesList = ({ devices }) => {
+const DevicesList = ({ devices, deviceImages }) => {
     const chunkSize = 5; // Number of items per row
 
     const chunkArray = (arr, size) => {
@@ -67,7 +84,7 @@ const DevicesList = ({ devices }) => {
                         <div key={index} className='device-card'>
                             <img
                                 alt='device'
-                                src={device.Picture}
+                                src={deviceImages[device.Id]}
                                 className='device-img'
                             />
                             <div className='device-info'>
