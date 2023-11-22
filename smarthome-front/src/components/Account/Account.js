@@ -34,19 +34,19 @@ const Account = () => {
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-  useEffect(async() => {
+  useEffect(() => {
     const user = authService.getCurrentUser();
-    console.log("urlllllllllllll");
-    console.log(user);
-    console.log(user.Email.replace('@', ''));
-    const img = await ImageService.getImage(user.Email.replace('@', ''));
-    console.log(img);
-    setProfileImage(img);
+    setImage(user.Email.replace('@', ''));
     setName(user.Name)
     setSurname(user.Surname)
     setEmail(user.Email)
     setUser(user);
   }, [setUser]);
+
+  const setImage = async(img) => {
+    const url = await ImageService.getImage(img);
+    setProfileImage(url);
+  };
 
   const handleNameChange = (event) => {
     setName(event.target.value);
