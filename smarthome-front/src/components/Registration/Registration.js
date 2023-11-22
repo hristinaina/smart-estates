@@ -129,21 +129,20 @@ const Registration = () => {
 
       const formData = new FormData();
       formData.append('image', profileImage);
-
-      try {
-        var name = String(document.getElementById('email').value).trim();
-        name = name.replace('@', '');
-        const substr = profileImage.name.split(".")[1].trim();
-        name += "." + substr;
-        console.log("nameeee");
-        console.log(name);
-        await ImageService.uploadImage(formData, name);
-    } catch (error) {
-        console.log("Error");
-        console.error(error);
-    }
-    
+      
       if (result.success) {
+        try {
+          let name = String(document.getElementById('email').value).trim();
+          name = name.replace('@', '');
+          const substr = profileImage.name.split(".")[1].trim();
+          name += "." + substr;
+          console.log("nameeee");
+          console.log(name);
+          await ImageService.uploadImage(formData, name);
+        } catch (error) {
+            console.log("Error");
+            console.error(error);
+        }
           resetFormFields()
           setIsButtonDisabled(true)
           setSnackbarMessage("Successfully registered. Check your email!");
