@@ -41,9 +41,13 @@ func main() {
 	// 	c.Next()
 	// })
 	resetDbOnStart(db)
-	mqttClient := mqtt_client.NewMQTTClient(db)
-	mqttClient.StartListening()
 
+	mqttClient := mqtt_client.NewMQTTClient(db)
+	if mqttClient == nil {
+		fmt.Println("Failed to connect to mqtt broker")
+	} else {
+		mqttClient.StartListening()
+	}
 	routes.SetupRoutes(r, db)
 
 	gs := services.NewGenerateSuperAdmin(db)

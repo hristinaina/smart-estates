@@ -19,6 +19,7 @@ type DeviceDTO struct {
 	ChargingPower    float64
 	Connections      uint
 	Size             float64
+	UserId           int
 }
 
 // Object conversion has been localized here:

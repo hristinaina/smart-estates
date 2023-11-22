@@ -30,7 +30,7 @@ func NewMQTTClient(db *sql.DB) *MQTTClient {
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
-		os.Exit(1)
+		return nil
 	}
 	return &MQTTClient{
 		client: client,

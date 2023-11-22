@@ -3,6 +3,7 @@ package services
 import (
 	"database/sql"
 	_ "database/sql"
+	"errors"
 	"fmt"
 	_ "fmt"
 	_ "github.com/gin-gonic/gin"
@@ -16,7 +17,7 @@ import (
 type DeviceService interface {
 	GetAllByEstateId(id int) []models.Device
 	Get(id int) (models.Device, error)
-	Add(estate dto.DeviceDTO) models.Device
+	Add(estate dto.DeviceDTO) (models.Device, error)
 	GetAll() []models.Device
 }
 
@@ -104,7 +105,16 @@ func (res *DeviceServiceImpl) Get(id int) (models.Device, error) {
 	return models.Device{}, err
 }
 
-func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) models.Device {
+func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
+	devices, err := res.getDevicesByUserID(dto.UserId)
+	if err != nil {
+		return models.Device{}, err
+	}
+	for _, value := range devices {
+		if value.Name == dto.Name {
+			return models.Device{}, errors.New("invalid input")
+		}
+	}
 	var device models.Device
 	if dto.Type == 1 {
 		device = res.airConditionerService.Add(dto).ToDevice()
@@ -120,12 +130,43 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) models.Device {
 		result, err := res.db.Exec(query, device.Name, device.Type, device.Picture, device.RealEstate,
 			device.IsOnline)
 		if CheckIfError(err) {
-			return models.Device{}
+			return models.Device{}, err
 		}
 		id, err := result.LastInsertId()
 		device.Id = int(id)
 	}
 	mqttClient := mqtt_client.NewMQTTClient(res.db)
-	mqttClient.Publish(mqtt_client.TopicNewDevice+strconv.Itoa(device.Id), "new device created")
-	return device
+	if mqttClient == nil {
+		fmt.Println("Failed to connect to mqtt broker")
+	} else {
+		mqttClient.Publish(mqtt_client.TopicNewDevice+strconv.Itoa(device.Id), "new device created")
+	}
+	return device, nil
+}
+
+func (ds *DeviceServiceImpl) getDevicesByUserID(userID int) ([]models.Device, error) {
+	// Perform a database query to get devices by user ID
+	rows, err := ds.db.Query("SELECT id, name, type, picture, realestate, isonline FROM device WHERE realestate IN (SELECT id FROM realestate WHERE userid = ?)", userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterate over the query result and populate the devices slice
+	var devices []models.Device
+	for rows.Next() {
+		var device models.Device
+		err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.Picture, &device.RealEstate, &device.IsOnline)
+		if err != nil {
+			return nil, err
+		}
+		devices = append(devices, device)
+	}
+
+	// Check for errors during iteration
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return devices, nil
 }

@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import './Devices.css';
 import { Link } from 'react-router-dom';
 import DeviceService from "../../services/DeviceService";
+import authService from '../../services/AuthService'
+import { Snackbar } from "@mui/material";
 
 
 export class NewDevice extends Component {
@@ -26,6 +28,9 @@ export class NewDevice extends Component {
             showBatterySize: false,
             showCharger: false,
             isButtonDisabled: true,
+            snackbarMessage: '',
+            showSnackbar: false,
+            open: false,
         };
         this.id = parseInt(this.extractEstateFromUrl());
     }
@@ -62,7 +67,7 @@ export class NewDevice extends Component {
                 this.setState({
                     showPowerSupply: true,
                 });
-                if(this.state.selectedPowerSupply==1){
+                if (this.state.selectedPowerSupply == 1) {
                     this.setState({
                         showPowerConsumption: true,
                     });
@@ -130,46 +135,46 @@ export class NewDevice extends Component {
 
     handleMinTemp = (event) => {
         const minTemp = event.target.value;
-      
+
         this.setState((prevState) => ({
-          ...prevState,
-          minTemp,
+            ...prevState,
+            minTemp,
         }), () => {
-          this.checkButton();
+            this.checkButton();
         });
-      }
-      
-      handleMaxTemp = (event) => {
+    }
+
+    handleMaxTemp = (event) => {
         const maxTemp = event.target.value;
-      
-        this.setState((prevState) => ({
-          ...prevState,
-          maxTemp,
-        }), () => {
-          this.checkButton();
-        });
-      }
 
-      handleBatterySize = (event) => {
+        this.setState((prevState) => ({
+            ...prevState,
+            maxTemp,
+        }), () => {
+            this.checkButton();
+        });
+    }
+
+    handleBatterySize = (event) => {
         const batterySize = event.target.value;
-      
-        this.setState((prevState) => ({
-          ...prevState,
-          batterySize,
-        }), () => {
-          this.checkButton();
-        });
-      }
 
-      handlePowerConsumption = (event) => {
-        const powerConsumption = event.target.value;
-      
         this.setState((prevState) => ({
-          powerConsumption,
+            ...prevState,
+            batterySize,
         }), () => {
-          this.checkButton();
+            this.checkButton();
         });
-      }
+    }
+
+    handlePowerConsumption = (event) => {
+        const powerConsumption = event.target.value;
+
+        this.setState((prevState) => ({
+            powerConsumption,
+        }), () => {
+            this.checkButton();
+        });
+    }
 
 
     handleImageChange = (event) => {
@@ -191,21 +196,21 @@ export class NewDevice extends Component {
             this.setState({ isButtonDisabled: true })
         }
         else {
-            if (this.state.selectedType == 1 && (this.state.minTemp>= this.state.maxTemp ||this.state.minTemp< -40 || this.state.maxTemp > 60)){
+            if (this.state.selectedType == 1 && (this.state.minTemp >= this.state.maxTemp || this.state.minTemp < -40 || this.state.maxTemp > 60)) {
                 this.setState({ isButtonDisabled: true })
             }
-            else if (this.state.selectedType == 7 && (this.state.batterySize> 100000 ||this.state.batterySize< 1)){
+            else if (this.state.selectedType == 7 && (this.state.batterySize > 100000 || this.state.batterySize < 1)) {
                 this.setState({ isButtonDisabled: true })
             }
-            else if (this.state.selectedPowerSupply == 1 && (this.state.powerConsumption> 60000 ||this.state.powerConsumption<= 0) 
-            && (this.state.selectedType != 6 && this.state.selectedType != 7 && this.state.selectedType != 8)){
+            else if (this.state.selectedPowerSupply == 1 && (this.state.powerConsumption > 60000 || this.state.powerConsumption <= 0)
+                && (this.state.selectedType != 6 && this.state.selectedType != 7 && this.state.selectedType != 8)) {
                 this.setState({ isButtonDisabled: true })
             }
-            else if (this.state.selectedType == 8 && (this.state.connections < 1 ||this.state.connections> 20
-                ||this.state.chargingPower< 1 ||this.state.chargingPower> 360)){
+            else if (this.state.selectedType == 8 && (this.state.connections < 1 || this.state.connections > 20
+                || this.state.chargingPower < 1 || this.state.chargingPower > 360)) {
                 this.setState({ isButtonDisabled: true })
             }
-            else{
+            else {
                 this.setState({ isButtonDisabled: false })
             }
         }
@@ -218,7 +223,7 @@ export class NewDevice extends Component {
                 Name: this.state.name,
                 Type: parseInt(this.state.selectedType),
                 Picture: "/images/" + this.state.selectedImage.name,
-                RealEstate: this.id, 
+                RealEstate: this.id,
                 PowerSupply: parseInt(this.state.selectedPowerSupply),
                 PowerConsumption: parseFloat(this.state.powerConsumption),
                 MinTemperature: parseInt(this.state.minTemp),
@@ -226,18 +231,31 @@ export class NewDevice extends Component {
                 ChargingPower: parseFloat(this.state.chargingPower),
                 Connections: parseInt(this.state.connections),
                 Size: parseFloat(this.state.batterySize),
-              };
+                UserId: authService.getCurrentUser().Id,
+            };
             const result = await DeviceService.createDevice(data);
-            console.log(result);
             window.history.back();
         } catch (error) {
-            // todo Handle error
+            this.setState({ snackbarMessage: "Device name must be unique per user." });
+            this.handleClick();
         }
     };
 
-    cancel(){
+    cancel() {
         window.history.back();
     }
+
+    // snackbar
+    handleClick = () => {
+        this.setState({ open: true });
+    };
+
+    handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        this.setState({ open: false });
+    };
 
     extractEstateFromUrl() {
         const parts = window.location.href.split('/');
@@ -365,7 +383,7 @@ export class NewDevice extends Component {
                                 style={{ display: 'none' }}
                                 ref={(fileInput) => (this.fileInput = fileInput)}
                             />
-                            <img id="upload-image" src="/images/photo.png" alt="icon"/>
+                            <img id="upload-image" src="/images/photo.png" alt="icon" />
                             <p id="upload-image-p">Upload image</p>
                         </div>
                         {/* Show choosen image */}
@@ -375,18 +393,25 @@ export class NewDevice extends Component {
                             </div>
                         )}
                         <span>
-                                <button
-                                    id="cancel-button" className="btn" onClick={this.cancel}>
-                                    CANCEL
-                                </button>
+                            <button
+                                id="cancel-button" className="btn" onClick={this.cancel}>
+                                CANCEL
+                            </button>
                             <button
                                 id="confirm-button" className={`btn ${this.state.isButtonDisabled ? 'disabled' : ''}`} disabled={this.state.isButtonDisabled}
-                                 onClick={this.createDevice}>
+                                onClick={this.createDevice}>
                                 CONFIRM
                             </button>
                         </span>
                     </div>
                 </div>
+                <Snackbar
+                    open={this.state.open}
+                    autoHideDuration={3000}
+                    onClose={this.handleClose}
+                    message={this.state.snackbarMessage}
+                    action={this.action}
+                />
             </div>
         )
     }

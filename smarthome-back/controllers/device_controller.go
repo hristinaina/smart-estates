@@ -52,6 +52,10 @@ func (rec DeviceController) Add(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "Invalid JSON"})
 		return
 	}
-	device := rec.service.Add(deviceDTO)
-	c.JSON(http.StatusOK, device)
+	device, err := rec.service.Add(deviceDTO)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+	} else {
+		c.JSON(http.StatusOK, device)
+	}
 }
