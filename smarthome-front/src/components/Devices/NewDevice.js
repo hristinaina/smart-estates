@@ -27,6 +27,7 @@ export class NewDevice extends Component {
             showCharger: false,
             isButtonDisabled: true,
         };
+        this.id = parseInt(this.extractEstateFromUrl());
     }
 
     types = [
@@ -217,7 +218,7 @@ export class NewDevice extends Component {
                 Name: this.state.name,
                 Type: parseInt(this.state.selectedType),
                 Picture: "/images/" + this.state.selectedImage.name,
-                RealEstate: 2,  // todo change this
+                RealEstate: this.id, 
                 PowerSupply: parseInt(this.state.selectedPowerSupply),
                 PowerConsumption: parseFloat(this.state.powerConsumption),
                 MinTemperature: parseInt(this.state.minTemp),
@@ -228,12 +229,20 @@ export class NewDevice extends Component {
               };
             const result = await DeviceService.createDevice(data);
             console.log(result);
-            window.location.assign("/devices")
+            window.history.back();
         } catch (error) {
             // todo Handle error
         }
     };
 
+    cancel(){
+        window.history.back();
+    }
+
+    extractEstateFromUrl() {
+        const parts = window.location.href.split('/');
+        return parts[parts.length - 1];
+    }
 
     render() {
         const types = this.types;
@@ -366,12 +375,10 @@ export class NewDevice extends Component {
                             </div>
                         )}
                         <span>
-                            <Link to='/devices'>
                                 <button
-                                    id="cancel-button" className="btn">
+                                    id="cancel-button" className="btn" onClick={this.cancel}>
                                     CANCEL
                                 </button>
-                            </Link>
                             <button
                                 id="confirm-button" className={`btn ${this.state.isButtonDisabled ? 'disabled' : ''}`} disabled={this.state.isButtonDisabled}
                                  onClick={this.createDevice}>

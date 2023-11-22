@@ -90,6 +90,9 @@ export class RealEstates extends Component {
 
     handleCardClick = (id) => {
         this.setState({selectedRealEstate: id, isDisabled: false});
+        if (!this.state.isAdmin){
+            window.location.assign("/devices/" + id)
+        }
     }
 
     changeState = async (state, reason) => {

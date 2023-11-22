@@ -16,13 +16,13 @@ export class Devices extends Component {
         };
         this.mqttClient = null;
         this.connecting = false; //change to true if you want to use this
+        this.id = parseInt(this.extractEstateFromUrl());
     }
 
     async componentDidMount() {
         try {
-            const result = await DeviceService.getDevices(2);
+            const result = await DeviceService.getDevices(this.id);
             this.setState({ data: result });
-            console.log(result)
         } catch (error) {
             console.log("Error fetching data from the server");
             console.log(error);
@@ -110,9 +110,15 @@ export class Devices extends Component {
         return parts[parts.length - 1];
     }
 
+    extractEstateFromUrl() {
+        const parts = window.location.href.split('/');
+        return parts[parts.length - 1];
+    }
+
     render() {
         const { data } = this.state;
         const connecting = this.connecting;
+        const newDeviceNav = "/new-device/" + this.id;
 
         return (
             <div>
@@ -121,7 +127,7 @@ export class Devices extends Component {
                     <Link to="/real-estates"><img src='/images/arrow.png' id='arrow' /></Link>
                     <span className='estate-title'>Ta i ta nekretnina</span>
                     <p id="add-device">
-                        <Link to="/new-device">
+                        <Link to={newDeviceNav}>
                             <img alt="." src="/images/plus.png" id="plus" />
                             Add Device
                         </Link>
