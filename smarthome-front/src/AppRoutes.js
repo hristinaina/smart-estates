@@ -8,6 +8,7 @@ import { ActivationPage } from './components/Auth/ActivationPage';
 import { NewDevice } from './components/Devices/NewDevice';
 import ResetPassword from './components/SuperAdmin/ResetPassword';
 import Account from './components/Account/Account';
+import { Lamp } from './components/Devices/Lamp';
 
 const AppRoutes = [
   {
@@ -45,7 +46,11 @@ const AppRoutes = [
   {
     path: '/account',
     element: <Account />
-  }
+  },
+  {
+    path: "/lamp/:id",
+    element: <Lamp />
+  },
 ];
 
 export default AppRoutes;
