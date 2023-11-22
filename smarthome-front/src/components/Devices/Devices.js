@@ -21,23 +21,16 @@ export class Devices extends Component {
         try {
             const result = await DeviceService.getDevices(2);
             await this.setState({ data: result });
-            console.log("dataaaaaaaaaa");
-            console.log(result)
+
 
             const deviceImages = {};
             for (const device of result) {
-                console.log("nameeeeeeee", device.Name);
                 const imageUrl = await ImageService.getImage("devices&" + device.Name);
-                console.log("urlllllll");
-                console.log(imageUrl);
                 deviceImages[device.Id] = imageUrl;
             }
             await this.setState({deviceImages});
-            console.log("devicessss");
-            console.log(this.state.deviceImages);
         } catch (error) {
             // Handle error
-            console.log("error");
             console.error(error);
         }
     }
