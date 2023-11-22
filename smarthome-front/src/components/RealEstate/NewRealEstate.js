@@ -10,6 +10,7 @@ import { Snackbar } from "@mui/material";
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import ImageService from "../../services/ImageService";
+import authService from '../../services/AuthService'
 
 
 function LocationMarker({ onMapClick }) {
@@ -45,7 +46,7 @@ export class NewRealEstate extends Component {
         super(props);
 
         this.state = {
-            userId: 2,
+            userId: -1,
             selectedType: '0',
             selectedCity: 'Novi Sad',
             searchCity: '',
@@ -69,6 +70,11 @@ export class NewRealEstate extends Component {
         { value: 'belgrade', label: 'BELGRADE, SERBIA'},
         { value: 'zrenjanin', label: 'ZRENJANIN, SREBIA'}
     ];
+
+    async componentDidMount() {
+        const currentUser = authService.getCurrentUser();
+        await this.setState({ userId: currentUser.Id, });
+    }
 
     getFilteredCities = () => {
         return this.cities.filter((city) =>

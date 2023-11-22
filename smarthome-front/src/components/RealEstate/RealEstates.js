@@ -39,7 +39,6 @@ export class RealEstates extends Component {
             if (!this.state.isAdmin) {
                 const result = await RealEstateService.getAllByUserId(currentUser.Id);
                 await this.setState({realEstates: result})
-
             } else {
                 const result = await RealEstateService.getPending();
                 await this.setState({realEstates: result})
