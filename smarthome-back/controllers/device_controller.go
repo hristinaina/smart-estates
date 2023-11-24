@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"smarthome-back/dto"
+	"smarthome-back/mqtt_client"
 	"smarthome-back/services"
 	"strconv"
 )
@@ -14,8 +15,9 @@ type DeviceController struct {
 	service services.DeviceService
 }
 
-func NewDeviceController(db *sql.DB) DeviceController {
-	return DeviceController{service: services.NewDeviceService(db)}
+func NewDeviceController(db *sql.DB, mqtt *mqtt_client.MQTTClient) DeviceController {
+	return DeviceController{
+		service: services.NewDeviceService(db, mqtt)}
 }
 
 func (uc DeviceController) Get(c *gin.Context) {

@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"smarthome-back/controllers"
 	"smarthome-back/middleware"
+	"smarthome-back/mqtt_client"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(r *gin.Engine, db *sql.DB) {
+func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient) {
 	userRoutes := r.Group("/api/users")
 	{
 		userController := controllers.NewUserController(db)
@@ -44,7 +45,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 
 	deviceRoutes := r.Group("/api/devices")
 	{
-		deviceController := controllers.NewDeviceController(db)
+		deviceController := controllers.NewDeviceController(db, mqtt)
 		deviceRoutes.GET("/:id", deviceController.Get)
 		deviceRoutes.GET("/", deviceController.GetAll)
 		deviceRoutes.GET("/estate/:estateId", deviceController.GetAllByEstateId)

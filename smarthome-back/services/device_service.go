@@ -26,11 +26,13 @@ type DeviceServiceImpl struct {
 	airConditionerService AirConditionerService
 	evChargerService      EVChargerService
 	homeBatteryService    HomeBatteryService
+	mqtt                  *mqtt_client.MQTTClient
 }
 
-func NewDeviceService(db *sql.DB) DeviceService {
+// todo send mqtt to all device_services
+func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient) DeviceService {
 	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db), evChargerService: NewEVChargerService(db),
-		homeBatteryService: NewHomeBatteryService(db)}
+		homeBatteryService: NewHomeBatteryService(db), mqtt: mqtt}
 }
 
 func (res *DeviceServiceImpl) GetAll() []models.Device {
@@ -135,12 +137,8 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 		id, err := result.LastInsertId()
 		device.Id = int(id)
 	}
-	mqttClient := mqtt_client.NewMQTTClient(res.db)
-	if mqttClient == nil {
-		fmt.Println("Failed to connect to mqtt broker")
-	} else {
-		mqttClient.Publish(mqtt_client.TopicNewDevice+strconv.Itoa(device.Id), "new device created")
-	}
+
+	res.mqtt.Publish(mqtt_client.TopicNewDevice+strconv.Itoa(device.Id), "new device created")
 	return device, nil
 }
 

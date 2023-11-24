@@ -34,7 +34,9 @@ export class Lamp extends Component {
         });
 
         try {
-            this.mqttClient = mqtt.connect('ws://broker.emqx.io:8083/mqtt');
+            this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
+                clientId: "react-front-nvt-2023-lamp",
+              });
 
             // Subscribe to the MQTT topic for device status
             this.mqttClient.on('connect', () => {
