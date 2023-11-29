@@ -2,16 +2,13 @@ package main
 
 import (
 	"database/sql"
-	_ "database/sql"
 	"fmt"
-	_ "fmt"
 	"smarthome-back/config"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/routes"
 	"smarthome-back/services"
 
 	"github.com/gin-gonic/gin"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
@@ -40,6 +37,7 @@ func main() {
 	// 	}
 	// 	c.Next()
 	// })
+
 	resetDbOnStart(db)
 	mqttClient := mqtt_client.NewMQTTClient(db)
 	mqttClient.StartListening()

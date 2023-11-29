@@ -3,13 +3,16 @@ package services
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"os"
+	"smarthome-back/models"
+	"time"
+
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/joho/godotenv"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"gopkg.in/gomail.v2"
-	"log"
-	"smarthome-back/models"
-	"time"
 )
 
 type MailService interface {
@@ -31,6 +34,14 @@ func NewMailService(db *sql.DB) MailService {
 	return &MailServiceImpl{db: db, service: NewUserService(db)}
 }
 
+func readFromEnvFile() string {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+	return os.Getenv("SENDGRID_API_KEY")
+}
+
 func (ms *MailServiceImpl) CreateVarificationMail(email, name, surname, token string) {
 	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
 	subject := "You're almost done! Activate your account now"
@@ -38,8 +49,7 @@ func (ms *MailServiceImpl) CreateVarificationMail(email, name, surname, token st
 	plainTextContent := fmt.Sprintf("Click the following link to activate your account: %s", "http://localhost:3000/activate?token="+token)
 	htmlContent := fmt.Sprintf(`<strong>Click the following link to activate your account:</strong> <a href="%s">%s</a>`, "http://localhost:3000/activate?token="+token, "http://localhost:3000/activate?token="+token)
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
-	// todo promeni ovo da se uzima iz .env
-	client := sendgrid.NewSendClient("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")
+	client := sendgrid.NewSendClient(readFromEnvFile())
 	response, err := client.Send(message)
 	if err != nil {
 		log.Println(err)
@@ -52,7 +62,7 @@ type Claims struct {
 	Email   string `json:"email"`
 	Name    string `json:"name"`
 	Surname string `json:"surname"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 var secretKey = []byte("JHAS43532fsandjaskndewui217362ebwdsa")
@@ -62,8 +72,8 @@ func (ms *MailServiceImpl) GenerateToken(email, name, surname string, expiration
 		Email:   email,
 		Name:    name,
 		Surname: surname,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expiration.Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expiration),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -103,8 +113,7 @@ func (ms *MailServiceImpl) CreateAdminLoginRequest(name, surname, email, passwor
 	plainTextContent := fmt.Sprintf("Your login credentials to our system are:  E=mail: %s  Password: %s", email, password)
 	htmlContent := fmt.Sprintf(`<strong>Your login credentials to our system are:</strong> <br/> E-mail: <strong>%s</strong><br/> Password: <strong>%s</strong>`, email, password)
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
-
-	client := sendgrid.NewSendClient("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")
+	client := sendgrid.NewSendClient(readFromEnvFile())
 	response, err := client.Send(message)
 	if err != nil {
 		log.Println(err)
