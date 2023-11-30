@@ -10,7 +10,6 @@ type User struct {
 	Password string
 	Name     string
 	Surname  string
-	Picture  string
 	Role     enumerations.Role
 	IsLogin  bool
 }

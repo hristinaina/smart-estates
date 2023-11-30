@@ -87,7 +87,6 @@ type RegisterInput struct {
 	Password string `json:"password" binding:"required"`
 	Name     string `json:"name" binding:"required"`
 	Surname  string `json:"surname" binding:"required"`
-	Picture  string `json:"picture" binding:"required"`
 	Role     int    `json:"role" binding:"required"`
 }
 
@@ -114,7 +113,6 @@ func (uc AuthController) SendVerificationMail(c *gin.Context) {
 	u.Password = string(hash)
 	u.Name = input.Name
 	u.Surname = input.Surname
-	u.Picture = input.Picture
 	u.Role = enumerations.IntToRole(input.Role)
 
 	if _, err := uc.repo.GetUserByEmail(u.Email); err == nil {

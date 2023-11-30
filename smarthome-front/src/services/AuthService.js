@@ -67,14 +67,14 @@ class AuthService {
     }
   };
 
-  async regUser(email, password, name, surname, picture, role=1) {
+  async regUser(email, password, name, surname, role=1) {
     try{
       const response = await fetch('http://localhost:8081/api/users/verificationMail', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, name, surname, picture, role })
+        body: JSON.stringify({ email, password, name, surname, role })
       });
 
       if (response.ok) {
@@ -131,4 +131,3 @@ class AuthService {
 const authService = new AuthService();
 
 export default authService;
-  

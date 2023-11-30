@@ -124,8 +124,7 @@ const Registration = () => {
 
     // sign up
     const handleSignUp = async () => {
-      // TODO promeni sliku
-      const result = await authService.regUser(email, password, name, surname, "allaalal");
+      const result = await authService.regUser(email, password, name, surname);
 
       const formData = new FormData();
       formData.append('image', profileImage);

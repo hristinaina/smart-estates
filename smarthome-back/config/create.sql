@@ -7,7 +7,6 @@ CREATE TABLE user (
                         Password VARCHAR(255),
                         Name VARCHAR(255),
                         Surname VARCHAR(255),
-                        Picture VARCHAR(255),
                         Role INT,
                         isLogin BOOLEAN DEFAULT false
 );
@@ -38,10 +37,10 @@ CREATE TABLE device (
 );
 
 CREATE TABLE consumptionDevice (
-                                   DeviceId INT PRIMARY KEY,
-                                   PowerSupply INT NOT NULL,
-                                   PowerConsumption DOUBLE,
-                                   FOREIGN KEY (DeviceId) REFERENCES device(Id)
+                                DeviceId INT PRIMARY KEY,
+                                PowerSupply INT NOT NULL,
+                                PowerConsumption DOUBLE,
+                                FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
 CREATE TABLE airConditioner (
@@ -52,16 +51,16 @@ CREATE TABLE airConditioner (
 );
 
 CREATE TABLE evCharger (
-                           DeviceId INT PRIMARY KEY,
-                           ChargingPower DOUBLE NOT NULL,
-                           Connections INT NOT NULL,
-                           FOREIGN KEY (DeviceId) REFERENCES device(Id)
+                        DeviceId INT PRIMARY KEY,
+                        ChargingPower DOUBLE NOT NULL,
+                        Connections INT NOT NULL,
+                        FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
 CREATE TABLE homeBattery (
-                             DeviceId INT PRIMARY KEY,
-                             Size DOUBLE NOT NULL,
-                             FOREIGN KEY (DeviceId) REFERENCES device(Id)
+                            DeviceId INT PRIMARY KEY,
+                            Size DOUBLE NOT NULL,
+                            FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
 INSERT INTO realestate (Id, Name, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId, DiscardReason)

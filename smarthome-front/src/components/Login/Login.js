@@ -164,19 +164,19 @@ const Login = () => {
         onClose={handleClose}
         message={snackbarMessage}
         action={action}
-      />
+        />
         </form>
-      </div>
-      <div className='right-side'>
-        <p className='title'>Welcome to Smart Home!</p>
-        <p className='text'>One place to remotely manage all your devices!</p>
-        <Link to="/reg">
-            <Button className="reg" sx={theme.customStyles.myCustomButton} variant="contained" color="secondary">No account yet? Sign up</Button>
-        </Link>
-      </div>
+        </div>
+        <div className='right-side'>
+            <p className='title'>Welcome to Smart Home!</p>
+            <p className='text'>One place to remotely manage all your devices!</p>
+            <Link to="/reg">
+                <Button className="reg" sx={theme.customStyles.myCustomButton} variant="contained" color="secondary">No account yet? Sign up</Button>
+            </Link>
+        </div>
     </div>
     </ThemeProvider>
-  );
+    );
 };
 
 export default Login;
