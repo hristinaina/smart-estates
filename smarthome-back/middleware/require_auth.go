@@ -39,6 +39,11 @@ func (mw Middleware) RequireAuth(c *gin.Context) {
 		return []byte(os.Getenv("API_SECRET")), nil
 	})
 
+	if token == nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		// check the exp
 		if float64(time.Now().Unix()) > claims["exp"].(float64) {
