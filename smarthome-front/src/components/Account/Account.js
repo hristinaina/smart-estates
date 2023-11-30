@@ -152,8 +152,11 @@ const handleClose = (event, reason) => {
     <div className="user-profile-container">
       <div className="side-menu">
         <div className='container-image'>
-            <img id='profile-image' src={profileImage} alt="User" />
-            <img id='add-image' src="/images/plus_purple.png" alt="Add Image"/>
+          <img
+            id="profile-image"
+            src={user['Role'] === 1 ? profileImage : "/images/user.png"}
+            alt="User"/>
+          <img id='add-image' src="/images/plus_purple.png" alt="Add Image"/>
         </div>
 
         <div className='name-surname'>

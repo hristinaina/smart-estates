@@ -219,7 +219,6 @@ const Registration = () => {
             className='text-field'
             type={showPassword ? 'text' : 'password'}
             sx={{ m: 1, width: '30ch' }}
-            placeholder='P@ssw0rd123'
             helperText="Required. Min 8 characters, special character, capital latter"
             value={password}
             onChange={handlePasswordChange}
@@ -245,7 +244,6 @@ const Registration = () => {
             className='text-field'
             type={showConfirmPassword ? 'text' : 'password'}
             sx={{ m: 1, width: '30ch' }}
-            placeholder='P@ssw0rd123'
             helperText="Required. Min 8 characters, special character, capital latter"
             value={confirmPassword}
             onChange={handleConfirmPasswordChange}

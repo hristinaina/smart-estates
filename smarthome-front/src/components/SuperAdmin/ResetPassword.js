@@ -114,7 +114,6 @@ const ResetPassword = () => {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 sx={{ m: 1, width: '25ch' }}
-                placeholder='P@ssw0rd123'
                 helperText="Required. Min 8 characters, special character, capital latter"
                 value={password}
                 onChange={handlePasswordChange}
@@ -140,7 +139,6 @@ const ResetPassword = () => {
             className='text-field'
             type={showConfirmPassword ? 'text' : 'password'}
             sx={{ m: 1, width: '25ch' }}
-            placeholder='P@ssw0rd123'
             helperText="Required. Min 8 characters, special character, capital latter"
             value={confirmPassword}
             onChange={handleConfirmPasswordChange}

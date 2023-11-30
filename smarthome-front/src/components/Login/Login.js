@@ -75,10 +75,10 @@ const Login = () => {
 
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
-          return;
+            return;
         }
         setOpen(false);
-      };
+    };
 
     // login
     const handleLogin = async () => {
@@ -106,10 +106,10 @@ const Login = () => {
     );
 
 
-  return (
+    return (
     <ThemeProvider theme={theme}>
     <div className='background'>
-      <div className='left-side'>
+        <div className='left-side'>
         <p className='title-login'>Login</p>
         <form>
         <div className='fields'>
@@ -130,7 +130,6 @@ const Login = () => {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 sx={{ m: 1, width: '30ch' }}
-                placeholder='P@ssw0rd123'
                 helperText="Required. Min 8 characters, special character, capital latter"
                 value={password}
                 onChange={handlePasswordChange}
