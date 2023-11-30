@@ -46,15 +46,22 @@ func (ms *MailServiceImpl) CreateVarificationMail(email, name, surname, token st
 	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
 	subject := "You're almost done! Activate your account now"
 	to := mail.NewEmail(name+" "+surname, email)
+
 	plainTextContent := fmt.Sprintf("Click the following link to activate your account: %s", "http://localhost:3000/activate?token="+token)
 	htmlContent := fmt.Sprintf(`<strong>Click the following link to activate your account:</strong> <a href="%s">%s</a>`, "http://localhost:3000/activate?token="+token, "http://localhost:3000/activate?token="+token)
-	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+	m := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+
+	m.SetTemplateID("d-aa0a609c711d4d97ba4dbd99a943bd3f")
+	m.Personalizations[0].SetDynamicTemplateData("user_name", name)
+	m.Personalizations[0].SetDynamicTemplateData("link", "http://localhost:3000/activate?token="+token)
+
 	client := sendgrid.NewSendClient(readFromEnvFile())
-	response, err := client.Send(message)
+	response, err := client.Send(m)
 	if err != nil {
 		log.Println(err)
 	} else {
 		fmt.Println(response.StatusCode)
+		fmt.Println(response.Body)
 	}
 }
 
