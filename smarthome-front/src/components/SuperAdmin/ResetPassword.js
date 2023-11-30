@@ -113,7 +113,7 @@ const ResetPassword = () => {
             <TextField
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                sx={{ m: 1, width: '25ch' }}
+                sx={{ m: 1, width: '34ch' }}
                 helperText="Required. Min 8 characters, special character, capital latter"
                 value={password}
                 onChange={handlePasswordChange}
@@ -138,7 +138,7 @@ const ResetPassword = () => {
             id="confirm-password"
             className='text-field'
             type={showConfirmPassword ? 'text' : 'password'}
-            sx={{ m: 1, width: '25ch' }}
+            sx={{ m: 1, width: '34ch' }}
             helperText="Required. Min 8 characters, special character, capital latter"
             value={confirmPassword}
             onChange={handleConfirmPasswordChange}

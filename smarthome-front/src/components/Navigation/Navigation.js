@@ -37,7 +37,7 @@ export class Navigation extends Component {
         return (
             <header>
                 <Navbar className="navbar">
-                    {role===1 && (
+                    {(role===0 || role===1) && (
                         <ul>
                             <span className="logo">Smart Home</span>
                             <NavItem>
@@ -51,7 +51,7 @@ export class Navigation extends Component {
                             </NavItem>
                         </ul>
                     )}
-                    {(role===0 || role===2) && (
+                    {role===2 && (
                         <ul>
                             <span className="logo">Smart Home</span>
                             <NavItem>
@@ -59,6 +59,9 @@ export class Navigation extends Component {
                             </NavItem>
                             <NavItem>
                                 <NavLink tag={Link} className="text-light" to="/account">Profile</NavLink>
+                            </NavItem>
+                            <NavItem>
+                                <NavLink tag={Link} className="text-light" to="/add-admin">Add Admin</NavLink>
                             </NavItem>
                             <NavItem className="logout">
                                 <NavLink tag={Link} className="text-light" to="/" onClick={this.handleLogout}>Log out</NavLink>

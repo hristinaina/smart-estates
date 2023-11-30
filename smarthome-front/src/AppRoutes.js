@@ -9,6 +9,7 @@ import { NewDevice } from './components/Devices/NewDevice';
 import ResetPassword from './components/SuperAdmin/ResetPassword';
 import Account from './components/Account/Account';
 import { Lamp } from './components/Devices/Lamp';
+import AddAdmin from './components/SuperAdmin/AddAdmin';
 
 const AppRoutes = [
   {
@@ -46,6 +47,10 @@ const AppRoutes = [
   {
     path: '/account',
     element: <Account />
+  },
+  {
+    path: '/add-admin',
+    element: <AddAdmin />
   },
   {
     path: "/lamp/:id",
