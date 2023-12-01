@@ -6,11 +6,11 @@ import Login from './components/Login/Login';
 import Registration from './components/Registration/Registration';
 import { ActivationPage } from './components/Auth/ActivationPage';
 import { NewDevice } from './components/Devices/NewDevice';
-import ResetPassword from './components/SuperAdmin/ResetPassword';
-import Account from './components/Account/Account';
+import ResetPassword from './components/User/ResetPassword';
+import Account from './components/User/Account';
 import { Lamp } from './components/Devices/Lamp';
 import AddAdmin from './components/SuperAdmin/AddAdmin';
-import ForgotPassword from './components/SuperAdmin/ForgotPassword';
+import ForgotPassword from './components/User/ForgotPassword';
 
 const AppRoutes = [
   {
@@ -47,7 +47,7 @@ const AppRoutes = [
   },
   {
     path: '/account',
-    element: <Account />
+    element: <Account/>
   },
   {
     path: '/add-admin',

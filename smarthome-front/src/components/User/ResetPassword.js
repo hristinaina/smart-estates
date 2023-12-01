@@ -12,7 +12,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Snackbar from '@mui/material/Snackbar';
 import CloseIcon from '@mui/icons-material/Close';
 
-import './ResetPassword.css'; 
+import './Form.css'; 
 import resetPasswordService from '../../services/ResetPassword' 
 import superAdminService from '../../services/SuperAdmin';
 import authService from '../../services/AuthService';
@@ -211,13 +211,22 @@ const ResetPassword = () => {
                 >
                     Save
             </Button>
+
+            {!isSuperadmin && (
+              <div className="remember">
+                <Link to={"/"} style={{ textDecoration: 'none'}}>
+                    <span id="remember-password">Ahh.. Now I remember my password</span>
+                </Link>
+              </div>
+            )}
+
             <Snackbar
-        open={open}
-        autoHideDuration={1000}
-        onClose={handleClose}
-        message={snackbarMessage}
-        action={action}
-      />
+              open={open}
+              autoHideDuration={1000}
+              onClose={handleClose}
+              message={snackbarMessage}
+              action={action}
+            />
         </form>
       </div>      
     </ThemeProvider>

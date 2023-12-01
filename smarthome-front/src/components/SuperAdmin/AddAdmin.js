@@ -9,7 +9,7 @@ import TextField from '@mui/material/TextField'
 import Snackbar from '@mui/material/Snackbar';
 import CloseIcon from '@mui/icons-material/Close';
 
-import './ResetPassword.css'; 
+import '../User/Form.css'; 
 import superAdminService from '../../services/SuperAdmin' 
 import { Navigation } from '../Navigation/Navigation';
 

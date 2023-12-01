@@ -9,7 +9,7 @@ import TextField from '@mui/material/TextField';
 import Snackbar from '@mui/material/Snackbar';
 import CloseIcon from '@mui/icons-material/Close';
 
-import './ResetPassword.css'; 
+import './Form.css'; 
 import resetPasswordService from '../../services/ResetPassword' 
 
 
@@ -108,8 +108,8 @@ return (
                 <Link to={"/"} style={{ textDecoration: 'none'}}>
                     <span id="remember-password">Ahh.. Now I remember my password</span>
                 </Link>
-    
             </div>
+            
             <Snackbar
         open={open}
         autoHideDuration={1000}
