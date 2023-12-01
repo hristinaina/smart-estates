@@ -126,14 +126,6 @@ const handleClose = (event, reason) => {
           onClick={() => handleOptionChange('PROFILE')}>
             PROFILE
         </div>
-
-        {user.Role === 2 && (
-          <div
-            className={`menu-option ${selectedOption === 'ADD_ADMIN' ? 'selected' : ''}`}
-            onClick={() => handleOptionChange('ADD_ADMIN')}>
-              ADD ADMIN
-          </div>
-        )}
       </div>
 
       <div className="content">

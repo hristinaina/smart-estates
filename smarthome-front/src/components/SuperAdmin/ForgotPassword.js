@@ -5,17 +5,12 @@ import { ThemeProvider } from '@emotion/react';
 
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
 import TextField from '@mui/material/TextField';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Snackbar from '@mui/material/Snackbar';
 import CloseIcon from '@mui/icons-material/Close';
 
 import './ResetPassword.css'; 
-import authService from '../../services/AuthService'
 import resetPasswordService from '../../services/ResetPassword' 
-import { Send } from '@mui/icons-material';
 
 
 const ForgotPassword = () => {
@@ -58,6 +53,7 @@ const ForgotPassword = () => {
             setSnackbarMessage(result.message);
             handleClick()
             setEmail('')
+            navigate('/')
         } else {
             setSnackbarMessage(result.error);
             handleClick()
@@ -85,18 +81,17 @@ return (
         <p className='subtitle'>Don't worry! It happens. Please enter the address associated with your account.</p>
         <form>
 
-        <div className='input-fields'>
+        <div className='fields'>
             <div className='fields-name'>Email:</div>
             <TextField
                 className='text-field'
-                id="password"
-                sx={{ m: 1, width: '34ch' }}
+                id="email"
+                sx={{ m: 1, width: '27%' }}
                 value={email}
                 onChange={handleEmailChange}
                 placeholder="someone@example.com"
                 helperText="Required"
-                type='email'
-                required />
+                type='email' />
         </div>
             <Button 
                 id='save'

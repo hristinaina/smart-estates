@@ -54,7 +54,7 @@ const Login = () => {
 
     const handleUsernameChange = (event) => {
         setUsername(event.target.value);
-        event.target.value.trim() ===  '' ||  !(!emailRegex.test(event.target.value.trim()) && event.target.value.trim() !==  'admin') || password.trim() === '' 
+        event.target.value.trim() ===  '' ||  (!emailRegex.test(event.target.value.trim()) && event.target.value.trim() !==  'admin') || password.trim() === '' 
         ? checkButtonDisabled(true) : checkButtonDisabled(false)
     };
 
@@ -86,7 +86,7 @@ const Login = () => {
     
         if (result.success) {
             const result = await authService.validateUser()
-            !result ? navigate('/reset-password'): navigate('/real-estates');
+            !result ? navigate('/reset-password?token=superadmin'): navigate('/real-estates');
         } else {
             setSnackbarMessage(result.error);
             handleClick()

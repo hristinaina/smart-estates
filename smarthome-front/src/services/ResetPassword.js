@@ -45,11 +45,24 @@ class ResetPasswordService {
                 const data = await response.json();
                 return { success: false, error: data.error };
             }
-            } catch (error) {
-                console.error('Greška prilikom slanja zahteva:', error);
-                return { success: false, error: 'Network error' };
+        } catch (error) {
+            console.error('Greška prilikom slanja zahteva:', error);
+            return { success: false, error: 'Network error' };
         }
     };
+
+    async TokenExist() {
+        const queryParams = new URLSearchParams(window.location.search);
+        const token = queryParams.get('token'); 
+        
+        console.log(token)
+
+        if (token !== null) {
+            return token;
+        } else {
+            return '';
+        }  
+    }
 }
 
 const resetPasswordService = new ResetPasswordService();

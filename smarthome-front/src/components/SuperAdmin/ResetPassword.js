@@ -13,25 +13,31 @@ import Snackbar from '@mui/material/Snackbar';
 import CloseIcon from '@mui/icons-material/Close';
 
 import './ResetPassword.css'; 
-import authService from '../../services/AuthService'
-import superAdminService from '../../services/SuperAdmin' 
 import resetPasswordService from '../../services/ResetPassword' 
+import superAdminService from '../../services/SuperAdmin';
+import authService from '../../services/AuthService';
 
 
 const ResetPassword = () => {
+
+  const navigate = useNavigate()
+  const [isSuperadmin, setIsSuperadmin] = useState(false);
+
   useEffect(() => {
     const checkAuth = async () => {
-      // try {
-      //   const response = await authService.checkAuthentication(); // Implementirati funkciju checkAuthentication na klijentskoj strani
-      //   if (!response.isAdmin || !response.isValidToken) {
-      //     // Ako korisnik nije admin ili token nije validan, preusmerite ga gde god želite
-      //     navigate('/unauthorized');
-      //   }
-      // } catch (error) {
-      //   console.error('Greška prilikom provere autentičnosti:', error);
-      // }
+      try {
+        const token = await resetPasswordService.TokenExist();
+        console.log('token', token)
+        if (token === '') {
+            navigate('/')
+        }
+        else if (token === 'superadmin') {
+          setIsSuperadmin(true)
+        }
+      } catch(error) {
+        console.error('Greška prilikom provere autentičnosti:', error);
+      }
     };
-
     checkAuth();
   }, []);
 
@@ -41,9 +47,7 @@ const ResetPassword = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
-    const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])(.{8,})$/;
-
-    const navigate = useNavigate();
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])(.{8,})$/;;
 
     const [open, setOpen] = React.useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState(''); 
@@ -94,24 +98,25 @@ const ResetPassword = () => {
 
     // save reset password
     const handleResetPassword = async () => {
-        // const result = await superAdminService.ResetPassword(password);
-        // if (result.success) {
-        //     await authService.validateUser()
-        //     navigate('/real-estates');
-        // } else {
-        //     setSnackbarMessage(result.error);
-        //     handleClick()
-        // }
-        const result = await resetPasswordService.ResetPassword(password);
+      if(isSuperadmin) {
+        const result = await superAdminService.ResetPassword(password);
         if (result.success) {
-          setSnackbarMessage("IDE GAS");
-            handleClick()
-            // await authService.validateUser()
-            // navigate('/real-estates');
+            await authService.validateUser()
+            navigate('/real-estates');
         } else {
             setSnackbarMessage(result.error);
             handleClick()
         }
+      }
+      else {
+        const result = await resetPasswordService.ResetPassword(password);
+        if (result.success) {
+          navigate('/')
+        } else {
+            setSnackbarMessage(result.error);
+            handleClick()
+        }
+      } 
     };
 
     const action = (
@@ -131,8 +136,20 @@ const ResetPassword = () => {
     <ThemeProvider theme={theme}>
 
       <div className='container'>
-        <p className='almost-done'>Almost done...</p>
-        <p className='subtitle'>For security you must reset your password</p>
+      {isSuperadmin && (
+          <div>
+            <p className='almost-done'>Almost done...</p>
+            <p className='subtitle'>For security, you must reset your password</p>
+          </div>
+        )}
+
+      {!isSuperadmin && (
+        <div>
+          <p className='almost-done'>Reset Password</p>
+        </div>
+      )}
+
+
         <form>
 
         <div className='fields'>
@@ -140,7 +157,7 @@ const ResetPassword = () => {
             <TextField
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                sx={{ m: 1, width: '34ch' }}
+                sx={{ m: 1, width: '27%' }}
                 helperText="Required. Min 8 characters, special character, capital latter"
                 value={password}
                 onChange={handlePasswordChange}
@@ -165,7 +182,7 @@ const ResetPassword = () => {
             id="confirm-password"
             className='text-field'
             type={showConfirmPassword ? 'text' : 'password'}
-            sx={{ m: 1, width: '34ch' }}
+            sx={{ m: 1, width: '27%' }}
             helperText="Required. Min 8 characters, special character, capital latter"
             value={confirmPassword}
             onChange={handleConfirmPasswordChange}
