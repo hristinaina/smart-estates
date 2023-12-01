@@ -2,7 +2,7 @@ class SuperAdminService {
   
   async ResetPassword(password) {
       try {
-        const response = await fetch('http://localhost:8081/api/users/reset-password', {
+        const response = await fetch('http://localhost:8081/api/users/reset-superadmin-password', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

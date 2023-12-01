@@ -15,7 +15,8 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		userRoutes.GET("/", userController.ListUsers)
 		userRoutes.GET("/:id", userController.GetUser)
 		userRoutes.GET("/test", userController.TestGetMethod)
-		userRoutes.POST("/verifyEmail", userController.SendResetPasswordEmail)
+		userRoutes.POST("/verify-email", userController.SendResetPasswordEmail)
+		userRoutes.POST("/reset-password", userController.ResetPassword)
 
 		// todo promeni middleware
 		authController := controllers.NewAuthController(db)
@@ -27,7 +28,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		userRoutes.POST("/activate", authController.ActivateAccount)
 
 		superadminController := controllers.NewSuperAdminController(db)
-		userRoutes.POST("/reset-password", middleware.SuperAdminMiddleware, superadminController.ResetPassword)
+		userRoutes.POST("/reset-superadmin-password", middleware.SuperAdminMiddleware, superadminController.ResetPassword)
 		userRoutes.POST("/add-admin", middleware.SuperAdminMiddleware, superadminController.AddAdmin)
 		userRoutes.POST("/edit-admin", middleware.SuperAdminMiddleware, superadminController.EditSuperAdmin)
 	}

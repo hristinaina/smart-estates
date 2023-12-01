@@ -153,13 +153,13 @@ func (ms *MailServiceImpl) SendVerifyEmail(email, token string) {
 	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
 	subject := "Verify email!"
 	to := mail.NewEmail("", email)
-	plainTextContent := fmt.Sprintf("Click the following link to verify your email: %s", "http://localhost:3000/activate?token="+token)                                                                                                     // todo ovo izmeni
-	htmlContent := fmt.Sprintf(`<strong>Click the following link to verify your email and reset your password:</strong> <a href="%s">%s</a>`, "http://localhost:3000/activate?token="+token, "http://localhost:3000/activate?token="+token) // todo ovo izmeni
+	plainTextContent := fmt.Sprintf("Click the following link to verify your email: %s", "http://localhost:3000/reset-password?token="+token)
+	htmlContent := fmt.Sprintf(`<strong>Click the following link to verify your email and reset your password:</strong> <a href="%s">%s</a>`, "http://localhost:3000/reset-password?token="+token, "http://localhost:3000/reset-password?token="+token)
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
 
 	if isDomainSupportingHTML(strings.Split(email, "@")[1]) {
 		message.SetTemplateID("d-8b4418f13eba4d86982b3ef6fdff7080")
-		message.Personalizations[0].SetDynamicTemplateData("link", "http://localhost:3000/activate?token="+token) // todo ovo izmeni
+		message.Personalizations[0].SetDynamicTemplateData("link", "http://localhost:3000/reset-password?token="+token)
 	}
 
 	client := sendgrid.NewSendClient(readFromEnvFile())

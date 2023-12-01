@@ -15,6 +15,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import './ResetPassword.css'; 
 import authService from '../../services/AuthService'
 import resetPasswordService from '../../services/ResetPassword' 
+import { Send } from '@mui/icons-material';
 
 
 const ForgotPassword = () => {
@@ -54,8 +55,9 @@ const ForgotPassword = () => {
     const handleResetPassword = async () => {
         const result = await resetPasswordService.SendResetPasswordEmail(email);
         if (result.success) {
-            setSnackbarMessage(result.success);
+            setSnackbarMessage(result.message);
             handleClick()
+            setEmail('')
         } else {
             setSnackbarMessage(result.error);
             handleClick()

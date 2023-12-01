@@ -14,6 +14,7 @@ type UserRepository interface {
 	GetUserById(id int) (*models.User, error)
 	ResetSuperAdminPassword(password string, id int) error
 	EditSuperAdmin(name, surname, email string) error
+	ResetPassword(email, password string) error
 }
 
 type UserRepositoryImpl struct {
@@ -107,6 +108,13 @@ func (res *UserRepositoryImpl) EditSuperAdmin(name, surname, email string) error
 	updateStatement := "UPDATE user SET Name=?, Surname=? WHERE email=?"
 
 	_, err := res.db.Exec(updateStatement, name, surname, email)
+	return err
+}
+
+func (res *UserRepositoryImpl) ResetPassword(email, password string) error {
+	updateStatement := "UPDATE user SET Password=? WHERE Email=?"
+
+	_, err := res.db.Exec(updateStatement, password, email)
 	return err
 }
 

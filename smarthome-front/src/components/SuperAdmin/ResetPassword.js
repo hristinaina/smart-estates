@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import theme from '../../theme';
 import { ThemeProvider } from '@emotion/react';
@@ -15,9 +15,26 @@ import CloseIcon from '@mui/icons-material/Close';
 import './ResetPassword.css'; 
 import authService from '../../services/AuthService'
 import superAdminService from '../../services/SuperAdmin' 
+import resetPasswordService from '../../services/ResetPassword' 
 
 
 const ResetPassword = () => {
+  useEffect(() => {
+    const checkAuth = async () => {
+      // try {
+      //   const response = await authService.checkAuthentication(); // Implementirati funkciju checkAuthentication na klijentskoj strani
+      //   if (!response.isAdmin || !response.isValidToken) {
+      //     // Ako korisnik nije admin ili token nije validan, preusmerite ga gde god želite
+      //     navigate('/unauthorized');
+      //   }
+      // } catch (error) {
+      //   console.error('Greška prilikom provere autentičnosti:', error);
+      // }
+    };
+
+    checkAuth();
+  }, []);
+
     const [confirmPassword, setConfirmPassword] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -77,10 +94,20 @@ const ResetPassword = () => {
 
     // save reset password
     const handleResetPassword = async () => {
-        const result = await superAdminService.ResetPassword(password);
+        // const result = await superAdminService.ResetPassword(password);
+        // if (result.success) {
+        //     await authService.validateUser()
+        //     navigate('/real-estates');
+        // } else {
+        //     setSnackbarMessage(result.error);
+        //     handleClick()
+        // }
+        const result = await resetPasswordService.ResetPassword(password);
         if (result.success) {
-            await authService.validateUser()
-            navigate('/real-estates');
+          setSnackbarMessage("IDE GAS");
+            handleClick()
+            // await authService.validateUser()
+            // navigate('/real-estates');
         } else {
             setSnackbarMessage(result.error);
             handleClick()
