@@ -7,7 +7,6 @@ CREATE TABLE user (
                     Password VARCHAR(255),
                     Name VARCHAR(255),
                     Surname VARCHAR(255),
-                    Picture VARCHAR(255),
                     Role INT,
                     isLogin BOOLEAN DEFAULT false
 );
