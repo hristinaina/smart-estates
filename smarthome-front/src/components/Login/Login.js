@@ -148,6 +148,9 @@ const Login = () => {
                 }}
             />
         </div>
+        <Link style={{ textDecoration: 'none'}} to="/forgot-password">
+            <div className='forgot-password'>Forgot password ?</div>
+        </Link>
             <Button 
                 id='login'
                 variant="contained" 

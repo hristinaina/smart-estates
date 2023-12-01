@@ -15,6 +15,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		userRoutes.GET("/", userController.ListUsers)
 		userRoutes.GET("/:id", userController.GetUser)
 		userRoutes.GET("/test", userController.TestGetMethod)
+		userRoutes.POST("/verifyEmail", userController.SendResetPasswordEmail)
 
 		// todo promeni middleware
 		authController := controllers.NewAuthController(db)

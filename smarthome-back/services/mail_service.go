@@ -19,8 +19,9 @@ import (
 type MailService interface {
 	IsValidToken(tokeString string) bool
 	CreateVarificationMail(email, name, surname, token string)
-	GenerateToken(email, name, surname string, expiration time.Time) (string, error)
+	GenerateToken(email string, expiration time.Time) (string, error)
 	CreateAdminLoginRequest(name, surname, email, password string)
+	SendVerifyEmail(email, token string)
 	Send(toAddress, subject, content string) error
 	DiscardRealEstate(estate models.RealEstate) error
 	ApproveRealEstate(estate models.RealEstate) error
@@ -59,7 +60,6 @@ func (ms *MailServiceImpl) CreateVarificationMail(email, name, surname, token st
 	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
 	subject := "You're almost done! Activate your account now"
 	to := mail.NewEmail(name+" "+surname, email)
-
 	plainTextContent := fmt.Sprintf("Click the following link to activate your account: %s", "http://localhost:3000/activate?token="+token)
 	htmlContent := fmt.Sprintf(`<strong>Click the following link to activate your account:</strong> <a href="%s">%s</a>`, "http://localhost:3000/activate?token="+token, "http://localhost:3000/activate?token="+token)
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
@@ -81,19 +81,15 @@ func (ms *MailServiceImpl) CreateVarificationMail(email, name, surname, token st
 }
 
 type Claims struct {
-	Email   string `json:"email"`
-	Name    string `json:"name"`
-	Surname string `json:"surname"`
+	Email string `json:"email"`
 	jwt.RegisteredClaims
 }
 
 var secretKey = []byte("JHAS43532fsandjaskndewui217362ebwdsa")
 
-func (ms *MailServiceImpl) GenerateToken(email, name, surname string, expiration time.Time) (string, error) {
+func (ms *MailServiceImpl) GenerateToken(email string, expiration time.Time) (string, error) {
 	claims := &Claims{
-		Email:   email,
-		Name:    name,
-		Surname: surname,
+		Email: email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiration),
 		},
@@ -142,6 +138,28 @@ func (ms *MailServiceImpl) CreateAdminLoginRequest(name, surname, email, passwor
 		message.Personalizations[0].SetDynamicTemplateData("admin_email", email)
 		message.Personalizations[0].SetDynamicTemplateData("admin_password", password)
 		message.Personalizations[0].SetDynamicTemplateData("link", "http://localhost:3000")
+	}
+
+	client := sendgrid.NewSendClient(readFromEnvFile())
+	response, err := client.Send(message)
+	if err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println(response.StatusCode)
+	}
+}
+
+func (ms *MailServiceImpl) SendVerifyEmail(email, token string) {
+	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
+	subject := "Verify email!"
+	to := mail.NewEmail("", email)
+	plainTextContent := fmt.Sprintf("Click the following link to verify your email: %s", "http://localhost:3000/activate?token="+token)                                                                                                     // todo ovo izmeni
+	htmlContent := fmt.Sprintf(`<strong>Click the following link to verify your email and reset your password:</strong> <a href="%s">%s</a>`, "http://localhost:3000/activate?token="+token, "http://localhost:3000/activate?token="+token) // todo ovo izmeni
+	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+
+	if isDomainSupportingHTML(strings.Split(email, "@")[1]) {
+		message.SetTemplateID("d-8b4418f13eba4d86982b3ef6fdff7080")
+		message.Personalizations[0].SetDynamicTemplateData("link", "http://localhost:3000/activate?token="+token) // todo ovo izmeni
 	}
 
 	client := sendgrid.NewSendClient(readFromEnvFile())

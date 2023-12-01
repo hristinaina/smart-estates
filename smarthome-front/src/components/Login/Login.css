@@ -52,3 +52,12 @@
 #login{
   width: 50%;
 }
+
+.forgot-password {
+  font-size: 14px;
+  color: #806894;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: right;
+  width: 75%;
+}

@@ -10,6 +10,7 @@ import ResetPassword from './components/SuperAdmin/ResetPassword';
 import Account from './components/Account/Account';
 import { Lamp } from './components/Devices/Lamp';
 import AddAdmin from './components/SuperAdmin/AddAdmin';
+import ForgotPassword from './components/SuperAdmin/ForgotPassword';
 
 const AppRoutes = [
   {
@@ -51,6 +52,10 @@ const AppRoutes = [
   {
     path: '/add-admin',
     element: <AddAdmin />
+  },
+  {
+    path: '/forgot-password',
+    element: <ForgotPassword/>
   },
   {
     path: "/lamp/:id",
