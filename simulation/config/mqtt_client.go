@@ -2,8 +2,10 @@ package config
 
 import (
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"os"
+	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 const (
@@ -13,7 +15,25 @@ const (
 )
 
 func CreateConnection() mqtt.Client {
-	opts := mqtt.NewClientOptions().AddBroker("ws://broker.emqx.io:8083/mqtt")
+	opts := mqtt.NewClientOptions().AddBroker("ws://localhost:9001/mqtt")
+	opts.SetClientID("go-simulator-nvt-2023")
+	opts.OnConnectionLost = func(client mqtt.Client, err error) {
+		fmt.Printf("Connection lost: %v\n", err)
+
+		// Attempt to reconnect
+		for {
+			fmt.Println("Attempting to reconnect...")
+			token := client.Connect()
+			if token.Wait() && token.Error() == nil {
+				fmt.Println("Reconnected successfully!")
+				break
+			}
+
+			// Wait before attempting again
+			time.Sleep(5 * time.Second)
+		}
+	}
+
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
@@ -24,7 +44,7 @@ func CreateConnection() mqtt.Client {
 
 // PublishToTopic method to publish data to topic
 func PublishToTopic(client mqtt.Client, topic, message string) error {
-	token := client.Publish(topic, 1, false, message)
+	token := client.Publish(topic, 0, false, message)
 	token.Wait()
 	if token.Error() != nil {
 		fmt.Println("Error publishing message:", token.Error())
@@ -34,7 +54,7 @@ func PublishToTopic(client mqtt.Client, topic, message string) error {
 
 // SubscribeToTopic method to subscribe to topic
 func SubscribeToTopic(client mqtt.Client, topic string, handler mqtt.MessageHandler) {
-	token := client.Subscribe(topic, 1, handler)
+	token := client.Subscribe(topic, 0, handler)
 	token.Wait()
 
 	// Check if the subscription was successful

@@ -19,13 +19,13 @@ export class Devices extends Component {
         };
         this.mqttClient = null;
         this.connecting = false; //change to true if you want to use this
+        this.id = parseInt(localStorage.getItem('real-estate'));
     }
 
     async componentDidMount() {
         try {
-            const result = await DeviceService.getDevices(2);
-            await this.setState({ data: result });
-
+            const result = await DeviceService.getDevices(this.id);
+            this.setState({ data: result });
 
             const deviceImages = {};
             for (const device of result) {
@@ -39,7 +39,9 @@ export class Devices extends Component {
         }
 
         try {
-            this.mqttClient = mqtt.connect('ws://broker.emqx.io:8083/mqtt');
+            this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
+                clientId: "react-front-nvt-2023-devices",
+            });
 
             // Subscribe to the MQTT topic for device status
             this.mqttClient.on('connect', () => {
@@ -54,15 +56,7 @@ export class Devices extends Component {
             console.log("Error trying to connect to broker");
             console.log(error);
         }
-
-        // setTimeout(() => {
-        //     const { data } = this.state;
-        //     this.connecting = false;
-        //     this.setState({
-        //         data: data,
-        //     });
-        // }, 5000);
-        }
+    }
 
     componentWillUnmount() {
         // Disconnect MQTT client on component unmount
@@ -73,23 +67,24 @@ export class Devices extends Component {
 
     // Handle incoming MQTT messages
     handleMqttMessage(topic, message) {
-        const { data } = this.state;
-        const deviceId = this.extractDeviceIdFromTopic(topic);
-        const status = message.toString();
-        console.log(deviceId, status);
-        // Update the IsOnline status based on the received MQTT message
-        const updatedData = data.map((device) =>
-            device.Id == deviceId
-                ? {
-                    ...device,
-                    IsOnline: status == 'online',
-                }
-                : device
-        );
-        console.log(updatedData)
+        this.setState((prevState) => {
+            const { data } = prevState;
+            const deviceId = parseInt(this.extractDeviceIdFromTopic(topic));
+            const status = message.toString();
 
-        this.setState({
-            data: updatedData,
+            // Update the IsOnline status based on the received MQTT message
+            const updatedData = data.map((device) =>
+                device.Id == deviceId
+                    ? {
+                        ...device,
+                        IsOnline: status === 'online',
+                    }
+                    : device
+            );
+
+            return {
+                data: updatedData,
+            };
         });
     }
 

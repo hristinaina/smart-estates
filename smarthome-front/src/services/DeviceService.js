@@ -36,6 +36,9 @@ class DeviceService {
         },
         body: JSON.stringify(device),
       });
+      if (!response.ok){
+        throw new Error(`Device name must be unique per user.`);
+      }
       const data = await response.json();
       return data;
     } catch (error) {

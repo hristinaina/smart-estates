@@ -19,7 +19,7 @@ export class Lamp extends Component {
             switchOn: false,
         };
         this.mqttClient = null;
-        this.id = this.extractDeviceIdFromUrl();
+        this.id = parseInt(this.extractDeviceIdFromUrl());
     }
 
     async componentDidMount() {
@@ -34,7 +34,9 @@ export class Lamp extends Component {
         });
 
         try {
-            this.mqttClient = mqtt.connect('ws://broker.emqx.io:8083/mqtt');
+            this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
+                clientId: "react-front-nvt-2023-lamp",
+              });
 
             // Subscribe to the MQTT topic for device status
             this.mqttClient.on('connect', () => {
@@ -87,13 +89,17 @@ export class Lamp extends Component {
         return parts[parts.length - 1];
     }
 
+    handleBackArrow(){
+        window.location.assign("/devices")
+    }
+
     render() {
         const { device, switchOn } = this.state;
 
         return (
             <div>
                 <Navigation />
-                <Link to="/devices"><img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px" }} /></Link>
+                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor:"pointer" }} onClick={this.handleBackArrow}/>
                 <div style={{ width: "fit-content", marginLeft: "auto", marginRight: "auto", marginTop: "10%" }}>
                     <p className='device-title'>Id: {this.id}</p>
                     {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}

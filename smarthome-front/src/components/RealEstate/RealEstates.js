@@ -90,6 +90,10 @@ export class RealEstates extends Component {
 
     handleCardClick = (id) => {
         this.setState({selectedRealEstate: id, isDisabled: false});
+        if (!this.state.isAdmin){
+            localStorage.setItem("real-estate", id);
+            window.location.assign("/devices")
+        }
     }
 
     changeState = async (state, reason) => {

@@ -25,7 +25,7 @@ func (mc *MQTTClient) HandleHeartBeat(client mqtt.Client, msg mqtt.Message) {
 		saveToDb(mc.db, deviceId, true)
 		err := mc.Publish(TopicStatusChanged+strconv.Itoa(deviceId), "online")
 		if err != nil {
-			return
+			fmt.Println(err)
 		}
 	}
 	heartBeats[deviceId] = time.Now()
