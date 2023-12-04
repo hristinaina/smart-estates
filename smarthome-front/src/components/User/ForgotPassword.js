@@ -53,7 +53,10 @@ const ForgotPassword = () => {
             setSnackbarMessage(result.message);
             handleClick()
             setEmail('')
-            navigate('/')
+
+            setTimeout(() => {
+                navigate('/');
+            }, 2000);
         } else {
             setSnackbarMessage(result.error);
             handleClick()
