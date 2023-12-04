@@ -54,7 +54,7 @@ const Login = () => {
 
     const handleUsernameChange = (event) => {
         setUsername(event.target.value);
-        event.target.value.trim() ===  '' ||  !(!emailRegex.test(event.target.value.trim()) && event.target.value.trim() !==  'admin') || password.trim() === '' 
+        event.target.value.trim() ===  '' ||  (!emailRegex.test(event.target.value.trim()) && event.target.value.trim() !==  'admin') || password.trim() === '' 
         ? checkButtonDisabled(true) : checkButtonDisabled(false)
     };
 
@@ -75,10 +75,10 @@ const Login = () => {
 
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
-          return;
+            return;
         }
         setOpen(false);
-      };
+    };
 
     // login
     const handleLogin = async () => {
@@ -86,7 +86,7 @@ const Login = () => {
     
         if (result.success) {
             const result = await authService.validateUser()
-            !result ? navigate('/reset-password'): navigate('/real-estates');
+            !result ? navigate('/reset-password?token=superadmin'): navigate('/real-estates');
         } else {
             setSnackbarMessage(result.error);
             handleClick()
@@ -106,10 +106,10 @@ const Login = () => {
     );
 
 
-  return (
+    return (
     <ThemeProvider theme={theme}>
     <div className='background'>
-      <div className='left-side'>
+        <div className='left-side'>
         <p className='title-login'>Login</p>
         <form>
         <div className='fields'>
@@ -130,7 +130,6 @@ const Login = () => {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 sx={{ m: 1, width: '30ch' }}
-                placeholder='P@ssw0rd123'
                 helperText="Required. Min 8 characters, special character, capital latter"
                 value={password}
                 onChange={handlePasswordChange}
@@ -149,6 +148,9 @@ const Login = () => {
                 }}
             />
         </div>
+        <Link style={{ textDecoration: 'none'}} to="/forgot-password">
+            <div className='forgot-password'>Forgot password ?</div>
+        </Link>
             <Button 
                 id='login'
                 variant="contained" 
@@ -165,19 +167,19 @@ const Login = () => {
         onClose={handleClose}
         message={snackbarMessage}
         action={action}
-      />
+        />
         </form>
-      </div>
-      <div className='right-side'>
-        <p className='title'>Welcome to Smart Home!</p>
-        <p className='text'>One place to remotely manage all your devices!</p>
-        <Link to="/reg">
-            <Button className="reg" sx={theme.customStyles.myCustomButton} variant="contained" color="secondary">No account yet? Sign up</Button>
-        </Link>
-      </div>
+        </div>
+        <div className='right-side'>
+            <p className='title'>Welcome to Smart Home!</p>
+            <p className='text'>One place to remotely manage all your devices!</p>
+            <Link to="/reg">
+                <Button className="reg" sx={theme.customStyles.myCustomButton} variant="contained" color="secondary">No account yet? Sign up</Button>
+            </Link>
+        </div>
     </div>
     </ThemeProvider>
-  );
+    );
 };
 
 export default Login;

@@ -14,6 +14,7 @@ type UserRepository interface {
 	GetUserById(id int) (*models.User, error)
 	ResetSuperAdminPassword(password string, id int) error
 	EditSuperAdmin(name, surname, email string) error
+	ResetPassword(email, password string) error
 }
 
 type UserRepositoryImpl struct {
@@ -41,7 +42,7 @@ func (res *UserRepositoryImpl) GetAll() []models.User {
 		)
 
 		if err := rows.Scan(&user.Id, &user.Email, &user.Password,
-			&user.Name, &user.Surname, &user.Picture, &user.Role, &user.IsLogin); err != nil {
+			&user.Name, &user.Surname, &user.Role, &user.IsLogin); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return []models.User{}
 		}
@@ -53,12 +54,10 @@ func (res *UserRepositoryImpl) GetAll() []models.User {
 
 func (res *UserRepositoryImpl) SaveUser(user models.User) error {
 	user.Id = res.generateId()
-	// TODO: add some validation for pictures
 
-	query := "INSERT INTO User (Id, Email, Password, Name, Surname, Picture, Role, IsLogin)" +
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?);"
-	_, err := res.db.Exec(query, user.Id, user.Email, user.Password, user.Name, user.Surname,
-		user.Picture, user.Role, user.IsLogin)
+	query := "INSERT INTO User (Id, Email, Password, Name, Surname, Role, IsLogin)" +
+		"VALUES (?, ?, ?, ?, ?, ?, ?);"
+	_, err := res.db.Exec(query, user.Id, user.Email, user.Password, user.Name, user.Surname, user.Role, user.IsLogin)
 	if CheckIfError(err) {
 		return fmt.Errorf("Failed to save user: %v", err)
 
@@ -72,7 +71,7 @@ func (res *UserRepositoryImpl) GetUserByEmail(email string) (*models.User, error
 
 	var user models.User
 
-	err := row.Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Surname, &user.Picture, &user.Role, &user.IsLogin)
+	err := row.Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Surname, &user.Role, &user.IsLogin)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrUserNotFound
@@ -88,7 +87,7 @@ func (res *UserRepositoryImpl) GetUserById(id int) (*models.User, error) {
 
 	var user models.User
 
-	err := row.Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Surname, &user.Picture, &user.Role, &user.IsLogin)
+	err := row.Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Surname, &user.Role, &user.IsLogin)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrUserNotFound
@@ -109,6 +108,13 @@ func (res *UserRepositoryImpl) EditSuperAdmin(name, surname, email string) error
 	updateStatement := "UPDATE user SET Name=?, Surname=? WHERE email=?"
 
 	_, err := res.db.Exec(updateStatement, name, surname, email)
+	return err
+}
+
+func (res *UserRepositoryImpl) ResetPassword(email, password string) error {
+	updateStatement := "UPDATE user SET Password=? WHERE Email=?"
+
+	_, err := res.db.Exec(updateStatement, password, email)
 	return err
 }
 

@@ -19,13 +19,7 @@ const Account = () => {
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [email, setEmail] = useState('');
-
-  const [nameAdmin, setNameAdmin] = useState('');
-  const [surnameAdmin, setSurnameAdmin] = useState('');
-  const [emailAdmin, setEmailAdmin] = useState('');
-
   const [isButtonUpdateDisabled, setIsButtonUpdateDisabled] = useState(true);
-  const [isButtonAddDisabled, setIsButtonAddDisabled] = useState(true);
 
   const [user, setUser] = useState({});
 
@@ -64,28 +58,6 @@ const Account = () => {
     value ? setIsButtonUpdateDisabled(true) : setIsButtonUpdateDisabled(false);
   };
 
-  const handleAdminNameChange = (event) => {
-    setNameAdmin(event.target.value);
-    event.target.value.trim() ===  '' || surnameAdmin.trim() === '' || emailAdmin.trim() === ''
-        ? checkButtonAddDisabled(true) : checkButtonAddDisabled(false)
-  };
-
-  const handleAdminSurnameChange = (event) => {
-    setSurnameAdmin(event.target.value);
-    event.target.value.trim() ===  '' || nameAdmin.trim() === '' || emailAdmin.trim() === ''
-        ? checkButtonAddDisabled(true) : checkButtonAddDisabled(false)
-  };
-
-  const handleAdminEmailChange = (event) => {
-    setEmailAdmin(event.target.value);
-    event.target.value.trim() ===  '' ||  !emailRegex.test(event.target.value.trim()) || nameAdmin.trim() === '' || surnameAdmin.trim() === '' 
-        ? checkButtonAddDisabled(true) : checkButtonAddDisabled(false)
-  };
-
-  const checkButtonAddDisabled = (value) => {
-    value ? setIsButtonAddDisabled(true) : setIsButtonAddDisabled(false);
-  };
-
   const handleOptionChange = (option) => {
     setSelectedOption(option);
   };
@@ -105,21 +77,6 @@ const Account = () => {
     }
   };
 
-  const handleSignUpAdmin = async () => {
-    const result = await superAdminService.AddAdmin(nameAdmin, surnameAdmin, emailAdmin)
-
-    if (result.success) {
-        setSnackbarMessage("New admin is added");
-        handleClick()
-        setEmailAdmin('')
-        setNameAdmin('')
-        setSurnameAdmin('')
-        setIsButtonAddDisabled(true)
-    } else {
-        setSnackbarMessage(result.error);
-        handleClick()
-    }
-  };
 
   // snackbar
   const handleClick = () => {
@@ -152,8 +109,11 @@ const handleClose = (event, reason) => {
     <div className="user-profile-container">
       <div className="side-menu">
         <div className='container-image'>
-            <img id='profile-image' src={profileImage} alt="User" />
-            <img id='add-image' src="/images/plus_purple.png" alt="Add Image"/>
+          <img
+            id="profile-image"
+            src={user['Role'] === 1 ? profileImage : "/images/user.png"}
+            alt="User"/>
+          <img id='add-image' src="/images/plus_purple.png" alt="Add Image"/>
         </div>
 
         <div className='name-surname'>
@@ -166,14 +126,6 @@ const handleClose = (event, reason) => {
           onClick={() => handleOptionChange('PROFILE')}>
             PROFILE
         </div>
-
-        {user.Role === 2 && (
-          <div
-            className={`menu-option ${selectedOption === 'ADD_ADMIN' ? 'selected' : ''}`}
-            onClick={() => handleOptionChange('ADD_ADMIN')}>
-              ADD ADMIN
-          </div>
-        )}
       </div>
 
       <div className="content">
@@ -239,62 +191,6 @@ const handleClose = (event, reason) => {
               message={snackbarMessage}
               action={action}/>
           </form>
-          </>
-        )}
-
-        {selectedOption === 'ADD_ADMIN' && (
-          <>
-            <div className="admin-form">
-            <form className='update-form'> 
-                <p className='about-you'>Add new admin</p>
-                    <div className='user-data'>
-                        <div className='field-name'> Name:</div>
-                        <TextField
-                            value={nameAdmin}
-                            onChange={handleAdminNameChange}
-                            sx={{ m: 1, width: '34ch' }}
-                            id="name"
-                            placeholder="John" />
-                    </div> 
-
-                    <div className='user-data'>
-                        <div className='field-name'> Surname:</div>
-                        <TextField
-                            value={surnameAdmin}
-                            onChange={handleAdminSurnameChange}
-                            sx={{ m: 1, width: '34ch' }}
-                            id="surname"
-                            className='text-field'
-                            placeholder="Smith" />
-                    </div> 
-
-                    <div className='user-data'>
-                        <div className='field-name'> Email:</div>
-                        <TextField
-                            value={emailAdmin}
-                            onChange={handleAdminEmailChange}
-                            sx={{ m: 1, width: '34ch' }}
-                            id="email"
-                            className='text-field'
-                            placeholder="someone@example.com"
-                            type='email' />
-                    </div>
-
-                    <Button 
-                        id='add-admin-btn'
-                        variant="contained" 
-                        color="primary" 
-                        disabled={isButtonAddDisabled}
-                        onClick={handleSignUpAdmin}
-                        sx={theme.customStyles.myCustomButton}>ADD ADMIN</Button> 
-                    <Snackbar
-              open={open}
-              autoHideDuration={3000}
-              onClose={handleClose}
-              message={snackbarMessage}
-              action={action}/>
-            </form>
-            </div>
           </>
         )}
       </div>

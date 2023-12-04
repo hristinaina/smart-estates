@@ -124,8 +124,7 @@ const Registration = () => {
 
     // sign up
     const handleSignUp = async () => {
-      // TODO promeni sliku
-      const result = await authService.regUser(email, password, name, surname, "allaalal");
+      const result = await authService.regUser(email, password, name, surname);
 
       const formData = new FormData();
       formData.append('image', profileImage);
@@ -219,7 +218,6 @@ const Registration = () => {
             className='text-field'
             type={showPassword ? 'text' : 'password'}
             sx={{ m: 1, width: '30ch' }}
-            placeholder='P@ssw0rd123'
             helperText="Required. Min 8 characters, special character, capital latter"
             value={password}
             onChange={handlePasswordChange}
@@ -245,7 +243,6 @@ const Registration = () => {
             className='text-field'
             type={showConfirmPassword ? 'text' : 'password'}
             sx={{ m: 1, width: '30ch' }}
-            placeholder='P@ssw0rd123'
             helperText="Required. Min 8 characters, special character, capital latter"
             value={confirmPassword}
             onChange={handleConfirmPasswordChange}

@@ -2,14 +2,15 @@ CREATE DATABASE smart_home;
 use smart_home;
 
 CREATE TABLE user (
-                    Id INT PRIMARY KEY,
-                    Email VARCHAR(255) UNIQUE,
-                    Password VARCHAR(255),
-                    Name VARCHAR(255),
-                    Surname VARCHAR(255),
-                    Role INT,
-                    isLogin BOOLEAN DEFAULT false
+                        Id INT PRIMARY KEY,
+                        Email VARCHAR(255) UNIQUE,
+                        Password VARCHAR(255),
+                        Name VARCHAR(255),
+                        Surname VARCHAR(255),
+                        Role INT,
+                        isLogin BOOLEAN DEFAULT false
 );
+
 
 CREATE TABLE realestate (
                             Id INT PRIMARY KEY,
@@ -24,6 +25,7 @@ CREATE TABLE realestate (
                             UserId INT,
                             DiscardReason VARCHAR(255)
 );
+
 
 CREATE TABLE device (
                         Id INT PRIMARY KEY AUTO_INCREMENT,
@@ -61,11 +63,6 @@ CREATE TABLE homeBattery (
                             FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
-INSERT INTO user (Id, Email, Password, Name, Surname, Picture, Role)
-VALUES
-    (1, 'nesa@gmail.com', '$2a$10$/fbbLLHt7hEZpMq3rQiWz.oF6cJRRNdO5Vek/NIGzAIyJp99jebrO', 'Nenad', 'Peric', 0),
-    (2, 'nata@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Natasa', 'Maric', 1);
-
 INSERT INTO realestate (Id, Name, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId, DiscardReason)
 VALUES
     (1, 'Villa B Dorm',  0, '123 Main St', 'Cityville', 150.5, 2, 'path/to/picture1.jpg', 0, 0, ''),
@@ -77,9 +74,9 @@ VALUES
 
 INSERT INTO device (Id, Name, Type, Picture, RealEstate, IsOnline)
 VALUES
-    (1, 'Masina Sladja', 2, '/images/washing_machine.png', 1, false),
+    (1, 'Masina Sladja', 2, '/images/washing_machine.png', 1, true),
     (2, 'Prsk prsk', 5, '/images/sprinkler.png', 1, false),
-    (3, 'Neka klima', 1, '/images/lamp.png', 2, false),
+    (3, 'Neka klima', 1, '/images/lamp.png', 2, true),
     (4, 'Panelcic', 6, '/images/solar_panel.png', 2, false),
     (5, 'Punjac1', 8, '/images/solar_panel.png', 2, false),
     (6, 'Baterija1', 7, '/images/solar_panel.png', 2, false);

@@ -103,7 +103,3 @@ func writePasswordToFile(password string) error {
 	fmt.Println("\nFOR SUPERADMIN EMAIL AND PASSWORD LOOK smart-home/smarthome-back/admin.json FILE\n")
 	return nil
 }
-
-func EditSuperAdmin() {
-
-}
