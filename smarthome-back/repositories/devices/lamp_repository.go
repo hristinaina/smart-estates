@@ -17,7 +17,12 @@ func NewLampRepository(db *sql.DB) *LampRepository {
 }
 
 func (rl *LampRepository) Get(id int) (devices.Lamp, error) {
-	query := "SELECT * FROM lamp WHERE ID = ?"
+	query := `SELECT Device.Id, Device.Name, Device.Type, Device.Picture, Device.RealEstate, Device.IsOnline,
+       		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, Lamp.IsOn, Lamp.LightningLevel
+			  FROM Lamp 
+    		  JOIN ConsumptionDevice ON Lamp.DeviceId = ConsumptionDevice.DeviceId
+   			  JOIN Device ON ConsumptionDevice.DeviceId = Device.Id
+   			  WHERE Device.Id = ?`
 	rows, err := rl.db.Query(query, id)
 	if repositories.IsError(err) {
 		return devices.Lamp{}, err
@@ -43,7 +48,11 @@ func (rl *LampRepository) GetAll() ([]devices.Lamp, error) {
 }
 
 func (rl *LampRepository) UpdateIsOnState(id int, isOn bool) (bool, error) {
-	query := "UPDATE lamp SET IsOn = ? WHERE Id = ?"
+	query := `UPDATE Lamp
+              JOIN ConsumptionDevice ON Lamp.DeviceId = ConsumptionDevice.DeviceId
+        	  JOIN Device ON ConsumptionDevice.DeviceId = Device.Id
+              SET Lamp.IsOn = ? 
+              WHERE Device.Id = ?`
 	_, err := rl.db.Exec(query, isOn, id)
 	if repositories.IsError(err) {
 		return false, err
@@ -52,7 +61,11 @@ func (rl *LampRepository) UpdateIsOnState(id int, isOn bool) (bool, error) {
 }
 
 func (rl *LampRepository) UpdateLightningState(id int, lightningState int) (bool, error) {
-	query := "SELECT * FROM lamp SET LightningLevel = ? WHERE Id = ?"
+	query := `UPDATE Lamp
+              JOIN ConsumptionDevice ON Lamp.DeviceId = ConsumptionDevice.DeviceId
+        	  JOIN Device ON ConsumptionDevice.DeviceId = Device.Id
+              SET Lamp.LightningLevel = ? 
+              WHERE Device.Id = ?`
 	_, err := rl.db.Exec(query, lightningState, id)
 	if repositories.CheckIfError(err) {
 		return false, err
