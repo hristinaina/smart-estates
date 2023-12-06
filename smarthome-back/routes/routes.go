@@ -3,6 +3,7 @@ package routes
 import (
 	"database/sql"
 	"smarthome-back/controllers"
+	devicesController "smarthome-back/controllers/devices"
 	"smarthome-back/middleware"
 	"smarthome-back/mqtt_client"
 
@@ -64,5 +65,15 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient) {
 		imageUploadController := controllers.NewImageController()
 		uploadImageRoutes.POST("/:real-estate-name", imageUploadController.Post)
 		uploadImageRoutes.GET("/:file-name", imageUploadController.Get)
+	}
+
+	lampRoutes := r.Group("api/lamp")
+	{
+		lampController := devicesController.NewLampController(db)
+		lampRoutes.GET("/:id", lampController.Get)
+		lampRoutes.GET("/", lampController.GetAll)
+		lampRoutes.PUT("/on/:id", lampController.TurnOn)
+		lampRoutes.PUT("/off/:id", lampController.TurnOff)
+		lampRoutes.PUT(":id/:level", lampController.SetLightning)
 	}
 }
