@@ -39,12 +39,14 @@ class DeviceService {
         body: JSON.stringify(device),
       });
       if (!response.ok){
-        throw new Error(`Device name must be unique per user.`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Unknown error occurred");
       }
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching data:', error.message);
+      if (error.message == "Unexpected end of JSON input") return null;
       throw error;
     }
   }

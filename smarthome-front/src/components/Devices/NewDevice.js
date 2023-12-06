@@ -245,7 +245,7 @@ export class NewDevice extends Component {
             await ImageService.uploadImage(formData, "devices&" + name);
             window.location.assign("/devices")
         } catch (error) {
-            this.setState({ snackbarMessage: "Device name must be unique per user." });
+            this.setState({ snackbarMessage: error.message });
             this.handleClick();
         }
     };

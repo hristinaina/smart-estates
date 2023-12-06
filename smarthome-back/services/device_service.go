@@ -114,7 +114,7 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 	}
 	for _, value := range devices {
 		if value.Name == dto.Name {
-			return models.Device{}, errors.New("invalid input")
+			return models.Device{}, errors.New("Device name must be unique per user")
 		}
 	}
 	var device models.Device
