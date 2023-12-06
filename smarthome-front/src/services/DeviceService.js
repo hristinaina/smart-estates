@@ -4,7 +4,9 @@ class DeviceService {
     try {
         const response = await fetch('http://localhost:8081/api/devices/estate/' + realEstateId);
         const data = await response.json();
-        return this.replaceTypeWithString(data);
+        if (data != null)
+          return this.replaceTypeWithString(data);
+        else return [];
       } catch (error) {
         console.error('Error fetching data:', error);
         throw error;

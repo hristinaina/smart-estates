@@ -1,6 +1,6 @@
 class RealEstateService {
 
-    static async get() {
+    async get() {
         try {
             const response = await fetch('http://localhost:8081/api/real-estates/');
             const data = await response.json();
@@ -11,7 +11,18 @@ class RealEstateService {
           }
     }
 
-    static async getPending() {
+    async getById(id) {
+      try {
+          const response = await fetch('http://localhost:8081/api/real-estates/' + id);
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          console.error('Error fetching data:', error);
+          throw error;
+        }
+    }
+
+    async getPending() {
       try {
         const response = await fetch('http://localhost:8081/api/real-estates/pending');
         const data = await response.json();
@@ -22,7 +33,7 @@ class RealEstateService {
       }
     }
 
-    static async getAllByUserId(id) {
+    async getAllByUserId(id) {
       console.log("usaoo");
       try {
         const response = await fetch('http://localhost:8081/api/real-estates/user/' + id);
@@ -35,7 +46,7 @@ class RealEstateService {
       }
     }
 
-    static async changeState(state, id, reason) {
+    async changeState(state, id, reason) {
       var url  = '';
       if (state === 0) url = `http://localhost:8081/api/real-estates/${id}/0`;
       else {url = `http://localhost:8081/api/real-estates/${id}/1`};
@@ -61,7 +72,7 @@ class RealEstateService {
       return responseData;
     }
 
-    static async add(estate) {
+    async add(estate) {
       console.log("usaooooooo");
       console.log(estate);
       const url = 'http://localhost:8081/api/real-estates/';
@@ -85,4 +96,4 @@ class RealEstateService {
 
 }
 
-export default RealEstateService;
+export default new RealEstateService();

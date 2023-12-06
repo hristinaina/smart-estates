@@ -5,6 +5,7 @@ import { Navigation } from '../Navigation/Navigation';
 import DeviceService from '../../services/DeviceService'
 import { Divider } from '@mui/material';
 import { Link } from 'react-router-dom';
+import RealEstateService from '../../services/RealEstateService'
 import mqtt from 'mqtt';
 
 import ImageService from '../../services/ImageService';
@@ -16,6 +17,7 @@ export class Devices extends Component {
         this.state = {
             data: [],
             deviceImages: {},
+            name: '',
         };
         this.mqttClient = null;
         this.connecting = false; //change to true if you want to use this
@@ -37,6 +39,9 @@ export class Devices extends Component {
             console.log("Error fetching data from the server");
             console.log(error);
         }
+
+        const result = await RealEstateService.getById(this.id);
+        this.setState({ name: result.Name });
 
         try {
             this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
@@ -116,14 +121,14 @@ export class Devices extends Component {
     }
 
     render() {
-        const { data, deviceImages } = this.state;
+        const { data, deviceImages, name } = this.state;
         const connecting = this.connecting;
         return (
             <div>
                 <Navigation />
                 <div id="tools">
                     <Link to="/real-estates"><img src='/images/arrow.png' id='arrow' /></Link>
-                    <span className='estate-title'>Ta i ta nekretnina</span>
+                    <span className='estate-title'>{name}</span>
                     <p id="add-device">
                         <Link to="/new-device">
                             <img alt="." src="/images/plus.png" id="plus" />
