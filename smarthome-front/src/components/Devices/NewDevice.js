@@ -48,6 +48,11 @@ export class NewDevice extends Component {
         { value: 8, label: 'Electric vehicle charger' },
     ];
 
+    async componentDidMount() {
+        const result = await authService.validateUser();
+        if (!result) window.location.assign("/");
+    }
+
     handleTypeChange = (event) => {
         const selectedType = event.target.value;
 

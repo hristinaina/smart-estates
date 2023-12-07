@@ -2,7 +2,13 @@ class DeviceService {
 
   async getDevices(realEstateId) {
     try {
-        const response = await fetch('http://localhost:8081/api/devices/estate/' + realEstateId);
+        const response = await fetch('http://localhost:8081/api/devices/estate/' + realEstateId, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
         const data = await response.json();
         if (data != null)
           return this.replaceTypeWithString(data);
@@ -37,6 +43,7 @@ class DeviceService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(device),
+        credentials: 'include',
       });
       if (!response.ok){
         const errorData = await response.json();
