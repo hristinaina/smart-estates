@@ -5,6 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"smarthome-back/controllers"
+	dto "smarthome-back/dto"
+	_ "smarthome-back/models/devices/outside"
 	services "smarthome-back/services/devices"
 	"strconv"
 )
@@ -77,6 +79,21 @@ func (lc LampController) SetLightning(c *gin.Context) {
 	lamp, err := lc.service.SetLightning(id, level)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, lamp)
+}
+
+func (lc LampController) Add(c *gin.Context) {
+	var dto dto.DeviceDTO
+
+	if err := c.BindJSON(&dto); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid JSON"})
+		return
+	}
+	lamp, err := lc.service.Add(dto)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, lamp)

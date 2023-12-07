@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"smarthome-back/dto"
 	models "smarthome-back/models/devices/outside"
 	repositories "smarthome-back/repositories/devices"
 )
@@ -12,6 +13,7 @@ type LampService interface {
 	TurnOn(id int) (models.Lamp, error)
 	TurnOff(id int) (models.Lamp, error)
 	SetLightning(id int, level int) (models.Lamp, error)
+	Add(dto dto.DeviceDTO) (models.Lamp, error)
 }
 
 type LampServiceImpl struct {
@@ -56,4 +58,48 @@ func (ls *LampServiceImpl) SetLightning(id int, level int) (models.Lamp, error) 
 	}
 	lamp, err := ls.Get(id)
 	return lamp, err
+}
+
+func (ls *LampServiceImpl) Add(dto dto.DeviceDTO) (models.Lamp, error) {
+	device := dto.ToLamp()
+	tx, err := ls.db.Begin()
+	if err != nil {
+		return models.Lamp{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := tx.Exec(`
+		INSERT INTO Device (Name, Type, Picture, RealEstate, IsOnline)
+		VALUES (?, ?, ?, ?, ?)
+	`, device.ConsumptionDevice.Device.Name, device.ConsumptionDevice.Device.Type,
+		device.ConsumptionDevice.Device.Picture, device.ConsumptionDevice.Device.RealEstate,
+		device.ConsumptionDevice.Device.IsOnline)
+	if err != nil {
+		return models.Lamp{}, err
+	}
+
+	deviceID, err := result.LastInsertId()
+	if err != nil {
+		return models.Lamp{}, err
+	}
+
+	result, err = tx.Exec(`
+							INSERT INTO ConsumptionDevice(DeviceId, PowerSupply, PowerConsumption)
+							VALUES (?, ?, ?)`, deviceID, device.ConsumptionDevice.PowerSupply,
+		device.ConsumptionDevice.PowerConsumption)
+	if err != nil {
+		return models.Lamp{}, err
+	}
+
+	result, err = tx.Exec(`
+							INSERT INTO Lamp(DeviceId, IsOn, LightningLevel)
+							VALUES (?, ?, ?)`, deviceID, device.IsOn, device.LightningLevel)
+	if err != nil {
+		return models.Lamp{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return models.Lamp{}, err
+	}
+	device.ConsumptionDevice.Device.Id = int(deviceID)
+	return device, nil
 }

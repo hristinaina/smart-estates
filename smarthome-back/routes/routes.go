@@ -75,5 +75,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient) {
 		lampRoutes.PUT("/on/:id", lampController.TurnOn)
 		lampRoutes.PUT("/off/:id", lampController.TurnOff)
 		lampRoutes.PUT("/:id/:level", lampController.SetLightning)
+		lampRoutes.POST("/", lampController.Add)
 	}
 }
