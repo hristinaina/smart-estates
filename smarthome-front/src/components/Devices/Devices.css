@@ -38,9 +38,9 @@
 
 .device-card {
     display: inline-block;
-    border-radius: 10%;
+    border-radius: 9px;
     overflow: hidden;
-    padding-bottom: 7px;
+    padding-bottom: 9px;
     background-color: rgb(230, 230, 230);
     border: 1px solid rgb(189, 189, 189);
     margin: 25px 2.4%;

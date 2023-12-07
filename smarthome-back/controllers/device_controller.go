@@ -34,8 +34,8 @@ func (uc DeviceController) Get(c *gin.Context) {
 func (uc DeviceController) GetAll(c *gin.Context) {
 	devices := uc.service.GetAll()
 	if devices == nil {
-		fmt.Println("Error happened!")
-		c.JSON(http.StatusBadRequest, "Error happened!")
+		fmt.Println("No devices found")
+		c.JSON(http.StatusBadRequest, "No devices found")
 	}
 	c.JSON(http.StatusOK, devices)
 }
