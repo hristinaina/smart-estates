@@ -33,9 +33,9 @@ func (s *HomeBatteryServiceImpl) Add(dto dto.DeviceDTO) models.HomeBattery {
 
 	// Insert the new device into the Device table
 	result, err := tx.Exec(`
-		INSERT INTO Device (Name, Type, Picture, RealEstate, IsOnline)
-		VALUES (?, ?, ?, ?, ?)
-	`, device.Device.Name, device.Device.Type, device.Device.Picture, device.Device.RealEstate,
+		INSERT INTO Device (Name, Type, RealEstate, IsOnline)
+		VALUES (?, ?, ?, ?)
+	`, device.Device.Name, device.Device.Type, device.Device.RealEstate,
 		device.Device.IsOnline)
 	if err != nil {
 		return models.HomeBattery{}

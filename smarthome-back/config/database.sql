@@ -29,9 +29,9 @@ CREATE TABLE device (
                         Id INT PRIMARY KEY AUTO_INCREMENT,
                         Name VARCHAR(255) NOT NULL,
                         Type INT NOT NULL,
-                        Picture VARCHAR(255),
                         RealEstate INT NOT NULL,
-                        IsOnline BOOLEAN
+                        IsOnline BOOLEAN,
+                        StatusTimeStamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE consumptionDevice (
@@ -61,28 +61,28 @@ CREATE TABLE homeBattery (
                             FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
-INSERT INTO user (Id, Email, Password, Name, Surname, Picture, Role)
+INSERT INTO user (Id, Email, Password, Name, Surname, Role)
 VALUES
     (1, 'nesa@gmail.com', '$2a$10$/fbbLLHt7hEZpMq3rQiWz.oF6cJRRNdO5Vek/NIGzAIyJp99jebrO', 'Nenad', 'Peric', 0),
     (2, 'nata@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Natasa', 'Maric', 1);
 
 INSERT INTO realestate (Id, Name, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId, DiscardReason)
 VALUES
-    (1, 'Villa B Dorm',  0, '123 Main St', 'Cityville', 150.5, 2, 'path/to/picture1.jpg', 0, 0, ''),
+    (1, 'Villa B Dorm',  0, '123 Main St', 'Cityville', 150.5, 2, 'path/to/picture1.jpg', 0, 1, ''),
     (2, 'Neka kuca nmp', 1, '456 Oak Ave', 'Townton', 200.75, 3, 'path/to/picture2.jpg', 1, 1, ''),
     (3, 'Joj stvarno nzm', 0, '789 Pine Ln', 'Villageto wn', 30.25, 1, 'path/to/picture3.jpg', 0, 1, ''),
     (4, 'Spavamise', 1, '101 Elm Blvd', 'Hamlet City', 700.0, 2, 'path/to/picture4.jpg', 2, 2, 'jer mi se moze'),
     (5, 'ma ne znam', 0, '102 Elm Blvd', 'Hamlet City', 65.0, 2, 'path/to/picture5.jpg', 0, 2, ''),
     (6, 'Spavamise2', 1, '103 Elm Blvd', 'Hamlet City', 70.0, 2, 'path/to/picture6.jpg', 0, 2, '');
 
-INSERT INTO device (Id, Name, Type, Picture, RealEstate, IsOnline)
+INSERT INTO device (Id, Name, Type, RealEstate, IsOnline, StatusTimeStamp)
 VALUES
-    (1, 'Masina Sladja', 2, '/images/washing_machine.png', 1, false),
-    (2, 'Prsk prsk', 5, '/images/sprinkler.png', 1, false),
-    (3, 'Neka klima', 1, '/images/lamp.png', 2, false),
-    (4, 'Panelcic', 6, '/images/solar_panel.png', 2, false),
-    (5, 'Punjac1', 8, '/images/solar_panel.png', 2, false),
-    (6, 'Baterija1', 7, '/images/solar_panel.png', 2, false);
+    (1, 'Masina Sladja', 2,  1, false, '2023-12-06 15:30:00'),
+    (2, 'Prsk prsk', 5, 1, false, '2023-12-06 15:30:00'),
+    (3, 'Neka klima', 1, 2, false, '2023-12-06 15:30:00'),
+    (4, 'Panelcic', 6, 2, false, '2023-12-06 15:30:00'),
+    (5, 'Punjac1', 8, 2, false, '2023-12-06 15:30:00'),
+    (6, 'Baterija1', 7, 2, false, '2023-12-06 15:30:00');
 
 INSERT INTO consumptionDevice (DeviceId, PowerSupply, PowerConsumption)
 VALUES

@@ -9,17 +9,17 @@ type ConsumptionDevice struct {
 	PowerConsumption float64 // only if power supply is "home", otherwise it's null
 }
 
-func NewConsumptionDeviceParam(name string, deviceType enumerations.DeviceType, img string, estate int,
+func NewConsumptionDeviceParam(name string, deviceType enumerations.DeviceType, estate int,
 	powerSupply enumerations.PowerSupplyType, consumption float64) ConsumptionDevice {
 	if powerSupply == enumerations.Home {
 		return ConsumptionDevice{
-			Device:           NewDevice(name, deviceType, img, estate),
+			Device:           NewDevice(name, deviceType, estate),
 			PowerSupply:      powerSupply,
 			PowerConsumption: consumption,
 		}
 	}
 	return ConsumptionDevice{
-		Device:           NewDevice(name, deviceType, img, estate),
+		Device:           NewDevice(name, deviceType, estate),
 		PowerSupply:      powerSupply,
 		PowerConsumption: 0,
 	}

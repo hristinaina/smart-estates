@@ -47,8 +47,8 @@ func (res *DeviceServiceImpl) GetAll() []models.Device {
 	for rows.Next() {
 		var device models.Device
 
-		if err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.Picture, &device.RealEstate,
-			&device.IsOnline); err != nil {
+		if err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.RealEstate,
+			&device.IsOnline, &device.StatusTimeStamp); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return []models.Device{}
 		}
@@ -72,7 +72,7 @@ func (res *DeviceServiceImpl) GetAllByEstateId(estateId int) []models.Device {
 	for rows.Next() {
 		var device models.Device
 		if err := rows.Scan(&device.Id, &device.Name, &device.Type,
-			&device.Picture, &device.RealEstate, &device.IsOnline); err != nil {
+			&device.RealEstate, &device.IsOnline, &device.StatusTimeStamp); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return []models.Device{}
 			//todo raise an exception and catch it in controller?
@@ -98,7 +98,7 @@ func (res *DeviceServiceImpl) Get(id int) (models.Device, error) {
 			device models.Device
 		)
 		if err := rows.Scan(&device.Id, &device.Name, &device.Type,
-			&device.Picture, &device.RealEstate, &device.IsOnline); err != nil {
+			&device.RealEstate, &device.IsOnline, &device.StatusTimeStamp); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return models.Device{}, err
 		}
@@ -127,9 +127,9 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 		// todo add new case after adding new Device Class
 	} else {
 		device = dto.ToDevice()
-		query := "INSERT INTO device (Name, Type, Picture, RealEstate, IsOnline)" +
-			"VALUES ( ?, ?, ?, ?, ?);"
-		result, err := res.db.Exec(query, device.Name, device.Type, device.Picture, device.RealEstate,
+		query := "INSERT INTO device (Name, Type, RealEstate, IsOnline)" +
+			"VALUES ( ?, ?, ?, ?);"
+		result, err := res.db.Exec(query, device.Name, device.Type, device.RealEstate,
 			device.IsOnline)
 		if CheckIfError(err) {
 			return models.Device{}, err
@@ -144,7 +144,7 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 
 func (ds *DeviceServiceImpl) getDevicesByUserID(userID int) ([]models.Device, error) {
 	// Perform a database query to get devices by user ID
-	rows, err := ds.db.Query("SELECT id, name, type, picture, realestate, isonline FROM device WHERE realestate IN (SELECT id FROM realestate WHERE userid = ?)", userID)
+	rows, err := ds.db.Query("SELECT id, name, type, realestate, isonline FROM device WHERE realestate IN (SELECT id FROM realestate WHERE userid = ?)", userID)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (ds *DeviceServiceImpl) getDevicesByUserID(userID int) ([]models.Device, er
 	var devices []models.Device
 	for rows.Next() {
 		var device models.Device
-		err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.Picture, &device.RealEstate, &device.IsOnline)
+		err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.RealEstate, &device.IsOnline)
 		if err != nil {
 			return nil, err
 		}

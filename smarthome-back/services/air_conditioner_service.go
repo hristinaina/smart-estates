@@ -26,9 +26,9 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 			Device.Id,
 			Device.Name,
 			Device.Type,
-			Device.Picture,
 			Device.RealEstate,
 			Device.IsOnline,
+			Device.StatusTimeStamp,
 			ConsumptionDevice.PowerSupply,
 			ConsumptionDevice.PowerConsumption,
 			AirConditioner.MinTemperature,
@@ -52,9 +52,9 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 		&device.Id,
 		&device.Name,
 		&device.Type,
-		&device.Picture,
 		&device.RealEstate,
 		&device.IsOnline,
+		&device.StatusTimeStamp,
 		&consDevice.PowerSupply,
 		&consDevice.PowerConsumption,
 		&ac.MinTemperature,
@@ -84,9 +84,9 @@ func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner
 
 	// Insert the new device into the Device table
 	result, err := tx.Exec(`
-		INSERT INTO Device (Name, Type, Picture, RealEstate, IsOnline)
-		VALUES (?, ?, ?, ?, ?)
-	`, device.Device.Device.Name, device.Device.Device.Type, device.Device.Device.Picture, device.Device.Device.RealEstate,
+		INSERT INTO Device (Name, Type, RealEstate, IsOnline)
+		VALUES (?, ?, ?, ?)
+	`, device.Device.Device.Name, device.Device.Device.Type, device.Device.Device.RealEstate,
 		device.Device.Device.IsOnline)
 	if err != nil {
 		return models.AirConditioner{}

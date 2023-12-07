@@ -15,9 +15,9 @@ func NewHomeBattery(device Device, size float64) HomeBattery {
 	}
 }
 
-func NewHomeBatteryParam(name string, deviceType enumerations.DeviceType, img string, estate int, size float64) HomeBattery {
+func NewHomeBatteryParam(name string, deviceType enumerations.DeviceType, estate int, size float64) HomeBattery {
 	return HomeBattery{
-		Device: NewDevice(name, deviceType, img, estate),
+		Device: NewDevice(name, deviceType, estate),
 		Size:   size,
 	}
 }
@@ -27,7 +27,6 @@ func (ac HomeBattery) ToDevice() Device {
 		Id:         ac.Device.Id,
 		Name:       ac.Device.Name,
 		Type:       ac.Device.Type,
-		Picture:    ac.Device.Picture,
 		RealEstate: ac.Device.RealEstate,
 		IsOnline:   ac.Device.IsOnline,
 	}

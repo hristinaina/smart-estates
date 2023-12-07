@@ -24,8 +24,6 @@ export class Lamp extends Component {
     }
 
     async componentDidMount() {
-        const result = await authService.validateUser();
-        if (!result) window.location.assign("/");
 
         const { device } = this.state;  // todo instead of this get device from back by deviceId
         const updatedData =
