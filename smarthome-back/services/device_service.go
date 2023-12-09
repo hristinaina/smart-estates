@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	_ "database/sql"
 	"errors"
-	"fmt"
 	_ "fmt"
 	_ "github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"smarthome-back/dto"
 	"smarthome-back/models/devices"
 	"smarthome-back/mqtt_client"
+	"smarthome-back/repositories"
 	"strconv"
 )
 
@@ -27,88 +27,29 @@ type DeviceServiceImpl struct {
 	evChargerService      EVChargerService
 	homeBatteryService    HomeBatteryService
 	mqtt                  *mqtt_client.MQTTClient
+	deviceRepository      repositories.DeviceRepository
 }
 
 // todo send mqtt to all device_services
 func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient) DeviceService {
 	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db), evChargerService: NewEVChargerService(db),
-		homeBatteryService: NewHomeBatteryService(db), mqtt: mqtt}
+		homeBatteryService: NewHomeBatteryService(db), mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db)}
 }
 
 func (res *DeviceServiceImpl) GetAll() []models.Device {
-	query := "SELECT * FROM device"
-	rows, err := res.db.Query(query)
-	if CheckIfError(err) {
-		return nil
-	}
-	defer rows.Close()
-
-	var devices []models.Device
-	for rows.Next() {
-		var device models.Device
-
-		if err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.RealEstate,
-			&device.IsOnline, &device.StatusTimeStamp); err != nil {
-			fmt.Println("Error: ", err.Error())
-			return []models.Device{}
-		}
-		devices = append(devices, device)
-		fmt.Println(device)
-	}
-
-	return devices
+	return res.deviceRepository.GetAll()
 }
 
 func (res *DeviceServiceImpl) GetAllByEstateId(estateId int) []models.Device {
-	query := "SELECT * FROM device WHERE REALESTATE = ?"
-	rows, err := res.db.Query(query, estateId)
-	if CheckIfError(err) {
-		//todo raise an exception and catch it in controller?
-		return nil
-	}
-	defer rows.Close()
-
-	var devices []models.Device
-	for rows.Next() {
-		var device models.Device
-		if err := rows.Scan(&device.Id, &device.Name, &device.Type,
-			&device.RealEstate, &device.IsOnline, &device.StatusTimeStamp); err != nil {
-			fmt.Println("Error: ", err.Error())
-			return []models.Device{}
-			//todo raise an exception and catch it in controller?
-		}
-		devices = append(devices, device)
-		fmt.Println(device)
-	}
-
-	return devices
+	return res.deviceRepository.GetAllByEstateId(estateId)
 }
 
 func (res *DeviceServiceImpl) Get(id int) (models.Device, error) {
-	query := "SELECT * FROM device WHERE ID = ?"
-	rows, err := res.db.Query(query, id)
-
-	if CheckIfError(err) {
-		return models.Device{}, nil
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var (
-			device models.Device
-		)
-		if err := rows.Scan(&device.Id, &device.Name, &device.Type,
-			&device.RealEstate, &device.IsOnline, &device.StatusTimeStamp); err != nil {
-			fmt.Println("Error: ", err.Error())
-			return models.Device{}, err
-		}
-		return device, nil
-	}
-	return models.Device{}, err
+	return res.deviceRepository.Get(id)
 }
 
 func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
-	devices, err := res.getDevicesByUserID(dto.UserId)
+	devices, err := res.deviceRepository.GetDevicesByUserID(dto.UserId)
 	if err != nil {
 		return models.Device{}, err
 	}
@@ -140,31 +81,4 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 
 	res.mqtt.Publish(mqtt_client.TopicNewDevice+strconv.Itoa(device.Id), "new device created")
 	return device, nil
-}
-
-func (ds *DeviceServiceImpl) getDevicesByUserID(userID int) ([]models.Device, error) {
-	// Perform a database query to get devices by user ID
-	rows, err := ds.db.Query("SELECT id, name, type, realestate, isonline FROM device WHERE realestate IN (SELECT id FROM realestate WHERE userid = ?)", userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	// Iterate over the query result and populate the devices slice
-	var devices []models.Device
-	for rows.Next() {
-		var device models.Device
-		err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.RealEstate, &device.IsOnline)
-		if err != nil {
-			return nil, err
-		}
-		devices = append(devices, device)
-	}
-
-	// Check for errors during iteration
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return devices, nil
 }
