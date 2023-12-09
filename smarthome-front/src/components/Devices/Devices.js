@@ -12,6 +12,8 @@ import ImageService from '../../services/ImageService';
 import { DeviceUnknown } from '@mui/icons-material';
 
 export class Devices extends Component {
+    connected = false;
+
     constructor(props) {
         super(props);
         this.state = {
@@ -34,7 +36,7 @@ export class Devices extends Component {
                 const imageUrl = await ImageService.getImage("devices&" + device.Name);
                 deviceImages[device.Id] = imageUrl;
             }
-            await this.setState({deviceImages});
+            await this.setState({ deviceImages });
         } catch (error) {
             console.log("Error fetching data from the server");
             console.log(error);
@@ -44,19 +46,24 @@ export class Devices extends Component {
         this.setState({ name: result.Name });
 
         try {
-            this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
-                clientId: "react-front-nvt-2023-devices",
-            });
+            if (!this.connected) {  // to avoid reconnecting because this renders 2 times !!!
+                this.connected = true;
+                this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
+                    clientId: "react-front-nvt-2023-devices",
+                    clean: false,
+                    keepalive: 60
+                });
+                console.log("Connected to mqtt broker");
+                // Subscribe to the MQTT topic for device status
+                this.mqttClient.on('connect', () => {
+                    this.mqttClient.subscribe('device/status/+');
+                });
 
-            // Subscribe to the MQTT topic for device status
-            this.mqttClient.on('connect', () => {
-                this.mqttClient.subscribe('device/status/+');
-            });
-
-            // Handle incoming MQTT messages
-            this.mqttClient.on('message', (topic, message) => {
-                this.handleMqttMessage(topic, message);
-            });
+                // Handle incoming MQTT messages
+                this.mqttClient.on('message', (topic, message) => {
+                    this.handleMqttMessage(topic, message);
+                });
+            }
         } catch (error) {
             console.log("Error trying to connect to broker");
             console.log(error);
@@ -72,6 +79,7 @@ export class Devices extends Component {
 
     // Handle incoming MQTT messages
     handleMqttMessage(topic, message) {
+        console.log("handle message");
         this.setState((prevState) => {
             const { data } = prevState;
             const deviceId = parseInt(this.extractDeviceIdFromTopic(topic));
@@ -137,7 +145,7 @@ export class Devices extends Component {
                     </p>
                 </div>
                 <Divider style={{ width: "87%", marginLeft: 'auto', marginRight: 'auto', marginBottom: '20px' }} />
-                <DevicesList devices={data} deviceImages={deviceImages} onClick={this.handleClick} connecting={connecting}/>
+                <DevicesList devices={data} deviceImages={deviceImages} onClick={this.handleClick} connecting={connecting} />
             </div>
         )
     }

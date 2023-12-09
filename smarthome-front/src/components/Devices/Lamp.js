@@ -3,16 +3,14 @@ import { Component } from 'react';
 import './Devices.css';
 import { Navigation } from '../Navigation/Navigation';
 import mqtt from 'mqtt';
-import { useParams } from 'react-router-dom';
-import { width } from '@mui/system';
-import { Link } from 'react-router-dom';
 import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import authService from '../../services/AuthService';
 
 
 export class Lamp extends Component {
+    connected = false;
+
     constructor(props) {
         super(props);
         this.state = {
@@ -36,19 +34,24 @@ export class Lamp extends Component {
         });
 
         try {
-            this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
-                clientId: "react-front-nvt-2023-lamp",
-              });
+            if (!this.connected) {
+                this.connected = true;
+                this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
+                    clientId: "react-front-nvt-2023-lamp",
+                    clean: false,
+                    keepalive: 60
+                });
 
-            // Subscribe to the MQTT topic for device status
-            this.mqttClient.on('connect', () => {
-                this.mqttClient.subscribe('device/data/' + this.id);
-            });
+                // Subscribe to the MQTT topic for device status
+                this.mqttClient.on('connect', () => {
+                    this.mqttClient.subscribe('device/data/' + this.id);
+                });
 
-            // Handle incoming MQTT messages
-            this.mqttClient.on('message', (topic, message) => {
-                this.handleMqttMessage(topic, message);
-            });
+                // Handle incoming MQTT messages
+                this.mqttClient.on('message', (topic, message) => {
+                    this.handleMqttMessage(topic, message);
+                });
+            }
         } catch (error) {
             console.log("Error trying to connect to broker");
             console.log(error);
@@ -63,7 +66,7 @@ export class Lamp extends Component {
     }
 
     handleSwitchToggle = () => {
-        const topic = "lamp/switch/"+this.id;
+        const topic = "lamp/switch/" + this.id;
 
         this.setState((prevState) => ({
             switchOn: !prevState.switchOn,
@@ -91,7 +94,7 @@ export class Lamp extends Component {
         return parts[parts.length - 1];
     }
 
-    handleBackArrow(){
+    handleBackArrow() {
         window.location.assign("/devices")
     }
 
@@ -101,7 +104,7 @@ export class Lamp extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor:"pointer" }} onClick={this.handleBackArrow}/>
+                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
                 <div style={{ width: "fit-content", marginLeft: "auto", marginRight: "auto", marginTop: "10%" }}>
                     <p className='device-title'>Id: {this.id}</p>
                     {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
