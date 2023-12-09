@@ -5,6 +5,7 @@ import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"os"
+	"smarthome-back/repositories"
 	"time"
 )
 
@@ -20,8 +21,8 @@ const (
 )
 
 type MQTTClient struct {
-	client mqtt.Client
-	db     *sql.DB
+	client           mqtt.Client
+	deviceRepository repositories.DeviceRepository
 	//todo add influxdb
 }
 
@@ -50,8 +51,8 @@ func NewMQTTClient(db *sql.DB) *MQTTClient {
 		return nil
 	}
 	return &MQTTClient{
-		client: client,
-		db:     db,
+		client:           client,
+		deviceRepository: repositories.NewDeviceRepository(db),
 		//todo add influxdb
 	}
 }

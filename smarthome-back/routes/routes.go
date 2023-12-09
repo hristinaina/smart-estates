@@ -49,8 +49,8 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient) {
 	{
 		deviceController := controllers.NewDeviceController(db, mqtt)
 		middleware := middleware.NewMiddleware(db)
-		deviceRoutes.GET("/:id", middleware.RequireAuth, deviceController.Get)
-		deviceRoutes.GET("/", middleware.RequireAuth, deviceController.GetAll)
+		deviceRoutes.GET("/:id", deviceController.Get)
+		deviceRoutes.GET("/", deviceController.GetAll)
 		deviceRoutes.GET("/estate/:estateId", middleware.RequireAuth, deviceController.GetAllByEstateId)
 		deviceRoutes.POST("/", middleware.RequireAuth, deviceController.Add)
 	}

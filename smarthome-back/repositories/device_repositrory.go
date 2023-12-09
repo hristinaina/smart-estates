@@ -11,6 +11,7 @@ type DeviceRepository interface {
 	Get(id int) (models.Device, error)
 	GetAll() []models.Device
 	GetDevicesByUserID(userID int) ([]models.Device, error)
+	Update(device models.Device) bool
 }
 
 type DeviceRepositoryImpl struct {
@@ -39,7 +40,6 @@ func (res *DeviceRepositoryImpl) GetAll() []models.Device {
 			return []models.Device{}
 		}
 		devices = append(devices, device)
-		fmt.Println(device)
 	}
 
 	return devices
@@ -63,7 +63,6 @@ func (res *DeviceRepositoryImpl) GetAllByEstateId(estateId int) []models.Device 
 			return []models.Device{}
 		}
 		devices = append(devices, device)
-		fmt.Println(device)
 	}
 
 	return devices
@@ -117,4 +116,14 @@ func (res *DeviceRepositoryImpl) GetDevicesByUserID(userID int) ([]models.Device
 	}
 
 	return devices, nil
+}
+
+func (res *DeviceRepositoryImpl) Update(device models.Device) bool {
+	query := "UPDATE device SET name = ?, type = ?, realestate = ?, isonline = ?, statustimestamp = ? WHERE id = ?"
+	_, err := res.db.Exec(query, device.Name, device.Type, device.RealEstate, device.IsOnline, device.StatusTimeStamp, device.Id)
+	if err != nil {
+		fmt.Println("Failed to update device:", err)
+		return false
+	}
+	return true
 }

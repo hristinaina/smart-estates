@@ -6,7 +6,6 @@ import (
 	"errors"
 	_ "fmt"
 	_ "github.com/gin-gonic/gin"
-	_ "github.com/go-sql-driver/mysql"
 	"smarthome-back/dto"
 	"smarthome-back/models/devices"
 	"smarthome-back/mqtt_client"
