@@ -34,7 +34,8 @@ type DeviceServiceImpl struct {
 // todo send mqtt to all device_services
 func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient) DeviceService {
 	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db), evChargerService: NewEVChargerService(db),
-		homeBatteryService: NewHomeBatteryService(db), mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db)}
+		homeBatteryService: NewHomeBatteryService(db), lampService: services.NewLampService(db),
+		mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db)}
 }
 
 func (res *DeviceServiceImpl) GetAll() []models.Device {
