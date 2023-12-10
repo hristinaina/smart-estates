@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	_ "database/sql"
 	"errors"
-	_ "fmt"
+	"fmt"
 	_ "github.com/gin-gonic/gin"
 	"smarthome-back/dto"
 	"smarthome-back/models/devices"
 	"smarthome-back/mqtt_client"
-	services "smarthome-back/services/devices"
 	"smarthome-back/repositories"
+	services "smarthome-back/services/devices"
 	"strconv"
 )
 

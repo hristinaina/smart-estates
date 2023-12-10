@@ -17,7 +17,7 @@ func NewLampRepository(db *sql.DB) *LampRepository {
 }
 
 func (rl *LampRepository) Get(id int) (devices.Lamp, error) {
-	query := `SELECT Device.Id, Device.Name, Device.Type, Device.Picture, Device.RealEstate, Device.IsOnline,
+	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, Lamp.IsOn, Lamp.LightningLevel
 			  FROM Lamp 
     		  JOIN ConsumptionDevice ON Lamp.DeviceId = ConsumptionDevice.DeviceId
@@ -34,7 +34,7 @@ func (rl *LampRepository) Get(id int) (devices.Lamp, error) {
 }
 
 func (rl *LampRepository) GetAll() ([]devices.Lamp, error) {
-	query := `SELECT Device.Id, Device.Name, Device.Type, Device.Picture, Device.RealEstate, Device.IsOnline,
+	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, Lamp.IsOn, Lamp.LightningLevel
 			  FROM Lamp 
     		  JOIN ConsumptionDevice ON Lamp.DeviceId = ConsumptionDevice.DeviceId
@@ -83,7 +83,7 @@ func ScanRows(rows *sql.Rows) ([]devices.Lamp, error) {
 			lamp       devices.Lamp
 		)
 
-		if err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.Picture, &device.RealEstate,
+		if err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.RealEstate,
 			&device.IsOnline, &consDevice.PowerSupply, &consDevice.PowerConsumption, &lamp.IsOn, &lamp.LightningLevel); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return []devices.Lamp{}, err

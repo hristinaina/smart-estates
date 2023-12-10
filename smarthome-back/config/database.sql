@@ -55,6 +55,13 @@ CREATE TABLE evCharger (
                         FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
+CREATE TABLE lamp (
+	DeviceId INT PRIMARY KEY,
+    IsOn bool,
+    LightningLevel int,
+    FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
+);
+
 CREATE TABLE homeBattery (
                             DeviceId INT PRIMARY KEY,
                             Size DOUBLE NOT NULL,
@@ -82,13 +89,17 @@ VALUES
     (3, 'Neka klima', 1, 2, false, '2023-12-06 15:30:00'),
     (4, 'Panelcic', 6, 2, false, '2023-12-06 15:30:00'),
     (5, 'Punjac1', 8, 2, false, '2023-12-06 15:30:00'),
-    (6, 'Baterija1', 7, 2, false, '2023-12-06 15:30:00');
+    (6, 'Baterija1', 7, 2, false, '2023-12-06 15:30:00'), 
+	(7, 'Lampica u sobici', 3, 1, false, '2023-12-06 15:30:00'),
+    (8, 'Lampetina', 3, 1, false, '2023-12-06 15:30:00');
 
 INSERT INTO consumptionDevice (DeviceId, PowerSupply, PowerConsumption)
 VALUES
     (1, 1, 200),
     (2, 0, 0),
-    (3, 1, 300);
+    (3, 1, 300),
+	(7, 0, 50),
+    (8, 1, 75);
 
 INSERT INTO airConditioner (DeviceId, MinTemperature, MaxTemperature)
 VALUES
@@ -97,6 +108,11 @@ VALUES
 INSERT INTO evCharger (DeviceId, ChargingPower, Connections)
 VALUES
     (5, 10, 2);
+    
+INSERT INTO lamp(DeviceId, IsOn, LightningLevel)
+VALUES
+	(7, false, 0),
+    (8, true, 2);
 
 INSERT INTO homeBattery (DeviceId, Size)
 VALUES

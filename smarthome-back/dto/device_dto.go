@@ -79,7 +79,6 @@ func (dto *DeviceDTO) ToLamp() m.Lamp {
 				Id:         dto.Id,
 				Name:       dto.Name,
 				Type:       dto.Type,
-				Picture:    dto.Picture,
 				RealEstate: dto.RealEstate,
 				IsOnline:   dto.IsOnline,
 			},

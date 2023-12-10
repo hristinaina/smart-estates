@@ -67,13 +67,16 @@ func (ls *LampServiceImpl) Add(dto dto.DeviceDTO) (models.Lamp, error) {
 		return models.Lamp{}, err
 	}
 	defer tx.Rollback()
+	//currentTime := mysql.NullTime{
+	//	Time:  time.Now(),
+	//	Valid: true,
+	//}
 
 	result, err := tx.Exec(`
-		INSERT INTO Device (Name, Type, Picture, RealEstate, IsOnline)
-		VALUES (?, ?, ?, ?, ?)
+		INSERT INTO Device (Name, Type, RealEstate, IsOnline)
+		VALUES (?, ?, ?, ?)
 	`, device.ConsumptionDevice.Device.Name, device.ConsumptionDevice.Device.Type,
-		device.ConsumptionDevice.Device.Picture, device.ConsumptionDevice.Device.RealEstate,
-		device.ConsumptionDevice.Device.IsOnline)
+		device.ConsumptionDevice.Device.RealEstate, device.ConsumptionDevice.Device.IsOnline)
 	if err != nil {
 		return models.Lamp{}, err
 	}

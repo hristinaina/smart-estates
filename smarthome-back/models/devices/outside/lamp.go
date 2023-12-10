@@ -25,7 +25,6 @@ func (lamp Lamp) ToDevice() models.Device {
 		Id:         lamp.ConsumptionDevice.Device.Id,
 		Name:       lamp.ConsumptionDevice.Device.Name,
 		Type:       lamp.ConsumptionDevice.Device.Type,
-		Picture:    lamp.ConsumptionDevice.Device.Picture,
 		RealEstate: lamp.ConsumptionDevice.Device.RealEstate,
 		IsOnline:   lamp.ConsumptionDevice.Device.IsOnline,
 	}
