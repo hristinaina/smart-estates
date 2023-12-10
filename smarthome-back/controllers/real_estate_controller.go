@@ -47,6 +47,7 @@ func (rec RealEstateController) Get(c *gin.Context) {
 	}
 	realEstate, err := rec.service.Get(id)
 	if CheckIfError(err, c) {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, realEstate)

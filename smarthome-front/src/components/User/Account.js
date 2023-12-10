@@ -29,6 +29,9 @@ const Account = () => {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   useEffect(() => {
+    const valid = authService.validateUser();
+    if (!valid) window.location.assign("/");
+
     const user = authService.getCurrentUser();
     setImage(user.Email.replace('@', ''));
     setName(user.Name)

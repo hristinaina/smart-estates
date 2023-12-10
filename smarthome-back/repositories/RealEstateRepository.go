@@ -44,7 +44,10 @@ func (rer *RealEstateRepository) Get(id int) (models.RealEstate, error) {
 	}
 	defer rows.Close()
 	estates, err := ScanRows(rows)
-	return estates[0], err
+	if estates != nil {
+		return estates[0], err
+	}
+	return models.RealEstate{}, err
 }
 
 func (rer *RealEstateRepository) GetPending() ([]models.RealEstate, error) {

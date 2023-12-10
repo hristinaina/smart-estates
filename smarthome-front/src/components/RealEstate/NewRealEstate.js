@@ -72,6 +72,9 @@ export class NewRealEstate extends Component {
     ];
 
     async componentDidMount() {
+        const valid = authService.validateUser();
+        if (!valid) window.location.assign("/");
+
         const currentUser = authService.getCurrentUser();
         await this.setState({ userId: currentUser.Id, });
     }
