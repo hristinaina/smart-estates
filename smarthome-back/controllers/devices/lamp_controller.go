@@ -98,3 +98,17 @@ func (lc LampController) Add(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, lamp)
 }
+
+func (lc LampController) Delete(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+	isDeleted, err := lc.service.Delete(id)
+	if err != nil {
+		c.JSON(404, gin.H{"error": "Lamp with selected id not found"})
+		return
+	}
+
+	c.JSON(204, isDeleted)
+}
