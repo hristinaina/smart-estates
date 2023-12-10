@@ -107,3 +107,7 @@ func (dto *DeviceDTO) ToDevice() models.Device {
 		IsOnline:   dto.IsOnline,
 	}
 }
+
+func (dto *DeviceDTO) ToString() string {
+	return "[Device] = Name: " + dto.Name
+}

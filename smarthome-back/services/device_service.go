@@ -11,6 +11,7 @@ import (
 	"smarthome-back/dto"
 	"smarthome-back/models/devices"
 	"smarthome-back/mqtt_client"
+	services "smarthome-back/services/devices"
 	"strconv"
 )
 
@@ -26,6 +27,7 @@ type DeviceServiceImpl struct {
 	airConditionerService AirConditionerService
 	evChargerService      EVChargerService
 	homeBatteryService    HomeBatteryService
+	lampService           services.LampService
 	mqtt                  *mqtt_client.MQTTClient
 }
 
@@ -120,6 +122,14 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 	var device models.Device
 	if dto.Type == 1 {
 		device = res.airConditionerService.Add(dto).ToDevice()
+	} else if dto.Type == 3 {
+		fmt.Println("DEVICEEEEE")
+		fmt.Println(dto.ToString())
+		lamp, err := res.lampService.Add(dto)
+		if err != nil {
+			return models.Device{}, err
+		}
+		device = lamp.ToDevice()
 	} else if dto.Type == 8 {
 		device = res.evChargerService.Add(dto).ToDevice()
 	} else if dto.Type == 7 {
