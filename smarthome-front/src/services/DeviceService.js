@@ -2,9 +2,17 @@ class DeviceService {
 
   async getDevices(realEstateId) {
     try {
-        const response = await fetch('http://localhost:8081/api/devices/estate/' + realEstateId);
+        const response = await fetch('http://localhost:8081/api/devices/estate/' + realEstateId, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
         const data = await response.json();
-        return this.replaceTypeWithString(data);
+        if (data != null)
+          return this.replaceTypeWithString(data);
+        else return [];
       } catch (error) {
         console.error('Error fetching data:', error);
         throw error;
@@ -35,14 +43,17 @@ class DeviceService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(device),
+        credentials: 'include',
       });
       if (!response.ok){
-        throw new Error(`Device name must be unique per user.`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Unknown error occurred");
       }
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching data:', error.message);
+      if (error.message == "Unexpected end of JSON input") return null;
       throw error;
     }
   }

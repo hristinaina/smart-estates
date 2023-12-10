@@ -12,7 +12,7 @@ func main() {
 	client := config.CreateConnection()
 	devices, err := config.GetAllDevices()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error happened:", err)
 	} else {
 		fmt.Println("Devices successfully loaded!")
 	}

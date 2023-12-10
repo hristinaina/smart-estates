@@ -137,7 +137,7 @@ const Registration = () => {
           name += "." + substr;
           console.log("nameeee");
           console.log(name);
-          await ImageService.uploadImage(formData, name);
+          ImageService.uploadImage(formData, name);
         } catch (error) {
             console.log("Error");
             console.error(error);

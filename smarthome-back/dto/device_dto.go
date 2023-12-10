@@ -10,7 +10,6 @@ type DeviceDTO struct {
 	Id               int
 	Name             string
 	Type             enumerations.DeviceType
-	Picture          string // todo change this later (upload picture)
 	RealEstate       int
 	IsOnline         bool
 	PowerSupply      enumerations.PowerSupplyType
@@ -33,7 +32,6 @@ func (dto *DeviceDTO) ToAirConditioner() models.AirConditioner {
 				Id:         dto.Id,
 				Name:       dto.Name,
 				Type:       dto.Type,
-				Picture:    dto.Picture,
 				RealEstate: dto.RealEstate,
 				IsOnline:   dto.IsOnline,
 			},
@@ -52,7 +50,6 @@ func (dto *DeviceDTO) ToEVCharger() models.EVCharger {
 			Id:         dto.Id,
 			Name:       dto.Name,
 			Type:       dto.Type,
-			Picture:    dto.Picture,
 			RealEstate: dto.RealEstate,
 			IsOnline:   dto.IsOnline,
 		},
@@ -68,7 +65,6 @@ func (dto *DeviceDTO) ToHomeBattery() models.HomeBattery {
 			Id:         dto.Id,
 			Name:       dto.Name,
 			Type:       dto.Type,
-			Picture:    dto.Picture,
 			RealEstate: dto.RealEstate,
 			IsOnline:   dto.IsOnline,
 		},
@@ -102,7 +98,6 @@ func (dto *DeviceDTO) ToDevice() models.Device {
 		Id:         dto.Id,
 		Name:       dto.Name,
 		Type:       dto.Type,
-		Picture:    dto.Picture,
 		RealEstate: dto.RealEstate,
 		IsOnline:   dto.IsOnline,
 	}

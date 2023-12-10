@@ -48,6 +48,11 @@ export class NewDevice extends Component {
         { value: 8, label: 'Electric vehicle charger' },
     ];
 
+    async componentDidMount() {
+        const result = await authService.validateUser();
+        if (!result) window.location.assign("/");
+    }
+
     handleTypeChange = (event) => {
         const selectedType = event.target.value;
 
@@ -242,7 +247,7 @@ export class NewDevice extends Component {
             var name = String(document.getElementsByName('name')[0].value).trim();
             const substr = this.state.selectedImage.name.split(".")[1].trim();
             name += "." + substr;
-            await ImageService.uploadImage(formData, "devices&" + name);
+            ImageService.uploadImage(formData, "devices&" + name);
             window.location.assign("/devices")
         } catch (error) {
             this.setState({ snackbarMessage: "Device name must be unique per user." });

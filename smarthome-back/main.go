@@ -1,14 +1,12 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"smarthome-back/config"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/routes"
 	"smarthome-back/services"
-
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -26,27 +24,23 @@ func main() {
 	//	fmt.Println("Error while opening session on aws")
 	//	panic(err)
 	//}
-	resetDbOnStart(db)
 
-	mqttClient := mqtt_client.NewMQTTClient(db)
+	influxDb, err := config.SetupInfluxDb()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	mqttClient := mqtt_client.NewMQTTClient(db, influxDb)
 	if mqttClient == nil {
 		fmt.Println("Failed to connect to mqtt broker")
 	} else {
 		mqttClient.StartListening()
 		fmt.Println("Started listening to mqtt topics.")
 	}
-	routes.SetupRoutes(r, db, mqttClient)
 
+	routes.SetupRoutes(r, db, mqttClient)
 	gs := services.NewGenerateSuperAdmin(db)
 	gs.GenerateSuperadmin()
 
 	r.Run(":8081")
-}
-
-func resetDbOnStart(db *sql.DB) {
-	query := "UPDATE device SET IsOnline = false"
-	_, err := db.Exec(query)
-	if err != nil {
-		fmt.Println("Failed to update devices status")
-	}
 }

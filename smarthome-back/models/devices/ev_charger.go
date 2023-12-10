@@ -17,10 +17,10 @@ func NewEVCharger(device Device, power float64, connections uint) EVCharger {
 	}
 }
 
-func NewEVChargerParam(name string, deviceType enumerations.DeviceType, img string, estate int,
+func NewEVChargerParam(name string, deviceType enumerations.DeviceType, estate int,
 	power float64, connections uint) EVCharger {
 	return EVCharger{
-		Device:        NewDevice(name, deviceType, img, estate),
+		Device:        NewDevice(name, deviceType, estate),
 		ChargingPower: power,
 		Connections:   connections,
 	}
@@ -31,7 +31,6 @@ func (ac EVCharger) ToDevice() Device {
 		Id:         ac.Device.Id,
 		Name:       ac.Device.Name,
 		Type:       ac.Device.Type,
-		Picture:    ac.Device.Picture,
 		RealEstate: ac.Device.RealEstate,
 		IsOnline:   ac.Device.IsOnline,
 	}
