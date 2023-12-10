@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"os"
 	"smarthome-back/repositories"
 	"time"
@@ -23,10 +24,10 @@ const (
 type MQTTClient struct {
 	client           mqtt.Client
 	deviceRepository repositories.DeviceRepository
-	//todo add influxdb
+	influxDb         influxdb2.Client
 }
 
-func NewMQTTClient(db *sql.DB) *MQTTClient {
+func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 	opts := mqtt.NewClientOptions().AddBroker("ws://localhost:9001/mqtt")
 	opts.SetClientID("go-server-nvt-2023")
 	opts.OnConnectionLost = func(client mqtt.Client, err error) {
@@ -53,7 +54,7 @@ func NewMQTTClient(db *sql.DB) *MQTTClient {
 	return &MQTTClient{
 		client:           client,
 		deviceRepository: repositories.NewDeviceRepository(db),
-		//todo add influxdb
+		influxDb:         influxDb,
 	}
 }
 

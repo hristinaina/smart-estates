@@ -4,6 +4,8 @@ import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-sql-driver/mysql"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	models "smarthome-back/models/devices"
 	"strconv"
 	"strings"
 	"time"
@@ -24,12 +26,18 @@ func (mc *MQTTClient) HandleHeartBeat(client mqtt.Client, msg mqtt.Message) {
 		if err != nil {
 			fmt.Println(err)
 		}
-		//todo save to influxdb
-	}
-	device.IsOnline = true
-	device.StatusTimeStamp = mysql.NullTime{
-		Time:  time.Now(),
-		Valid: true,
+		device.IsOnline = true
+		device.StatusTimeStamp = mysql.NullTime{
+			Time:  time.Now(),
+			Valid: true,
+		}
+		saveToInfluxDb(mc.influxDb, device)
+	} else {
+		device.IsOnline = true
+		device.StatusTimeStamp = mysql.NullTime{
+			Time:  time.Now(),
+			Valid: true,
+		}
 	}
 	mc.deviceRepository.Update(device)
 	fmt.Printf("Device is online, id=%d\n", deviceId)
@@ -49,10 +57,34 @@ func (mc *MQTTClient) CheckDeviceStatus() {
 			}
 			mc.deviceRepository.Update(device)
 			err := mc.Publish(TopicStatusChanged+strconv.Itoa(device.Id), "offline")
-			//todo save to influxdb
+			saveToInfluxDb(mc.influxDb, device)
 			if err != nil {
 				return
 			}
 		}
 	}
+}
+
+func saveToInfluxDb(client influxdb2.Client, device models.Device) {
+	Org := "Smart Home"
+	Bucket := "bucket"
+	writeAPI := client.WriteAPI(Org, Bucket)
+
+	p := influxdb2.NewPoint("device_status", //table
+		map[string]string{"device_id": strconv.Itoa(device.Id)}, //tag
+		map[string]interface{}{"status": func() int {
+			if device.IsOnline {
+				return 1
+			} else {
+				return 0
+			}
+		}()}, //field
+		device.StatusTimeStamp.Time)
+
+	// Write the point to InfluxDB
+	writeAPI.WritePoint(p)
+
+	// Close the write API to flush the buffer and release resources
+	writeAPI.Flush()
+	fmt.Println("Saved status change to influxdb")
 }

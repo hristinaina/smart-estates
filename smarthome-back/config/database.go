@@ -12,6 +12,11 @@ import (
 	"time"
 )
 
+const (
+	Org    = "Smart Home"
+	Bucket = "bucket"
+)
+
 func SetupDatabase() *sql.DB {
 
 	database, err := sql.Open("mysql", "root:siit2020@tcp(localhost:3306)/smart_home")
@@ -32,23 +37,25 @@ func SetupDatabase() *sql.DB {
 
 // SetupInfluxDb this function is the same as function main in influxdb module
 // this is created just in case if we have problems with working in different modules
-func SetupInfluxDb() {
+func SetupInfluxDb() (influxdb2.Client, error) {
 	// connecting to database
 	var service = services.NewConfigService()
 	token, err := service.GetToken("config/config.json")
 	if err != nil {
 		fmt.Println("Error happened while connecting with InfluxDb!")
-		return
+		return nil, err
 	}
 
-	url := "http://127.0.0.1:8086"
+	url := "http://localhost:8086"
 	client := influxdb2.NewClient(url, token)
 
+	return client, nil
+}
+
+func TestInfluxDb(client influxdb2.Client) {
 	// writing data example
 	// this is our organization
-	org := "Smart Home"
-	bucket := "bucket"
-	writeAPI := client.WriteAPIBlocking(org, bucket)
+	writeAPI := client.WriteAPIBlocking(Org, Bucket)
 	for value := 0; value < 5; value++ {
 		tags := map[string]string{
 			"Device Name": "Thermometer",
@@ -69,7 +76,7 @@ func SetupInfluxDb() {
 
 	// executing query
 	// reading data example
-	queryAPI := client.QueryAPI(org)
+	queryAPI := client.QueryAPI(Org)
 	// we are printing data that came in the last 10 minutes
 	query := `from(bucket: "bucket")
             |> range(start: -10m)

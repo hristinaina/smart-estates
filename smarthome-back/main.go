@@ -25,15 +25,20 @@ func main() {
 	//	panic(err)
 	//}
 
-	mqttClient := mqtt_client.NewMQTTClient(db)
+	influxDb, err := config.SetupInfluxDb()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	mqttClient := mqtt_client.NewMQTTClient(db, influxDb)
 	if mqttClient == nil {
 		fmt.Println("Failed to connect to mqtt broker")
 	} else {
 		mqttClient.StartListening()
 		fmt.Println("Started listening to mqtt topics.")
 	}
-	routes.SetupRoutes(r, db, mqttClient)
 
+	routes.SetupRoutes(r, db, mqttClient)
 	gs := services.NewGenerateSuperAdmin(db)
 	gs.GenerateSuperadmin()
 

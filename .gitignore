@@ -1,4 +1,4 @@
 
 smarthome-back/config/config.json
 smarthome-back/influxdb_go_client/influxdb_go_client/config.json
-simulation\config\broker\data\mosquitto.db
+simulation/config/broker/data/mosquitto.db
