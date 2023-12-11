@@ -6,6 +6,7 @@ import mqtt from 'mqtt';
 import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import authService from '../../services/AuthService'
 
 
 export class Lamp extends Component {
@@ -22,6 +23,8 @@ export class Lamp extends Component {
     }
 
     async componentDidMount() {
+        const valid = await authService.validateUser();
+        if (!valid) window.location.assign("/");
 
         const { device } = this.state;  // todo instead of this get device from back by deviceId
         const updatedData =

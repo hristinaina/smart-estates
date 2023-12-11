@@ -26,6 +26,9 @@ export class RealEstates extends Component {
     }
 
     async componentDidMount() {
+        const valid = authService.validateUser();
+        if (!valid) window.location.assign("/");
+
         const currentUser = authService.getCurrentUser();
         if (currentUser['Role'] === 0 || currentUser['Role'] === 2) {
             await this.setState({isAdmin: true});

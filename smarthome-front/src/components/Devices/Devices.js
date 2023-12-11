@@ -7,12 +7,14 @@ import { Divider } from '@mui/material';
 import { Link } from 'react-router-dom';
 import RealEstateService from '../../services/RealEstateService'
 import mqtt from 'mqtt';
+import authService from '../../services/AuthService'
 
 import ImageService from '../../services/ImageService';
 import { DeviceUnknown } from '@mui/icons-material';
 
 export class Devices extends Component {
     connected = false;
+    navigationToNewDevice = false;
 
     constructor(props) {
         super(props);
@@ -27,6 +29,9 @@ export class Devices extends Component {
     }
 
     async componentDidMount() {
+        const valid = await authService.validateUser();
+        if (!valid) window.location.assign("/");
+
         try {
             const result = await DeviceService.getDevices(this.id);
             this.setState({ data: result });
@@ -40,6 +45,7 @@ export class Devices extends Component {
         } catch (error) {
             console.log("Error fetching data from the server");
             console.log(error);
+            window.location.assign("/");
         }
 
         const result = await RealEstateService.getById(this.id);
@@ -74,6 +80,9 @@ export class Devices extends Component {
         // Disconnect MQTT client on component unmount
         if (this.mqttClient) {
             this.mqttClient.end();
+        }
+        if (!this.navigationToNewDevice && this.connected) {
+            localStorage.removeItem('real-estate');
         }
     }
 
@@ -128,6 +137,10 @@ export class Devices extends Component {
         return parts[parts.length - 1];
     }
 
+    handleNavigationToNewDevice = () => {
+        this.navigationToNewDevice = true;
+    };
+
     render() {
         const { data, deviceImages, name } = this.state;
         const connecting = this.connecting;
@@ -138,7 +151,7 @@ export class Devices extends Component {
                     <Link to="/real-estates"><img src='/images/arrow.png' id='arrow' /></Link>
                     <span className='estate-title'>{name}</span>
                     <p id="add-device">
-                        <Link to="/new-device">
+                        <Link to="/new-device" onClick={this.handleNavigationToNewDevice}>
                             <img alt="." src="/images/plus.png" id="plus" />
                             Add Device
                         </Link>
