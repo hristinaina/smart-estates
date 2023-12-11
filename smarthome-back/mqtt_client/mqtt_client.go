@@ -7,6 +7,7 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"os"
 	"smarthome-back/repositories"
+	repositories2 "smarthome-back/repositories/devices"
 	"time"
 )
 
@@ -24,6 +25,7 @@ const (
 type MQTTClient struct {
 	client           mqtt.Client
 	deviceRepository repositories.DeviceRepository
+	lampRepository   repositories2.LampRepository
 	influxDb         influxdb2.Client
 }
 
@@ -54,12 +56,14 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 	return &MQTTClient{
 		client:           client,
 		deviceRepository: repositories.NewDeviceRepository(db),
+		lampRepository:   repositories2.NewLampRepository(db),
 		influxDb:         influxDb,
 	}
 }
 
 func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicOnline+"+", mc.HandleHeartBeat)
+	mc.SubscribeToTopic(TopicPayload+"+", mc.HandleValueChange)
 	//todo subscribe here to other topics. Create your callback functions in other file
 
 	// Periodically check if the device is still online

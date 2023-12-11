@@ -35,7 +35,7 @@ func (res *DeviceRepositoryImpl) GetAll() []models.Device {
 		var device models.Device
 
 		if err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.RealEstate,
-			&device.IsOnline, &device.StatusTimeStamp); err != nil {
+			&device.IsOnline, &device.StatusTimeStamp, &device.LastValue); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return []models.Device{}
 		}
@@ -58,7 +58,7 @@ func (res *DeviceRepositoryImpl) GetAllByEstateId(estateId int) []models.Device 
 	for rows.Next() {
 		var device models.Device
 		if err := rows.Scan(&device.Id, &device.Name, &device.Type,
-			&device.RealEstate, &device.IsOnline, &device.StatusTimeStamp); err != nil {
+			&device.RealEstate, &device.IsOnline, &device.StatusTimeStamp, &device.LastValue); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return []models.Device{}
 		}
@@ -82,7 +82,7 @@ func (res *DeviceRepositoryImpl) Get(id int) (models.Device, error) {
 			device models.Device
 		)
 		if err := rows.Scan(&device.Id, &device.Name, &device.Type,
-			&device.RealEstate, &device.IsOnline, &device.StatusTimeStamp); err != nil {
+			&device.RealEstate, &device.IsOnline, &device.StatusTimeStamp, &device.LastValue); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return models.Device{}, err
 		}
@@ -103,7 +103,8 @@ func (res *DeviceRepositoryImpl) GetDevicesByUserID(userID int) ([]models.Device
 	var devices []models.Device
 	for rows.Next() {
 		var device models.Device
-		err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.RealEstate, &device.IsOnline)
+		err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.RealEstate, &device.IsOnline,
+			&device.LastValue)
 		if err != nil {
 			return nil, err
 		}
@@ -120,7 +121,8 @@ func (res *DeviceRepositoryImpl) GetDevicesByUserID(userID int) ([]models.Device
 
 func (res *DeviceRepositoryImpl) Update(device models.Device) bool {
 	query := "UPDATE device SET name = ?, type = ?, realestate = ?, isonline = ?, statustimestamp = ? WHERE id = ?"
-	_, err := res.db.Exec(query, device.Name, device.Type, device.RealEstate, device.IsOnline, device.StatusTimeStamp, device.Id)
+	_, err := res.db.Exec(query, device.Name, device.Type, device.RealEstate, device.IsOnline, device.StatusTimeStamp,
+		device.Id)
 	if err != nil {
 		fmt.Println("Failed to update device:", err)
 		return false

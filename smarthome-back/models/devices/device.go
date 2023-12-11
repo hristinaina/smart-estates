@@ -14,6 +14,7 @@ type Device struct {
 	RealEstate      int
 	IsOnline        bool
 	StatusTimeStamp mysql.NullTime
+	LastValue       float32
 }
 
 func NewDevice(name string, deviceType enumerations.DeviceType, estate int) Device {
@@ -22,5 +23,6 @@ func NewDevice(name string, deviceType enumerations.DeviceType, estate int) Devi
 		Type:       deviceType,
 		RealEstate: estate,
 		IsOnline:   false,
+		LastValue:  -1,
 	}
 }

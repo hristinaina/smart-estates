@@ -24,7 +24,7 @@ type LampServiceImpl struct {
 }
 
 func NewLampService(db *sql.DB) LampService {
-	return &LampServiceImpl{db: db, repository: *repositories.NewLampRepository(db)}
+	return &LampServiceImpl{db: db, repository: repositories.NewLampRepository(db)}
 }
 
 func (ls *LampServiceImpl) Get(id int) (models.Lamp, error) {

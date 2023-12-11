@@ -8,15 +8,22 @@ import (
 	"smarthome-back/repositories"
 )
 
-type LampRepository struct {
+type LampRepository interface {
+	Get(id int) (devices.Lamp, error)
+	GetAll() ([]devices.Lamp, error)
+	UpdateIsOnState(id int, isOn bool) (bool, error)
+	UpdateLightningState(id int, lightningState int) (bool, error)
+}
+
+type LampRepositoryImpl struct {
 	db *sql.DB
 }
 
-func NewLampRepository(db *sql.DB) *LampRepository {
-	return &LampRepository{db: db}
+func NewLampRepository(db *sql.DB) LampRepository {
+	return &LampRepositoryImpl{db: db}
 }
 
-func (rl *LampRepository) Get(id int) (devices.Lamp, error) {
+func (rl *LampRepositoryImpl) Get(id int) (devices.Lamp, error) {
 	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, Lamp.IsOn, Lamp.LightningLevel
 			  FROM Lamp 
@@ -33,7 +40,7 @@ func (rl *LampRepository) Get(id int) (devices.Lamp, error) {
 	return lamp, err
 }
 
-func (rl *LampRepository) GetAll() ([]devices.Lamp, error) {
+func (rl *LampRepositoryImpl) GetAll() ([]devices.Lamp, error) {
 	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, Lamp.IsOn, Lamp.LightningLevel
 			  FROM Lamp 
@@ -47,7 +54,7 @@ func (rl *LampRepository) GetAll() ([]devices.Lamp, error) {
 	return ScanRows(rows)
 }
 
-func (rl *LampRepository) UpdateIsOnState(id int, isOn bool) (bool, error) {
+func (rl *LampRepositoryImpl) UpdateIsOnState(id int, isOn bool) (bool, error) {
 	query := `UPDATE Lamp
               JOIN ConsumptionDevice ON Lamp.DeviceId = ConsumptionDevice.DeviceId
         	  JOIN Device ON ConsumptionDevice.DeviceId = Device.Id
@@ -60,7 +67,7 @@ func (rl *LampRepository) UpdateIsOnState(id int, isOn bool) (bool, error) {
 	return true, nil
 }
 
-func (rl *LampRepository) UpdateLightningState(id int, lightningState int) (bool, error) {
+func (rl *LampRepositoryImpl) UpdateLightningState(id int, lightningState int) (bool, error) {
 	query := `UPDATE Lamp
               JOIN ConsumptionDevice ON Lamp.DeviceId = ConsumptionDevice.DeviceId
         	  JOIN Device ON ConsumptionDevice.DeviceId = Device.Id

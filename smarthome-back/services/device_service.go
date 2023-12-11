@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	_ "database/sql"
 	"errors"
-	"fmt"
 	_ "github.com/gin-gonic/gin"
 	"smarthome-back/dto"
 	"smarthome-back/models/devices"
@@ -33,9 +32,9 @@ type DeviceServiceImpl struct {
 
 // todo send mqtt to all device_services
 func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient) DeviceService {
-	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db), evChargerService: NewEVChargerService(db),
-		homeBatteryService: NewHomeBatteryService(db), lampService: services.NewLampService(db),
-		mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db)}
+	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db),
+		evChargerService: NewEVChargerService(db), homeBatteryService: NewHomeBatteryService(db),
+		lampService: services.NewLampService(db), mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db)}
 }
 
 func (res *DeviceServiceImpl) GetAll() []models.Device {
@@ -64,8 +63,6 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 	if dto.Type == 1 {
 		device = res.airConditionerService.Add(dto).ToDevice()
 	} else if dto.Type == 3 {
-		fmt.Println("DEVICEEEEE")
-		fmt.Println(dto.ToString())
 		lamp, err := res.lampService.Add(dto)
 		if err != nil {
 			return models.Device{}, err
