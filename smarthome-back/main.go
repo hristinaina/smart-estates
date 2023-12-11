@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"smarthome-back/config"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/routes"
 	"smarthome-back/services"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {

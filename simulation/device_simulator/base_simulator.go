@@ -2,12 +2,13 @@ package device_simulator
 
 import (
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"simulation/config"
 	"simulation/models"
 	"strconv"
 	"strings"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 // SendHeartBeat Periodically send online status
@@ -43,8 +44,8 @@ func StartSimulation(client mqtt.Client, d models.Device) {
 	switch d.Type {
 	case 0:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
-		lamp := NewLampSimulator(client, d)
-		go lamp.ConnectLamp()
+		ambient_sensor := NewAmbientSensorSimulator(client, d)
+		go ambient_sensor.ConnectAmbientSensor()
 	case 1:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		lamp := NewLampSimulator(client, d)
