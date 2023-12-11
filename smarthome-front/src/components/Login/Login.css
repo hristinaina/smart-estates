@@ -1,0 +1,71 @@
+.background {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 5px 1rem;
+  background: linear-gradient(90deg, #ffffff 50%, #806894 50%);
+}
+
+.left-side {
+  text-align: center;
+  flex: 1;
+}
+
+.title-login {
+  font-size: 450%; 
+  margin-bottom: 50px;
+  margin-top: 0% !important;
+}
+
+.label {
+  text-align: left;
+  width: 50%;
+  margin: auto;
+}
+
+.fields {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: auto;
+}
+
+.css-1v1clvu-MuiFormControl-root-MuiTextField-root{
+  width: 50% !important;
+}
+
+.right-side {
+  text-align: center; 
+  color: white;
+  flex: 1;
+}
+
+.title { 
+  font-size: 400%;  
+  margin: 0 !important;
+}
+
+.reg {
+  color: #625071 !important;
+}
+
+#login{
+  width: 50%;
+}
+
+.forgot-password {
+  font-size: 14px;
+  color: #806894;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: right;
+  width: 75%;
+}
+
+/* .css-c4xj73-MuiInputBase-root-MuiOutlinedInput-root {
+  border-radius: 10px !important;
+}
+
+.css-1r5mmwi-MuiInputBase-root-MuiOutlinedInput-root {
+  border-radius: 10px !important;
+} */

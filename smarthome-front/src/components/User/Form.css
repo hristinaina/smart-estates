@@ -1,0 +1,49 @@
+  .container {
+    text-align: center;
+    flex: 1;
+  }
+  
+  .almost-done {
+    font-size: 450%; 
+    margin-bottom: 0 !important;
+    margin-top: 0% !important;
+    color: #806894;
+  }
+
+  .subtitle {
+    color: #666666;
+    margin-bottom: 50px;
+  }
+  
+  .fields-name {
+    text-align: left;
+    width: 27%;
+    margin: auto;
+  }
+  
+  .fields {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: auto;
+  }
+  
+  .css-1v1clvu-MuiFormControl-root-MuiTextField-root{
+    width: 50% !important;
+  }
+  
+  #save{
+    width: 27%;
+    margin-bottom: 20px;
+  }
+
+  #remember-password {
+    font-size: 15px;
+    color: #806894;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  #remember-password:hover {
+    background-color: #E5CCFF;
+    padding: 10px;
+  }

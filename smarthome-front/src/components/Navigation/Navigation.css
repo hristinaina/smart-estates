@@ -1,0 +1,43 @@
+@media (min-width: 768px) {
+    .navbar {
+      font-size: 24px;
+    }
+  }
+
+  .logo {
+    color: white;
+    font-weight: bold;
+    font-size: 28px;
+    margin-right: auto;  /* Pushes the logo to the left */
+}
+  
+  .navbar {
+      background-color: var(--primary-color);
+      height: 65px;
+      padding: 0 70px;
+  }
+
+  ul{
+    height: 65px;
+    list-style: none;
+    display: flex; 
+    flex-direction: row;
+    align-items: center;
+    margin: 0;
+  }
+
+  .text-light{
+    color: white;
+    margin: 0 30px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .text-light:hover{
+    color: rgb(206, 203, 203)
+  }
+
+  .logout {
+    margin-left: auto; /* Pushes the logout link to the right */
+  }
+  

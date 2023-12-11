@@ -1,0 +1,127 @@
+#new-real-estate-container-parent {
+    text-align: center;
+    margin-bottom: 4em;
+}
+
+#new-real-estate-container {
+    margin-top: 4em;
+    padding-bottom: 2.5em;
+    display: inline-block;
+    width: 30%;
+    border: 1px solid rgb(221, 221, 221);
+    border-radius: 10px;
+}
+
+#new-real-estate-title {
+    width: 100%;
+    font: inherit;
+    font-size: 2.3em;
+    font-weight: 500;
+}
+
+.new-real-estate-label {
+    text-align: left;
+    margin-left: 5em;
+    font: inherit;
+}
+
+.new-real-estate-select {
+    margin-bottom: 1em;
+    padding-left: 0.8em;
+    text-align: left;
+    width: 72%;
+    font:inherit;
+    height: 3.3em;
+    border-radius: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.26);
+}
+
+.new-real-estate-input {
+    margin-bottom: 1em;
+    padding-left: 1em;
+    text-align: left;
+    width: 68%;
+    font:inherit;
+    height: 3.1em;
+    border-radius: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.26);
+}
+
+.new-real-estate-input:hover, .new-real-estate-select:hover{
+    border: 1px solid rgba(0, 0, 0, 0.74) !important;
+}
+
+.new-real-estate-input:focus, .new-real-estate-select:focus{
+    border: 2px solid #806894 !important;
+    border-color: #806894 !important;
+}
+
+
+#maps {
+    margin: 1.5em auto;
+    height: 200px;
+    width: 70%;
+}
+
+#upload-image-container {
+    width: fit-content;
+    margin: 0 auto;
+}
+
+#upload-image-container:hover {
+    cursor: pointer;
+}
+
+#upload-image {
+    margin-top: 1.5em;
+    display: inline-block;
+    height: 2em;
+    width: 2em;
+    font: inherit;
+    padding-bottom: 0.5em;
+}
+
+#upload-image-p {
+    margin-left: 1em;
+    display: inline-block;
+    width: fit-content;
+    vertical-align: bottom;
+}
+
+.btn {
+    height: 2.6em;
+    width: 10em;
+    font: inherit;
+    border-radius: 5px;
+}
+
+#cancel-button {
+    margin-right: 4em;
+    margin-top: 2em;
+    background-color: white;
+    border: 1px solid #806894;
+    font-weight: 400;
+    color: rgb(104, 104, 104);
+}
+
+#cancel-button:hover {
+    cursor: pointer;
+}
+
+#confirm-button {
+    background-color: #806894;
+    border: 0px;
+    color: white;
+    font-weight: 400;
+}
+
+#confirm-button:hover {
+    cursor: pointer;
+}
+
+#confirm-button.disabled {
+    color: rgba(0, 0, 0, 0.26);
+    box-shadow: none;
+    background-color: rgba(0, 0, 0, 0.12);
+    cursor: default;
+  }
