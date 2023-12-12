@@ -2,23 +2,24 @@ package device_simulator
 
 import (
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"simulation/config"
 	"simulation/models"
 	"strconv"
 	"strings"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 // SendHeartBeat Periodically send online status
-func SendHeartBeat(client mqtt.Client, device models.Device) {
+func SendHeartBeat(client mqtt.Client, id int, name string) {
 	for {
-		err := config.PublishToTopic(client, config.TopicOnline+strconv.Itoa(device.ID), "online")
+		err := config.PublishToTopic(client, config.TopicOnline+strconv.Itoa(id), "online")
 		if err != nil {
-			fmt.Printf("Error publishing message with the device: %s \n", device.Name)
+			fmt.Printf("Error publishing message with the device: %s \n", name)
 		} else {
 			fmt.Printf("%s: Device sent a heartbeat, id=%d, Name=%s \n", time.Now().Format("15:04:05"),
-				device.ID, device.Name)
+				id, name)
 		}
 		time.Sleep(10 * time.Second)
 	}
@@ -49,6 +50,10 @@ func StartSimulation(client mqtt.Client, d models.Device) {
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		lamp := NewLampSimulator(client, d)
 		go lamp.ConnectLamp()
+	case 6:
+		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
+		sp := NewSolarPanelSimulator(client, d)
+		go sp.ConnectSolarPanel()
 	default:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		lamp := NewLampSimulator(client, d)

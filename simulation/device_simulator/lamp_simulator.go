@@ -2,13 +2,14 @@ package device_simulator
 
 import (
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"math"
 	"simulation/config"
 	"simulation/models"
 	"strconv"
 	"strings"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 const (
@@ -32,7 +33,7 @@ func NewLampSimulator(client mqtt.Client, device models.Device) *LampSimulator {
 }
 
 func (ls *LampSimulator) ConnectLamp() {
-	go SendHeartBeat(ls.client, ls.device)
+	go SendHeartBeat(ls.client, ls.device.ID, ls.device.Name)
 	go ls.GenerateLampData()
 	config.SubscribeToTopic(ls.client, topicSwitch+strconv.Itoa(ls.device.ID), ls.HandleSwitchChange)
 }
