@@ -62,6 +62,7 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 
 func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicOnline+"+", mc.HandleHeartBeat)
+	mc.SubscribeToTopic("lamp/switch/"+"+", mc.HandleSwitchChange)
 	mc.SubscribeToTopic(TopicAmbientSensor, mc.ReceiveValue)
 	//todo subscribe here to other topics. Create your callback functions in other file
 

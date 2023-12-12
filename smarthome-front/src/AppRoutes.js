@@ -11,6 +11,7 @@ import Account from './components/User/Account';
 import { Lamp } from './components/Devices/Lamp';
 import AddAdmin from './components/SuperAdmin/AddAdmin';
 import ForgotPassword from './components/User/ForgotPassword';
+import { AmbientSensor } from './components/Devices/AmbientSensor';
 
 const AppRoutes = [
   {
@@ -60,6 +61,10 @@ const AppRoutes = [
   {
     path: "/lamp/:id",
     element: <Lamp />
+  },
+  {
+    path: "/ambient-sensor/:id",
+    element: <AmbientSensor />
   },
 ];
 
