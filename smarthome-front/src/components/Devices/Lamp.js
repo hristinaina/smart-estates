@@ -1,12 +1,15 @@
 
 import { Component } from 'react';
+import {Line} from 'react-chartjs-2';
 import './Devices.css';
 import { Navigation } from '../Navigation/Navigation';
 import mqtt from 'mqtt';
 import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import authService from '../../services/AuthService'
+import authService from '../../services/AuthService';
+import 'chart.js/auto';
+
 
 
 export class Lamp extends Component {
@@ -20,6 +23,28 @@ export class Lamp extends Component {
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
+
+        this.data = {
+            labels: ['January', 'February', 'March', 'April', 'May'],
+            datasets: [
+              {
+                label: 'Lightning',
+                data: [12, 19, 3, 5, 2],
+                borderColor: 'rgba(128,104,148,1)',
+                borderWidth: 2,
+                fill: false,
+              },
+            ],
+        };
+
+        this.options = {
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+        };
+    
     }
 
     async componentDidMount() {
@@ -121,6 +146,8 @@ export class Lamp extends Component {
                         <Typography>On</Typography>
                     </Stack>
                 </div>
+
+                <Line id='graph' data={this.data} options={this.options} />
             </div>
         )
     }

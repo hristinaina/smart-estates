@@ -74,13 +74,13 @@ func (mc *MQTTClient) PostNewLampValue(lamp models.Lamp, percentage float32) {
 	}
 	// measurement == table in relation db
 	point := write.NewPoint("measurement1", tags, fields, time.Now())
-	time.Sleep(1 * time.Second) // separate points by 1 second
 
 	if err := writeAPI.WritePoint(context.Background(), point); err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Println("Posted to influx db...")
+	// printing values from influx db (last 10 minutes)
 	mc.GetLampsFromInfluxDb()
 
 }
