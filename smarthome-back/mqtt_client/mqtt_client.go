@@ -30,22 +30,7 @@ type MQTTClient struct {
 func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 	opts := mqtt.NewClientOptions().AddBroker("ws://localhost:9001/mqtt")
 	opts.SetClientID("go-server-nvt-2023")
-	opts.OnConnectionLost = func(client mqtt.Client, err error) {
-		fmt.Printf("Connection lost: %v\n", err)
-
-		// Attempt to reconnect
-		for {
-			fmt.Println("Attempting to reconnect...")
-			token := client.Connect()
-			if token.Wait() && token.Error() == nil {
-				fmt.Println("Reconnected successfully!")
-				break
-			}
-
-			// Wait before attempting again
-			time.Sleep(5 * time.Second)
-		}
-	}
+	
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
@@ -64,10 +49,16 @@ func (mc *MQTTClient) StartListening() {
 
 	// Periodically check if the device is still online
 	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+
 		for {
-			fmt.Println("checking device status...")
-			mc.CheckDeviceStatus()
-			time.Sleep(15 * time.Second)
+			select {
+			case <-ticker.C:
+				// This block will be executed every time the ticker ticks
+				fmt.Println("checking device status...")
+				mc.CheckDeviceStatus()
+			}
 		}
 	}()
 }

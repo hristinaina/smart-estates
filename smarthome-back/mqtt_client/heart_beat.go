@@ -45,7 +45,7 @@ func (mc *MQTTClient) HandleHeartBeat(client mqtt.Client, msg mqtt.Message) {
 
 // CheckDeviceStatus function that checks if there is a device that has disconnected
 func (mc *MQTTClient) CheckDeviceStatus() {
-	offlineTimeout := 30 * time.Second
+	offlineTimeout := 60 * time.Second
 	devices := mc.deviceRepository.GetAll()
 	for _, device := range devices {
 		if device.IsOnline && time.Since(device.StatusTimeStamp.Time) > offlineTimeout {

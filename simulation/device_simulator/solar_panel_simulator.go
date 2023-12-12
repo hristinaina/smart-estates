@@ -38,18 +38,22 @@ func (ls *SolarPanelSimulator) ConnectSolarPanel() {
 	config.SubscribeToTopic(ls.client, topicSwitch+strconv.Itoa(ls.device.Device.ID), ls.HandleSwitchChange)
 }
 
-// GenerateSolarPanelData Simulate sending periodic data
 func (ls *SolarPanelSimulator) GenerateSolarPanelData() {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
 	for {
-		if ls.device.IsOn {
-			// Get the Unix timestamp from the current time
-			unixTimestamp := float64(time.Now().Unix())
-			sineValue := math.Sin(unixTimestamp)
-			percentage := math.Abs(math.Round(sineValue * 100))
-			config.PublishToTopic(ls.client, config.TopicPayload+strconv.Itoa(ls.device.Device.ID), strconv.FormatFloat(percentage,
-				'f', -1, 64))
-			fmt.Printf("Solar panel name=%s, id=%d, generated data: %f\n", ls.device.Device.Name, ls.device.Device.ID, percentage)
-			time.Sleep(5 * time.Second)
+		select {
+		case <-ticker.C:
+			if ls.device.IsOn {
+				// Get the Unix timestamp from the current time
+				unixTimestamp := float64(time.Now().Unix())
+				sineValue := math.Sin(unixTimestamp)
+				percentage := math.Abs(math.Round(sineValue * 100))
+				config.PublishToTopic(ls.client, config.TopicPayload+strconv.Itoa(ls.device.Device.ID), strconv.FormatFloat(percentage,
+					'f', -1, 64))
+				fmt.Printf("Solar panel name=%s, id=%d, generated data: %f\n", ls.device.Device.Name, ls.device.Device.ID, percentage)
+			}
 		}
 	}
 }

@@ -13,15 +13,20 @@ import (
 
 // SendHeartBeat Periodically send online status
 func SendHeartBeat(client mqtt.Client, id int, name string) {
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+
 	for {
-		err := config.PublishToTopic(client, config.TopicOnline+strconv.Itoa(id), "online")
-		if err != nil {
-			fmt.Printf("Error publishing message with the device: %s \n", name)
-		} else {
-			fmt.Printf("%s: Device sent a heartbeat, id=%d, Name=%s \n", time.Now().Format("15:04:05"),
-				id, name)
+		select {
+		case <-ticker.C:
+			err := config.PublishToTopic(client, config.TopicOnline+strconv.Itoa(id), "online")
+			if err != nil {
+				fmt.Printf("Error publishing message with the device: %s \n", name)
+			} else {
+				fmt.Printf("%s: Device sent a heartbeat, id=%d, Name=%s \n", time.Now().Format("15:04:05"),
+					id, name)
+			}
 		}
-		time.Sleep(10 * time.Second)
 	}
 }
 
@@ -45,19 +50,19 @@ func StartSimulation(client mqtt.Client, d models.Device) {
 	case 0:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		lamp := NewLampSimulator(client, d)
-		go lamp.ConnectLamp()
+		lamp.ConnectLamp()
 	case 1:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		lamp := NewLampSimulator(client, d)
-		go lamp.ConnectLamp()
+		lamp.ConnectLamp()
 	case 6:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		sp := NewSolarPanelSimulator(client, d)
-		go sp.ConnectSolarPanel()
+		sp.ConnectSolarPanel()
 	default:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		lamp := NewLampSimulator(client, d)
-		go lamp.ConnectLamp()
+		lamp.ConnectLamp()
 		//todo change this and add separate logic for each device type
 	}
 }
