@@ -23,10 +23,13 @@ export class NewDevice extends Component {
             chargingPower: 2.3,
             connections: 1,
             selectedPowerSupply: 0,
+            efficiency: 20,
+            surfaceArea: 1.5,
             showPowerSupply: true,
             showPowerConsumption: false,
             showAirConditioner: false,
             showBatterySize: false,
+            showSolarPanel: false,
             showCharger: false,
             isButtonDisabled: true,
             snackbarMessage: '',
@@ -62,6 +65,7 @@ export class NewDevice extends Component {
                 showAirConditioner: false,
                 showBatterySize: false,
                 showCharger: false,
+                showSolarPanel: false,
             });
 
             if (selectedType == 6 || selectedType == 7 || selectedType == 8) {
@@ -91,6 +95,10 @@ export class NewDevice extends Component {
             } else if (selectedType == 8) {
                 this.setState({
                     showCharger: true,
+                });
+            } else if (selectedType == 6) {
+                this.setState({
+                    showSolarPanel: true,
                 });
             }
             this.checkButton();
@@ -181,6 +189,28 @@ export class NewDevice extends Component {
             this.checkButton();
         });
     }
+    
+    handleEfficiency = (event) => {
+        const efficiency = event.target.value;
+
+        this.setState((prevState) => ({
+            ...prevState,
+            efficiency,
+        }), () => {
+            this.checkButton();
+        });
+    }
+
+    handleSurfaceArea = (event) => {
+        const surfaceArea = event.target.value;
+
+        this.setState((prevState) => ({
+            ...prevState,
+            surfaceArea,
+        }), () => {
+            this.checkButton();
+        });
+    }
 
 
     handleImageChange = (event) => {
@@ -216,6 +246,10 @@ export class NewDevice extends Component {
                 || this.state.chargingPower < 1 || this.state.chargingPower > 360)) {
                 this.setState({ isButtonDisabled: true })
             }
+            else if (this.state.selectedType == 6 && (this.state.efficiency < 0 || this.state.efficiency > 100
+                || this.state.surfaceArea < 0 || this.state.surfaceArea > 9999)) {
+                this.setState({ isButtonDisabled: true })
+            }
             else {
                 this.setState({ isButtonDisabled: false })
             }
@@ -238,6 +272,8 @@ export class NewDevice extends Component {
                 Connections: parseInt(this.state.connections),
                 Size: parseFloat(this.state.batterySize),
                 UserId: authService.getCurrentUser().Id,
+                SurfaceArea: parseFloat(this.surfaceArea),
+                Efficiency: parseFloat(this.efficiency),
             };
             const result = await DeviceService.createDevice(data);
             console.log(result);
@@ -335,7 +371,7 @@ export class NewDevice extends Component {
                                     value={this.state.minTemp}
                                     onChange={this.handleMinTemp}
                                 />
-                                <p className="new-real-estate-label">Maximum temperature: (celsius)</p>
+                                <p className="new-real-estate-label">Maximum temperature (celsius):</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"
@@ -356,6 +392,28 @@ export class NewDevice extends Component {
                                     placeholder="Enter the battery size (in kWh)"
                                     value={this.state.batterySize}
                                     onChange={this.handleBatterySize}
+                                />
+                            </div>
+                        )}
+                        {this.state.showSolarPanel && (
+                            <div>
+                                <p className="new-real-estate-label">Surface area (m<sup>2</sup>):</p>
+                                <input
+                                    className="new-real-estate-input"
+                                    type="number"
+                                    name="surface-area"
+                                    placeholder="Enter the surface area of your solar panel (in square meters)"
+                                    value={this.state.surfaceArea}
+                                    onChange={this.handleSurfaceArea}
+                                />
+                                <p className="new-real-estate-label">Efficiency (%):</p>
+                                <input
+                                    className="new-real-estate-input"
+                                    type="number"
+                                    name="efficiency"
+                                    placeholder="Enter the efficiency of your solar panel (in percentages)"
+                                    value={this.state.efficiency}
+                                    onChange={this.handleEfficiency}
                                 />
                             </div>
                         )}

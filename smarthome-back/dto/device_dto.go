@@ -19,6 +19,8 @@ type DeviceDTO struct {
 	Connections      uint
 	Size             float64
 	UserId           int
+	SurfaceArea      float64
+	Efficiency       float64
 }
 
 // Object conversion has been localized here:
