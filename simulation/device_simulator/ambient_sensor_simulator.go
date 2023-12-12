@@ -46,28 +46,28 @@ func (as *AmbientSensorSimulator) GenerateAmbientSensorData() {
 	humidity := 35
 
 	for {
-		// if as.switchOn {
-		temperature = temperature + rand.Intn(3) - 1
-		humidity = humidity + rand.Intn(3) - 1
-		if humidity < 0 {
-			humidity = 0
+		if as.switchOn {
+			temperature = temperature + rand.Intn(3) - 1
+			humidity = humidity + rand.Intn(3) - 1
+			if humidity < 0 {
+				humidity = 0
+			}
+			if humidity > 100 {
+				humidity = 100
+			}
+			data := map[string]interface{}{
+				"id":          as.device.ID,
+				"temperature": temperature,
+				"humidity":    humidity,
+			}
+			jsonString, err := json.Marshal(data)
+			if err != nil {
+				fmt.Println("greska")
+			}
+			config.PublishToTopic(as.client, "device/ambient/sensor", string(jsonString)) // todo eventualno promeni topic ako bude potrebno
+			fmt.Printf("AmbientSensor name=%s, id=%d, temeprature: %v °C, humidity: %v %% \n", as.device.Name, as.device.ID, temperature, humidity)
+			time.Sleep(5 * time.Second)
 		}
-		if humidity > 100 {
-			humidity = 100
-		}
-		data := map[string]interface{}{
-			"id":          as.device.ID,
-			"temperature": temperature,
-			"humidity":    humidity,
-		}
-		jsonString, err := json.Marshal(data)
-		if err != nil {
-			fmt.Println("greska")
-		}
-		config.PublishToTopic(as.client, "device/ambient/sensor", string(jsonString)) // todo eventualno promeni topic ako bude potrebno
-		fmt.Printf("AmbientSensor name=%s, id=%d, temeprature: %v °C, humidity: %v %% \n", as.device.Name, as.device.ID, temperature, humidity)
-		time.Sleep(5 * time.Second)
-		// }
 	}
 }
 
