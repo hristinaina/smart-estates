@@ -59,7 +59,11 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient) {
 		airConditionerController := controllers.NewAirConditionerController(db)
 		airConditionerRoutes.GET("/:id", airConditionerController.Get)
 	}
-
+	solarPanelRoutes := r.Group("/api/sp")
+	{
+		SolarPanelController := controllers.NewSolarPanelController(db)
+		solarPanelRoutes.GET("/:id", SolarPanelController.Get)
+	}
 	uploadImageRoutes := r.Group("/api/upload")
 	{
 		imageUploadController := controllers.NewImageController()

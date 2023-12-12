@@ -193,10 +193,7 @@ export class NewDevice extends Component {
     handleEfficiency = (event) => {
         const efficiency = event.target.value;
 
-        this.setState((prevState) => ({
-            ...prevState,
-            efficiency,
-        }), () => {
+        this.setState({ efficiency }, () => {
             this.checkButton();
         });
     }
@@ -204,10 +201,7 @@ export class NewDevice extends Component {
     handleSurfaceArea = (event) => {
         const surfaceArea = event.target.value;
 
-        this.setState((prevState) => ({
-            ...prevState,
-            surfaceArea,
-        }), () => {
+        this.setState({ surfaceArea }, () => {
             this.checkButton();
         });
     }
@@ -272,8 +266,8 @@ export class NewDevice extends Component {
                 Connections: parseInt(this.state.connections),
                 Size: parseFloat(this.state.batterySize),
                 UserId: authService.getCurrentUser().Id,
-                SurfaceArea: parseFloat(this.surfaceArea),
-                Efficiency: parseFloat(this.efficiency),
+                SurfaceArea: parseFloat(this.state.surfaceArea),
+                Efficiency: parseFloat(this.state.efficiency),
             };
             const result = await DeviceService.createDevice(data);
             console.log(result);
@@ -367,7 +361,7 @@ export class NewDevice extends Component {
                                     className="new-real-estate-input"
                                     type="number"
                                     name="min-temp"
-                                    placeholder="Enter the min temp of your air conditioner (in celsius)"
+                                    placeholder="Enter the minimal temperature (in celsius)"
                                     value={this.state.minTemp}
                                     onChange={this.handleMinTemp}
                                 />
@@ -376,7 +370,7 @@ export class NewDevice extends Component {
                                     className="new-real-estate-input"
                                     type="number"
                                     name="max-temp"
-                                    placeholder="Enter the min temp of your air conditioner (in celsius)"
+                                    placeholder="Enter the maximal temperature (in celsius)"
                                     value={this.state.maxTemp}
                                     onChange={this.handleMaxTemp}
                                 />
@@ -402,7 +396,7 @@ export class NewDevice extends Component {
                                     className="new-real-estate-input"
                                     type="number"
                                     name="surface-area"
-                                    placeholder="Enter the surface area of your solar panel (in square meters)"
+                                    placeholder="Enter the surface area (in square meters)"
                                     value={this.state.surfaceArea}
                                     onChange={this.handleSurfaceArea}
                                 />
@@ -411,7 +405,7 @@ export class NewDevice extends Component {
                                     className="new-real-estate-input"
                                     type="number"
                                     name="efficiency"
-                                    placeholder="Enter the efficiency of your solar panel (in percentages)"
+                                    placeholder="Enter the efficiency (in percentages)"
                                     value={this.state.efficiency}
                                     onChange={this.handleEfficiency}
                                 />

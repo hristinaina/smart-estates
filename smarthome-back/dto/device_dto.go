@@ -73,6 +73,20 @@ func (dto *DeviceDTO) ToHomeBattery() models.HomeBattery {
 	}
 }
 
+func (dto *DeviceDTO) ToSolarPanel() models.SolarPanel {
+	return models.SolarPanel{
+		Device: models.Device{
+			Id:         dto.Id,
+			Name:       dto.Name,
+			Type:       dto.Type,
+			RealEstate: dto.RealEstate,
+			IsOnline:   dto.IsOnline,
+		},
+		SurfaceArea: dto.SurfaceArea,
+		Efficiency:  dto.Efficiency,
+	}
+}
+
 func (dto *DeviceDTO) ToDevice() models.Device {
 	return models.Device{
 		//todo change according to code from front.

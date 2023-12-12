@@ -25,6 +25,7 @@ type DeviceServiceImpl struct {
 	airConditionerService AirConditionerService
 	evChargerService      EVChargerService
 	homeBatteryService    HomeBatteryService
+	solarPanelService     SolarPanelService
 	mqtt                  *mqtt_client.MQTTClient
 	deviceRepository      repositories.DeviceRepository
 }
@@ -32,7 +33,7 @@ type DeviceServiceImpl struct {
 // todo send mqtt to all device_services
 func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient) DeviceService {
 	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db), evChargerService: NewEVChargerService(db),
-		homeBatteryService: NewHomeBatteryService(db), mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db)}
+		homeBatteryService: NewHomeBatteryService(db), mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db), solarPanelService: NewSolarPanelService(db)}
 }
 
 func (res *DeviceServiceImpl) GetAll() []models.Device {
@@ -64,7 +65,8 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 		device = res.evChargerService.Add(dto).ToDevice()
 	} else if dto.Type == 7 {
 		device = res.homeBatteryService.Add(dto).ToDevice()
-		// todo add new case after adding new Device Class
+	} else if dto.Type == 6 {
+		device = res.solarPanelService.Add(dto).ToDevice()
 	} else {
 		device = dto.ToDevice()
 		query := "INSERT INTO device (Name, Type, RealEstate, IsOnline)" +
