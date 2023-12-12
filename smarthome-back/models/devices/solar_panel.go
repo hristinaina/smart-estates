@@ -7,6 +7,7 @@ type SolarPanel struct {
 	Device      Device
 	SurfaceArea float64
 	Efficiency  float64
+	IsOn        bool
 }
 
 func NewSolarPanel(device Device, surfaceArea float64, efficiency float64) SolarPanel {
@@ -14,6 +15,7 @@ func NewSolarPanel(device Device, surfaceArea float64, efficiency float64) Solar
 		Device:      device,
 		SurfaceArea: surfaceArea,
 		Efficiency:  efficiency,
+		IsOn:        false,
 	}
 }
 
@@ -22,6 +24,7 @@ func NewSolarPanelParam(name string, deviceType enumerations.DeviceType, estate 
 		Device:      NewDevice(name, deviceType, estate),
 		SurfaceArea: surfaceArea,
 		Efficiency:  efficiency,
+		IsOn:        false,
 	}
 }
 

@@ -34,7 +34,8 @@ func (s *SolarPanelServiceImpl) Get(id int) models.SolarPanel {
 			Device.IsOnline,
 			Device.StatusTimeStamp,
 			SolarPanel.SurfaceArea,
-			SolarPanel.Efficiency
+			SolarPanel.Efficiency,
+			SolarPanel.IsOn
 		FROM
 			SolarPanel
 		JOIN Device ON SolarPanel.DeviceId = Device.Id
@@ -57,6 +58,7 @@ func (s *SolarPanelServiceImpl) Get(id int) models.SolarPanel {
 		&device.StatusTimeStamp,
 		&sp.SurfaceArea,
 		&sp.Efficiency,
+		&sp.IsOn,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -97,9 +99,9 @@ func (s *SolarPanelServiceImpl) Add(dto dto.DeviceDTO) models.SolarPanel {
 
 	// Insert the new SolarPanel into the SolarPanel table
 	result, err = tx.Exec(`
-		INSERT INTO SolarPanel (DeviceId, SurfaceArea, Efficiency)
-		VALUES (?, ?, ?)
-	`, deviceID, device.SurfaceArea, device.Efficiency)
+		INSERT INTO SolarPanel (DeviceId, SurfaceArea, Efficiency, IsOn)
+		VALUES (?, ?, ?, ?)
+	`, deviceID, device.SurfaceArea, device.Efficiency, false)
 	if err != nil {
 		return models.SolarPanel{}
 	}
