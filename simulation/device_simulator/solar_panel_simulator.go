@@ -16,6 +16,7 @@ import (
 
 const (
 	topicSPSwitch = "sp/switch/"
+	topicSPData   = "sp/data/"
 )
 
 type SolarPanelSimulator struct {
@@ -56,7 +57,7 @@ func (ls *SolarPanelSimulator) GenerateSolarPanelData() {
 					solarRadiation := openMeteoResponse.Hourly.DirectNormalIrradiance[time.Now().Hour()]
 					fmt.Println(solarRadiation)
 					electricityProduction := calculateEletricityProduction(ls.device, solarRadiation)
-					config.PublishToTopic(ls.client, config.TopicPayload+strconv.Itoa(ls.device.Device.ID), strconv.FormatFloat(electricityProduction,
+					config.PublishToTopic(ls.client, topicSPData+strconv.Itoa(ls.device.Device.ID), strconv.FormatFloat(electricityProduction,
 						'f', -1, 64))
 					fmt.Printf("Solar panel name=%s, id=%d, generated data: %f\n", ls.device.Device.Name, ls.device.Device.ID, electricityProduction)
 				}

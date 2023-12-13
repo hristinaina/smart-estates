@@ -50,7 +50,7 @@ export class SolarPanel extends Component {
 
                 // Subscribe to the MQTT topic
                 this.mqttClient.on('connect', () => {
-                    this.mqttClient.subscribe('device/data/' + this.id);
+                    this.mqttClient.subscribe('sp/data/' + this.id);
                 });
 
                 // Handle incoming MQTT messages

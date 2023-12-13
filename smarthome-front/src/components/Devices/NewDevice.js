@@ -250,7 +250,7 @@ export class NewDevice extends Component {
                 this.setState({ isButtonDisabled: true })
             }
             else if (this.state.selectedType == 6 && (this.state.efficiency < 0 || this.state.efficiency > 100
-                || this.state.surfaceArea < 0 || this.state.surfaceArea > 9999 || this.state.panelsNum < 1 || this.state.panelsNum > 1000)) {
+                || this.state.surfaceArea < 0 || this.state.surfaceArea > 9999 || this.state.panelsNum < 1 || this.state.panelsNum > 1000 )) {
                 this.setState({ isButtonDisabled: true })
             }
             else {
