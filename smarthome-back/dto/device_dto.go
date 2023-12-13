@@ -21,6 +21,7 @@ type DeviceDTO struct {
 	UserId           int
 	SurfaceArea      float64
 	Efficiency       float64
+	IsOn             bool
 }
 
 // Object conversion has been localized here:

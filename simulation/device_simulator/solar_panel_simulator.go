@@ -1,6 +1,7 @@
 package device_simulator
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"simulation/config"
@@ -58,14 +59,20 @@ func (ls *SolarPanelSimulator) GenerateSolarPanelData() {
 	}
 }
 
-// todo da ide info sa beka?
 func (ls *SolarPanelSimulator) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
 	parts := strings.Split(msg.Topic(), "/")
 	deviceId, err := strconv.Atoi(parts[len(parts)-1])
 	if err != nil {
 		fmt.Println(err)
 	}
-	status := string(msg.Payload())
-	ls.device.IsOn = status == "true"
-	fmt.Printf("Solar panel id=%d, switch status: %s\n", deviceId, status)
+	var sp models.SolarPanel
+	// Unmarshal the JSON string into the struct
+	err = json.Unmarshal([]byte(msg.Payload()), &sp)
+	if err != nil {
+		fmt.Println("Error unmarshaling JSON:", err)
+		return
+	}
+	fmt.Println(sp)
+	ls.device.IsOn = sp.IsOn == true
+	fmt.Printf("Solar panel id=%d, switch status: %t\n", deviceId, sp.IsOn)
 }

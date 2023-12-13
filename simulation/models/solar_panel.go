@@ -5,4 +5,5 @@ type SolarPanel struct {
 	IsOn        bool    `json:"IsOn"`
 	SurfaceArea float64 `json:"SurfaceArea"`
 	Efficiency  float64 `json:"Efficiency"`
+	UserId      int     `json:"UserId"`
 }

@@ -77,8 +77,11 @@ export class SolarPanel extends Component {
         this.setState((prevState) => ({
             switchOn: !prevState.switchOn,
         }));
-        const message = (!this.state.switchOn).toString();
-        this.mqttClient.publish(topic, message);
+        var message = {
+            "IsOn": (!this.state.switchOn),
+            "UserId": authService.getCurrentUser().Id,
+        }
+        this.mqttClient.publish(topic, JSON.stringify(message));
     };
 
     // Handle incoming MQTT messages

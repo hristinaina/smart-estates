@@ -1,9 +1,11 @@
 package mqtt_client
 
 import (
+	"encoding/json"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"smarthome-back/dto"
 	models "smarthome-back/models/devices"
 	"strconv"
 	"strings"
@@ -19,21 +21,26 @@ func (mc *MQTTClient) HandleSPSwitch(client mqtt.Client, msg mqtt.Message) {
 	}
 
 	device := mc.solarPanelRepository.Get(deviceId)
-	status := string(msg.Payload())
-	device.IsOn = status == "true"
+	// Unmarshal the JSON string into the struct
+	var data dto.DeviceDTO
+	err = json.Unmarshal([]byte(msg.Payload()), &data)
+	if err != nil {
+		fmt.Println("Error unmarshaling JSON:", err)
+		return
+	}
+	device.IsOn = data.IsOn == true
 	mc.solarPanelRepository.UpdateSP(device)
 	//mc.deviceRepository.Update(device.Device)
-	saveSwitchChangeToInfluxDb(mc.influxDb, device)
+	saveSwitchChangeToInfluxDb(mc.influxDb, device, data.UserId)
 	fmt.Printf("Solar panel: name=%s, id=%d, changed switch to %t \n", device.Device.Name, device.Device.Id, device.IsOn)
 }
 
-func saveSwitchChangeToInfluxDb(client influxdb2.Client, device models.SolarPanel) {
+func saveSwitchChangeToInfluxDb(client influxdb2.Client, device models.SolarPanel, id int) {
 	Org := "Smart Home"
 	Bucket := "bucket"
 	writeAPI := client.WriteAPI(Org, Bucket)
-	//todo dodati korisnika koji je izvrsio akciju? Sa fronta dobavim userId i mogu slati kao json string
 	p := influxdb2.NewPoint("solar_panel", //table
-		map[string]string{"device_id": strconv.Itoa(device.Device.Id)}, //tag
+		map[string]string{"device_id": strconv.Itoa(device.Device.Id), "user_id": strconv.Itoa(id)}, //tag
 		map[string]interface{}{"isOn": func() int {
 			if device.IsOn {
 				return 1
