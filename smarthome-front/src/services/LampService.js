@@ -35,8 +35,6 @@ class LampService {
         allResults.forEach((res, i) => {
             if (res.data != null)
             {
-                console.log("res");
-                console.log(res);
                 res.data.forEach(element => {
                     values[element.Value] = element.Count;
                 });

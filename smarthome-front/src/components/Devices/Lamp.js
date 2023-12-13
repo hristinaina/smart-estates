@@ -10,6 +10,7 @@ import Typography from '@mui/material/Typography';
 import authService from '../../services/AuthService';
 import 'chart.js/auto';
 import LampService from '../../services/LampService';
+import CustomDateRangeDialog from '../Dialog/CustomDateRangeDialog';
 
 
 
@@ -21,6 +22,7 @@ export class Lamp extends Component {
         this.state = {
             device: {},
             switchOn: false,
+            showCustomDateRangeDialog: false,
             data: {
                 labels: [],
                 datasets: [
@@ -120,7 +122,6 @@ export class Lamp extends Component {
             switchOn: !prevState.switchOn,
         }));
         const message = (!this.state.switchOn).toString();
-        console.log("lampaaa ", this.mqttClient);
         this.mqttClient.publish(topic, message);
     };
 
@@ -147,6 +148,14 @@ export class Lamp extends Component {
         window.location.assign("/devices")
     }
 
+    openDialog = () => {
+        this.setState({showCustomDateRangeDialog: true,})
+    }
+
+    closeDialog = () => {
+        this.setState({showCustomDateRangeDialog: false,})
+    }
+
     render() {
         const { device, switchOn } = this.state;
 
@@ -169,6 +178,16 @@ export class Lamp extends Component {
                 </div>
 
                 <Line id='graph' data={this.state.data} options={this.options} />
+                <div id='custom-date-range-container'>
+                    <button id='custom-date-range' onClick={this.openDialog}>Add custom date range</button>
+                </div>
+
+                {this.state.showCustomDateRangeDialog && (
+                <CustomDateRangeDialog
+                    onConfirm={this.closeDialog}
+                    onCancel={this.closeDialog}
+                />
+                )}
             </div>
         )
     }
