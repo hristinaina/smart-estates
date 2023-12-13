@@ -22,7 +22,7 @@ func (mc *MQTTClient) HandleSPSwitch(client mqtt.Client, msg mqtt.Message) {
 
 	device := mc.solarPanelRepository.Get(deviceId)
 	// Unmarshal the JSON string into the struct
-	var data dto.DeviceDTO
+	var data dto.SolarPanelDTO
 	err = json.Unmarshal([]byte(msg.Payload()), &data)
 	if err != nil {
 		fmt.Println("Error unmarshaling JSON:", err)
@@ -31,7 +31,7 @@ func (mc *MQTTClient) HandleSPSwitch(client mqtt.Client, msg mqtt.Message) {
 	device.IsOn = data.IsOn == true
 	mc.solarPanelRepository.UpdateSP(device)
 	//mc.deviceRepository.Update(device.Device)
-	saveSPSwitchChangeToInfluxDb(mc.influxDb, device, data.UserId)
+	saveSPSwitchChangeToInfluxDb(mc.influxDb, device, data.UserEmail)
 	fmt.Printf("Solar panel: name=%s, id=%d, changed switch to %t \n", device.Device.Name, device.Device.Id, device.IsOn)
 }
 
@@ -58,12 +58,12 @@ func (mc *MQTTClient) HandleSPData(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Solar panel: name=%s, id=%d, generated value %f \n", device.Device.Name, device.Device.Id, value)
 }
 
-func saveSPSwitchChangeToInfluxDb(client influxdb2.Client, device models.SolarPanel, id int) {
+func saveSPSwitchChangeToInfluxDb(client influxdb2.Client, device models.SolarPanel, email string) {
 	Org := "Smart Home"
 	Bucket := "bucket"
 	writeAPI := client.WriteAPI(Org, Bucket)
 	p := influxdb2.NewPoint("solar_panel", //table
-		map[string]string{"device_id": strconv.Itoa(device.Device.Id), "user_id": strconv.Itoa(id)}, //tag
+		map[string]string{"device_id": strconv.Itoa(device.Device.Id), "user_id": email}, //tag
 		map[string]interface{}{"isOn": func() int {
 			if device.IsOn {
 				return 1
@@ -87,7 +87,7 @@ func saveSPDataToInfluxDb(client influxdb2.Client, device models.SolarPanel, val
 	writeAPI := client.WriteAPI(Org, Bucket)
 	p := influxdb2.NewPoint("solar_panel", //table
 		map[string]string{"device_id": strconv.Itoa(device.Device.Id)}, //tag
-		map[string]interface{}{"value": value},                         //field
+		map[string]interface{}{"electricity": value},                   //field
 		time.Now())
 
 	// Write the point to InfluxDB

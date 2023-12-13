@@ -79,7 +79,7 @@ export class SolarPanel extends Component {
         }));
         var message = {
             "IsOn": (!this.state.switchOn),
-            "UserId": authService.getCurrentUser().Id,
+            "UserEmail": authService.getCurrentUser().Email,
         }
         this.mqttClient.publish(topic, JSON.stringify(message));
     };
@@ -117,7 +117,7 @@ export class SolarPanel extends Component {
                 <div style={{ width: "fit-content", marginLeft: "auto", marginRight: "auto", marginTop: "10%" }}>
                     <p className='device-title'>Id: {this.id}</p>
                     {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
-                    <p className='device-text'>Produced in previous minute (W/m<sup>2</sup>): {device.Value}</p>
+                    <p className='device-text'>Produced in previous minute (kW/m<sup>2</sup>): {device.Value}</p>
                     <Stack direction="row" spacing={1} alignItems="center">
                         <Typography>Off</Typography>
                         <Switch

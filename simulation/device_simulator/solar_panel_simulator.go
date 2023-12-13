@@ -76,7 +76,7 @@ func calculateEletricityProduction(sp models.SolarPanel, radiation float64) floa
 	hourProduction := sp.SurfaceArea * sp.Efficiency * float64(sp.NumberOfPanels) * 10 // multiply by 1000 and divide by 100 (percentage)
 	minuteProduction := hourProduction / 60
 	scalingFactor := radiation/(radiation+2) + rand.Float64()*(0.25-0.2) + 0.2 // create scaling factor depending on sun radiation and add random factor to show changes
-	electricity := math.Round(minuteProduction*scalingFactor*1e2) / 1e2        // scale eletricity with scaling factor (shown in Wh) and rounds to 2 decimal places
+	electricity := math.Round(minuteProduction*scalingFactor/1000*1e4) / 1e4   // scale eletricity with scaling factor and rounds to 4 decimal places, divided bu 1000 to convert from w to kw
 	return electricity
 }
 
