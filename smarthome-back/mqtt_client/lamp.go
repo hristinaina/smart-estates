@@ -70,7 +70,7 @@ func (mc *MQTTClient) PostNewLampValue(lamp models.Lamp, percentage float32) {
 		"Value": percentage,
 	}
 	// measurement == table in relation db
-	point := write.NewPoint("measurement1", tags, fields, time.Now())
+	point := write.NewPoint("lamps", tags, fields, time.Now())
 
 	if err := writeAPI.WritePoint(context.Background(), point); err != nil {
 		log.Fatal(err)
@@ -88,7 +88,7 @@ func (mc *MQTTClient) GetLampsFromInfluxDb(from, to string) *api.QueryTableResul
 	// we are printing data that came in the last 10 minutes
 	query := fmt.Sprintf(`from(bucket: "bucket")
             |> range(start: %s, stop: %s)
-            |> filter(fn: (r) => r._measurement == "measurement1")`, from, to)
+            |> filter(fn: (r) => r._measurement == "lamps")`, from, to)
 	results, err := queryAPI.Query(context.Background(), query)
 	if err != nil {
 		log.Fatal(err)

@@ -94,11 +94,11 @@ func (rl *LampRepositoryImpl) GetLampData(from, to string) *api.QueryTableResult
 	if to != "" {
 		query = fmt.Sprintf(`from(bucket: "bucket")
             |> range(start: %s, stop: %s)
-            |> filter(fn: (r) => r._measurement == "measurement1")`, from, to)
+            |> filter(fn: (r) => r._measurement == "lamps")`, from, to)
 	} else {
 		query = fmt.Sprintf(`from(bucket: "bucket")
             |> range(start: %s)
-            |> filter(fn: (r) => r._measurement == "measurement1")`, from)
+            |> filter(fn: (r) => r._measurement == "lamps")`, from)
 	}
 
 	results, err := queryAPI.Query(context.Background(), query)

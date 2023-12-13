@@ -121,6 +121,7 @@ export class Lamp extends Component {
             switchOn: !prevState.switchOn,
         }));
         const message = (!this.state.switchOn).toString();
+        console.log("lampaaa ", this.mqttClient);
         this.mqttClient.publish(topic, message);
     };
 
