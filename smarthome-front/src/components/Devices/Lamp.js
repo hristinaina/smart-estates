@@ -9,6 +9,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import authService from '../../services/AuthService';
 import 'chart.js/auto';
+import LampService from '../../services/LampService';
 
 
 
@@ -20,22 +21,21 @@ export class Lamp extends Component {
         this.state = {
             device: {},
             switchOn: false,
+            data: {
+                labels: [],
+                datasets: [
+                  {
+                    label: 'Lightning',
+                    data: [],
+                    borderColor: 'rgba(128,104,148,1)',
+                    borderWidth: 2,
+                    fill: false,
+                  },
+                ],
+            },
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
-
-        this.data = {
-            labels: ['January', 'February', 'March', 'April', 'May'],
-            datasets: [
-              {
-                label: 'Lightning',
-                data: [12, 19, 3, 5, 2],
-                borderColor: 'rgba(128,104,148,1)',
-                borderWidth: 2,
-                fill: false,
-              },
-            ],
-        };
 
         this.options = {
             scales: {
@@ -62,6 +62,27 @@ export class Lamp extends Component {
         });
 
         try {
+            // populating graph data
+            const result = await LampService.getGraphData('-800m', '-1');
+            let keys = [];
+            let values = [];
+            result.data.forEach(element => {
+                keys.push(element.Value);
+                values.push(element.Count);
+            });
+            await this.setState({ data: {
+                labels: keys,
+                datasets: [
+                  {
+                    label: 'Lightning',
+                    data: values,
+                    borderColor: 'rgba(128,104,148,1)',
+                    borderWidth: 2,
+                    fill: false,
+                  },
+                ],
+            }});
+            // ...
             if (!this.connected) {
                 this.connected = true;
                 this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
@@ -82,7 +103,7 @@ export class Lamp extends Component {
             }
         } catch (error) {
             console.log("Error trying to connect to broker");
-            console.log(error);
+            console.error(error);
         }
     }
 
@@ -147,7 +168,7 @@ export class Lamp extends Component {
                     </Stack>
                 </div>
 
-                <Line id='graph' data={this.data} options={this.options} />
+                <Line id='graph' data={this.state.data} options={this.options} />
             </div>
         )
     }
