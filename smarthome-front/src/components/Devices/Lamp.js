@@ -63,25 +63,44 @@ export class Lamp extends Component {
 
         try {
             // populating graph data
-            const result = await LampService.getGraphData('-800m', '-1');
-            let keys = [];
-            let values = [];
-            result.data.forEach(element => {
-                keys.push(element.Value);
-                values.push(element.Count);
+            let data = await LampService.getAllGraphData();
+            let datasets = [];
+            data.forEach((value, key) => {
+                datasets.push({
+                            label: key,
+                            data: value,
+                            borderColor: LampService.getRandomColor(),
+                            borderWidth: 2,
+                            fill: false,
+                          },)
             });
+            let keys = [];
+            for (let i = 0; i < 101; i++) {
+                keys.push(i);
+            }
             await this.setState({ data: {
                 labels: keys,
-                datasets: [
-                  {
-                    label: 'Lightning',
-                    data: values,
-                    borderColor: 'rgba(128,104,148,1)',
-                    borderWidth: 2,
-                    fill: false,
-                  },
-                ],
+                datasets: datasets
             }});
+            // const result24 = await LampService.getGraphData('-24h', '-1');
+            // let keys = [];
+            // let values = [];
+            // result24.data.forEach(element => {
+            //     keys.push(element.Value);
+            //     values.push(element.Count);
+            // });
+            // await this.setState({ data: {
+            //     labels: keys,
+            //     datasets: [
+            //       {
+            //         label: 'last 24h',
+            //         data: values,
+            //         borderColor: 'rgba(128,104,148,1)',
+            //         borderWidth: 2,
+            //         fill: false,
+            //       },
+            //     ],
+            // }});
             // ...
             if (!this.connected) {
                 this.connected = true;
