@@ -66,4 +66,12 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient) {
 		uploadImageRoutes.POST("/:real-estate-name", imageUploadController.Post)
 		uploadImageRoutes.GET("/:file-name", imageUploadController.Get)
 	}
+
+	ambientSensor := r.Group("/api/ambient")
+	{
+		ambientSensorController := controllers.NewAmbientSensorController(db)
+		ambientSensor.GET("/last-hour/:id", ambientSensorController.GetValueForHour)
+		// uploadImageRoutes.POST("/:real-estate-name", imageUploadController.Post)
+		// uploadImageRoutes.GET("/:file-name", imageUploadController.Get)
+	}
 }
