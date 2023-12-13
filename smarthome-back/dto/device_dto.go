@@ -22,6 +22,7 @@ type DeviceDTO struct {
 	SurfaceArea      float64
 	Efficiency       float64
 	IsOn             bool
+	NumberOfPanels   int
 }
 
 // Object conversion has been localized here:
@@ -83,8 +84,9 @@ func (dto *DeviceDTO) ToSolarPanel() models.SolarPanel {
 			RealEstate: dto.RealEstate,
 			IsOnline:   dto.IsOnline,
 		},
-		SurfaceArea: dto.SurfaceArea,
-		Efficiency:  dto.Efficiency,
+		SurfaceArea:    dto.SurfaceArea,
+		Efficiency:     dto.Efficiency,
+		NumberOfPanels: dto.NumberOfPanels,
 	}
 }
 

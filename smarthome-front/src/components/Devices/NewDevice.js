@@ -25,6 +25,7 @@ export class NewDevice extends Component {
             selectedPowerSupply: 0,
             efficiency: 20,
             surfaceArea: 1.5,
+            panelsNum: 1,
             showPowerSupply: true,
             showPowerConsumption: false,
             showAirConditioner: false,
@@ -46,7 +47,7 @@ export class NewDevice extends Component {
         { value: 3, label: 'Lamp' },
         { value: 4, label: 'Vehicle gate' },
         { value: 5, label: 'Sprinkler' },
-        { value: 6, label: 'Solar panel' },
+        { value: 6, label: 'Solar system' },
         { value: 7, label: 'Battery storage' },
         { value: 8, label: 'Electric vehicle charger' },
     ];
@@ -189,6 +190,14 @@ export class NewDevice extends Component {
             this.checkButton();
         });
     }
+
+    handlePanelsNum = (event) => {
+        const panelsNum = event.target.value;
+
+        this.setState({ panelsNum }, () => {
+            this.checkButton();
+        });
+    }
     
     handleEfficiency = (event) => {
         const efficiency = event.target.value;
@@ -241,7 +250,7 @@ export class NewDevice extends Component {
                 this.setState({ isButtonDisabled: true })
             }
             else if (this.state.selectedType == 6 && (this.state.efficiency < 0 || this.state.efficiency > 100
-                || this.state.surfaceArea < 0 || this.state.surfaceArea > 9999)) {
+                || this.state.surfaceArea < 0 || this.state.surfaceArea > 9999 || this.state.panelsNum < 1 || this.state.panelsNum > 1000)) {
                 this.setState({ isButtonDisabled: true })
             }
             else {
@@ -268,6 +277,7 @@ export class NewDevice extends Component {
                 UserId: authService.getCurrentUser().Id,
                 SurfaceArea: parseFloat(this.state.surfaceArea),
                 Efficiency: parseFloat(this.state.efficiency),
+                NumberOfPanels: parseInt(this.state.panelsNum),
             };
             const result = await DeviceService.createDevice(data);
             console.log(result);
@@ -391,7 +401,16 @@ export class NewDevice extends Component {
                         )}
                         {this.state.showSolarPanel && (
                             <div>
-                                <p className="new-real-estate-label">Surface area (m<sup>2</sup>):</p>
+                                <p className="new-real-estate-label">Number of panels:</p>
+                                <input
+                                    className="new-real-estate-input"
+                                    type="number"
+                                    name="panels"
+                                    placeholder="Enter the number of panels"
+                                    value={this.state.panelsNum}
+                                    onChange={this.handlePanelsNum}
+                                />
+                                <p className="new-real-estate-label">Surface area per panel (m<sup>2</sup>):</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"
@@ -400,7 +419,7 @@ export class NewDevice extends Component {
                                     value={this.state.surfaceArea}
                                     onChange={this.handleSurfaceArea}
                                 />
-                                <p className="new-real-estate-label">Efficiency (%):</p>
+                                <p className="new-real-estate-label">Efficiency per panel (%):</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"

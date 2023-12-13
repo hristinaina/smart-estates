@@ -32,6 +32,7 @@ func (s *SolarPanelRepositoryImpl) Get(id int) models.SolarPanel {
 			Device.StatusTimeStamp,
 			SolarPanel.SurfaceArea,
 			SolarPanel.Efficiency,
+			SolarPanel.NumberOfPanels,
 			SolarPanel.IsOn
 		FROM
 			SolarPanel
@@ -55,6 +56,7 @@ func (s *SolarPanelRepositoryImpl) Get(id int) models.SolarPanel {
 		&device.StatusTimeStamp,
 		&sp.SurfaceArea,
 		&sp.Efficiency,
+		&sp.NumberOfPanels,
 		&sp.IsOn,
 	)
 	if err != nil {
@@ -96,9 +98,9 @@ func (s *SolarPanelRepositoryImpl) Add(dto dto.DeviceDTO) models.SolarPanel {
 
 	// Insert the new SolarPanel into the SolarPanel table
 	result, err = tx.Exec(`
-		INSERT INTO SolarPanel (DeviceId, SurfaceArea, Efficiency, IsOn)
-		VALUES (?, ?, ?, ?)
-	`, deviceID, device.SurfaceArea, device.Efficiency, false)
+		INSERT INTO SolarPanel (DeviceId, SurfaceArea, Efficiency, NumberOfPanels, IsOn)
+		VALUES (?, ?, ?, ?, ?)
+	`, deviceID, device.SurfaceArea, device.Efficiency, device.NumberOfPanels, false)
 	if err != nil {
 		return models.SolarPanel{}
 	}
@@ -112,8 +114,8 @@ func (s *SolarPanelRepositoryImpl) Add(dto dto.DeviceDTO) models.SolarPanel {
 }
 
 func (s *SolarPanelRepositoryImpl) UpdateSP(device models.SolarPanel) bool {
-	query := "UPDATE solarPanel SET surfaceArea = ?, efficiency = ?, isOn = ? WHERE deviceId = ?"
-	_, err := s.db.Exec(query, device.SurfaceArea, device.Efficiency, device.IsOn, device.Device.Id)
+	query := "UPDATE solarPanel SET surfaceArea = ?, efficiency = ?, numberOfPanels = ?, isOn = ? WHERE deviceId = ?"
+	_, err := s.db.Exec(query, device.SurfaceArea, device.Efficiency, device.NumberOfPanels, device.IsOn, device.Device.Id)
 	if err != nil {
 		fmt.Println("Failed to update device:", err)
 		return false
