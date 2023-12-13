@@ -33,11 +33,17 @@ class LampService {
             values.push(0);
         }
         allResults.forEach((res, i) => {
-            res.data.forEach(element => {
-                values[element.Value] = element.Count;
-            });
-            data.set(allLabels[i], values);
-            values = []
+            if (res.data != null)
+            {
+                console.log("res");
+                console.log(res);
+                res.data.forEach(element => {
+                    values[element.Value] = element.Count;
+                });
+                data.set(allLabels[i], values);
+                values = []
+            }
+
         });
 
         return data;

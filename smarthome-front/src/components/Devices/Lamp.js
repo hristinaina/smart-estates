@@ -82,25 +82,6 @@ export class Lamp extends Component {
                 labels: keys,
                 datasets: datasets
             }});
-            // const result24 = await LampService.getGraphData('-24h', '-1');
-            // let keys = [];
-            // let values = [];
-            // result24.data.forEach(element => {
-            //     keys.push(element.Value);
-            //     values.push(element.Count);
-            // });
-            // await this.setState({ data: {
-            //     labels: keys,
-            //     datasets: [
-            //       {
-            //         label: 'last 24h',
-            //         data: values,
-            //         borderColor: 'rgba(128,104,148,1)',
-            //         borderWidth: 2,
-            //         fill: false,
-            //       },
-            //     ],
-            // }});
             // ...
             if (!this.connected) {
                 this.connected = true;
@@ -121,7 +102,6 @@ export class Lamp extends Component {
                 });
             }
         } catch (error) {
-            console.log("Error trying to connect to broker");
             console.error(error);
         }
     }
