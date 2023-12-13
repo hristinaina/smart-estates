@@ -1,6 +1,7 @@
 import { Component } from 'react';
 import {Line} from 'react-chartjs-2';
 import './Devices.css';
+import 'chart.js/auto';
 import { Navigation } from '../Navigation/Navigation';
 import mqtt from 'mqtt';
 import Switch from '@mui/material/Switch';
@@ -21,13 +22,20 @@ export class AmbientSensor extends Component {
             data: {
                 labels: [],
                 datasets: [
-                {
-                    label: 'Lightning',
-                    data: [],
-                    borderColor: 'rgba(128,104,148,1)',
-                    borderWidth: 2,
-                    fill: false,
-                }, ],
+                    {
+                        label: 'Humidity',
+                        data: [],
+                        borderColor: 'rgba(128,104,148,1)',
+                        borderWidth: 2,
+                        fill: false,
+                    },
+                    {
+                        label: 'Temperature',
+                        data: [],
+                        borderColor: 'rgba(255, 99, 132, 1)', 
+                        borderWidth: 2,
+                        fill: false,
+                    }, ],
             },
 
         };
@@ -80,27 +88,27 @@ export class AmbientSensor extends Component {
             // }
 
 
-            // await this.setState({
-            //     data: {
-            //         labels: timestamps,
-            //         datasets: [
-            //             {
-            //                 label: 'Humidity',
-            //                 data: humidityData,
-            //                 borderColor: 'rgba(128,104,148,1)',
-            //                 borderWidth: 2,
-            //                 fill: false,
-            //             },
-            //             {
-            //                 label: 'Temperature',
-            //                 data: temperatureData,
-            //                 borderColor: 'rgba(255, 99, 132, 1)', // Prilagodi boju po potrebi
-            //                 borderWidth: 2,
-            //                 fill: false,
-            //             },
-            //         ],
-            //     },
-            // });
+            await this.setState({
+                data: {
+                    labels: timestamps,
+                    datasets: [
+                        {
+                            label: 'Humidity',
+                            data: humidityData,
+                            borderColor: 'rgba(128,104,148,1)',
+                            borderWidth: 2,
+                            fill: false,
+                        },
+                        {
+                            label: 'Temperature',
+                            data: temperatureData,
+                            borderColor: 'rgba(255, 99, 132, 1)', // Prilagodi boju po potrebi
+                            borderWidth: 2,
+                            fill: false,
+                        },
+                    ],
+                },
+            });
 
 
 
