@@ -40,7 +40,7 @@ export class Lamp extends Component {
         this.options = {
             scales: {
               y: {
-                beginAtZero: true,
+                beginAtZero: false,
               },
             },
         };
