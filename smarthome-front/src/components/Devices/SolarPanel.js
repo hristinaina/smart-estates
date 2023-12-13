@@ -8,6 +8,11 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import authService from '../../services/AuthService';
 import DeviceService from '../../services/DeviceService';
+import { Line } from 'react-chartjs-2';
+import 'chart.js/auto';
+import SPGraph from './SPGraph';
+import { TextField } from '@mui/material';
+import { Button } from 'reactstrap';
 
 
 export class SolarPanel extends Component {
@@ -18,6 +23,10 @@ export class SolarPanel extends Component {
         this.state = {
             device: {},
             switchOn: false,
+            data: [],
+            email: '',
+            startDate: '',
+            endDate: '',
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -34,9 +43,12 @@ export class SolarPanel extends Component {
             Value: "Loading...",
         }
         console.log(device);
+
+        const historyData = await DeviceService.getSPGraphData(this.id, authService.getCurrentUser().Email, null, null);
         this.setState({
             device: updatedData,
             switchOn: device.IsOn,
+            data: historyData
         });
 
         try {
@@ -98,6 +110,17 @@ export class SolarPanel extends Component {
         });
     }
 
+    handleFormSubmit = async (e) => {
+        e.preventDefault();
+    
+        const { email, startDate, endDate } = this.state;
+        console.log(email, startDate, endDate);
+        const historyData = await DeviceService.getSPGraphData(this.id, email, startDate, endDate);
+        this.setState({
+          data: historyData,
+        });
+      };
+
     extractDeviceIdFromUrl() {
         const parts = window.location.href.split('/');
         return parts[parts.length - 1];
@@ -108,7 +131,7 @@ export class SolarPanel extends Component {
     }
 
     render() {
-        const { device, switchOn } = this.state;
+        const { device, switchOn, data, email, startDate, endDate } = this.state;
 
         return (
             <div>
@@ -127,6 +150,25 @@ export class SolarPanel extends Component {
                         <Typography>On</Typography>
                     </Stack>
                 </div>
+                <form onSubmit={this.handleFormSubmit}>
+                    <label>
+                        Email:
+                        <TextField type="text" value={email} onChange={(e) => this.setState({ email: e.target.value })} />
+                    </label>
+                    <br />
+                    <label>
+                        Start Date:
+                        <TextField type="date" value={startDate} onChange={(e) => this.setState({ startDate: e.target.value })} />
+                    </label>
+                    <br />
+                    <label>
+                        End Date:
+                        <TextField type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
+                    </label>
+                    <br />
+                    <Button type="submit">Fetch Data</Button>
+                </form>
+                <SPGraph data={data} />
             </div>
         )
     }

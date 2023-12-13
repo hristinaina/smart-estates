@@ -2,6 +2,7 @@ package routes
 
 import (
 	"database/sql"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"smarthome-back/controllers"
 	"smarthome-back/middleware"
 	"smarthome-back/mqtt_client"
@@ -9,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient) {
+func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) {
 	userRoutes := r.Group("/api/users")
 	{
 		userController := controllers.NewUserController(db)
@@ -47,7 +48,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient) {
 
 	deviceRoutes := r.Group("/api/devices")
 	{
-		deviceController := controllers.NewDeviceController(db, mqtt)
+		deviceController := controllers.NewDeviceController(db, mqtt, influxDb)
 		middleware := middleware.NewMiddleware(db)
 		deviceRoutes.GET("/:id", deviceController.Get)
 		deviceRoutes.GET("/", deviceController.GetAll)
@@ -61,8 +62,10 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient) {
 	}
 	solarPanelRoutes := r.Group("/api/sp")
 	{
-		SolarPanelController := controllers.NewSolarPanelController(db)
+		middleware := middleware.NewMiddleware(db)
+		SolarPanelController := controllers.NewSolarPanelController(db, influxDb)
 		solarPanelRoutes.GET("/:id", SolarPanelController.Get)
+		solarPanelRoutes.PUT("/graphData", middleware.RequireAuth, SolarPanelController.GetGraphData)
 	}
 	uploadImageRoutes := r.Group("/api/upload")
 	{
