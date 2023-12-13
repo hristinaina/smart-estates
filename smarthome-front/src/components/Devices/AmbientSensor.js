@@ -62,27 +62,45 @@ export class AmbientSensor extends Component {
         });
 
         try {
-            console.log("ID", this.id)
             const result = await AmbientSensorService.getGraphData(this.id);
-            console.log("rezultat", result)
-            let keys = [];
-            let values = [];
-            result.data.forEach(element => {
-                keys.push(element.Value);
-                values.push(element.Count);
-            });
-            await this.setState({ data: {
-                labels: keys,
-                datasets: [
-                  {
-                    label: 'Lightning',
-                    data: values,
-                    borderColor: 'rgba(128,104,148,1)',
-                    borderWidth: 2,
-                    fill: false,
-                  },
-                ],
-            }});
+            const values = result.result
+            console.log("rezultat", values)
+            console.log(typeof(values))
+
+            const timestamps = Object.keys(values);
+            const humidityData = timestamps.map((timestamp) => values[timestamp].humidity);
+            const temperatureData = timestamps.map((timestamp) => values[timestamp].temperature);
+
+            console.log("vreme: ", timestamps)
+            console.log("humidity: ", humidityData)
+            console.log("temperature: ", temperatureData)
+        
+            // if (this.chartInstance) {
+            //     this.chartInstance.destroy();
+            // }
+
+
+            // await this.setState({
+            //     data: {
+            //         labels: timestamps,
+            //         datasets: [
+            //             {
+            //                 label: 'Humidity',
+            //                 data: humidityData,
+            //                 borderColor: 'rgba(128,104,148,1)',
+            //                 borderWidth: 2,
+            //                 fill: false,
+            //             },
+            //             {
+            //                 label: 'Temperature',
+            //                 data: temperatureData,
+            //                 borderColor: 'rgba(255, 99, 132, 1)', // Prilagodi boju po potrebi
+            //                 borderWidth: 2,
+            //                 fill: false,
+            //             },
+            //         ],
+            //     },
+            // });
 
 
 
@@ -154,10 +172,8 @@ export class AmbientSensor extends Component {
 
         const data = JSON.parse(msg);
 
-        // Izvuci ključeve (timestamps)
         const timestamps = Object.keys(data);
 
-        // Izvuci vlažnost i temperaturu iz vrednosti objekta
         const humidityData = timestamps.map((timestamp) => data[timestamp].humidity);
         const temperatureData = timestamps.map((timestamp) => data[timestamp].temperature);
 
