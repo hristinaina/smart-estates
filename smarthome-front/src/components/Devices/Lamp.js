@@ -155,6 +155,13 @@ export class Lamp extends Component {
         this.setState({showCustomDateRangeDialog: false,})
     }
 
+    confirmNewDateRange = (from, to) => {
+        console.log("confirmed");
+        console.log(from);
+        console.log(to);
+        this.closeDialog();
+    }
+
     render() {
         const { device, switchOn } = this.state;
 
@@ -183,7 +190,7 @@ export class Lamp extends Component {
 
                 {this.state.showCustomDateRangeDialog && (
                 <CustomDateRangeDialog
-                    onConfirm={this.closeDialog}
+                    onConfirm={this.confirmNewDateRange}
                     onCancel={this.closeDialog}
                 />
                 )}

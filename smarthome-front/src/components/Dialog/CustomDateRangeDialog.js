@@ -5,7 +5,31 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 
 const CustomDateRangeDialog = ({onConfirm, onCancel}) => {
-    const [selectedDate, handleDateChange] = useState(null);
+    const [isChoosen, setIsChoosen] = useState(true);  // true so that is not displayed at the beginning
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
+
+    const handleStartDateChange = (date) => {
+        setStartDate(date);
+        if (endDate != null) {
+            setIsChoosen(true);
+        }
+    };
+
+    const handleEndDateChange = (date) => {
+        setEndDate(date);
+        if (startDate != null) {
+            setIsChoosen(true);
+        }
+    };
+
+    const handleConfirm = () => {
+        if (startDate != null && endDate != null) {
+            onConfirm(startDate, endDate);
+        } else {
+            setIsChoosen(false);
+        }
+    }
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -16,19 +40,21 @@ const CustomDateRangeDialog = ({onConfirm, onCancel}) => {
                 <DatePicker
                     className='picker'
                     label="Starting point"
-                    value={selectedDate}
-                    onChange={(firstDate) => handleDateChange(firstDate)}
+                    value={startDate}
+                    onChange={handleStartDateChange}
                 />
                 <p></p>
                 <DatePicker
                     className='picker'
                     label="Ending point"
-                    value={selectedDate}
-                    onChange={(secondDate) => handleDateChange(secondDate)}
+                    value={endDate}
+                    onChange={handleEndDateChange}
                 />
                 <p></p>
+                {!isChoosen && <p id='please-choose-dates'>Please choose dates</p>}
                 <button onClick={onCancel}>CANCEL</button>
-                <button onClick={() => onConfirm(selectedDate)}>CONFIRM</button>
+                <button onClick={handleConfirm}>CONFIRM</button>
+                {/* <button onClick={() => onConfirm(selectedDate)}>CONFIRM</button> */}
                 </div>
             </div>
         </LocalizationProvider>

@@ -49,3 +49,7 @@
     margin-bottom: 3em;
     width: 90%;
 }
+
+#please-choose-dates {
+    color: red;
+}
