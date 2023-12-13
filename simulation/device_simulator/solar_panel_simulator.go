@@ -35,7 +35,7 @@ func NewSolarPanelSimulator(client mqtt.Client, device models.Device) *SolarPane
 func (ls *SolarPanelSimulator) ConnectSolarPanel() {
 	go SendHeartBeat(ls.client, ls.device.Device.ID, ls.device.Device.Name)
 	go ls.GenerateSolarPanelData()
-	config.SubscribeToTopic(ls.client, topicSwitch+strconv.Itoa(ls.device.Device.ID), ls.HandleSwitchChange)
+	config.SubscribeToTopic(ls.client, topicSPSwitch+strconv.Itoa(ls.device.Device.ID), ls.HandleSwitchChange)
 }
 
 func (ls *SolarPanelSimulator) GenerateSolarPanelData() {

@@ -19,32 +19,36 @@ const (
 	TopicStatusChanged = "device/status/" //from back to front (because front doesn't have to know about everything from simulation)
 	TopicPayload       = "device/data/"
 	TopicNewDevice     = "device/new/"
+	TopicSPSwitch      = "sp/switch/"
 )
 
 type MQTTClient struct {
-	client           mqtt.Client
-	deviceRepository repositories.DeviceRepository
-	influxDb         influxdb2.Client
+	client               mqtt.Client
+	deviceRepository     repositories.DeviceRepository
+	solarPanelRepository repositories.SolarPanelRepository
+	influxDb             influxdb2.Client
 }
 
 func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 	opts := mqtt.NewClientOptions().AddBroker("ws://localhost:9001/mqtt")
 	opts.SetClientID("go-server-nvt-2023")
-	
+
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
 		return nil
 	}
 	return &MQTTClient{
-		client:           client,
-		deviceRepository: repositories.NewDeviceRepository(db),
-		influxDb:         influxDb,
+		client:               client,
+		deviceRepository:     repositories.NewDeviceRepository(db),
+		solarPanelRepository: repositories.NewSolarPanelRepository(db),
+		influxDb:             influxDb,
 	}
 }
 
 func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicOnline+"+", mc.HandleHeartBeat)
+	mc.SubscribeToTopic(TopicSPSwitch+"+", mc.HandleSPSwitch)
 	//todo subscribe here to other topics. Create your callback functions in other file
 
 	// Periodically check if the device is still online

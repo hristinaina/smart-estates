@@ -11,6 +11,7 @@ import Account from './components/User/Account';
 import { Lamp } from './components/Devices/Lamp';
 import AddAdmin from './components/SuperAdmin/AddAdmin';
 import ForgotPassword from './components/User/ForgotPassword';
+import { SolarPanel } from './components/Devices/SolarPanel';
 
 const AppRoutes = [
   {
@@ -60,6 +61,10 @@ const AppRoutes = [
   {
     path: "/lamp/:id",
     element: <Lamp />
+  },
+  {
+    path: "/sp/:id",
+    element: <SolarPanel />
   },
 ];
 
