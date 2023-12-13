@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"smarthome-back/mqtt_client"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -25,25 +26,52 @@ func SendAmbientValues(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Client Successfully Connected...")
 
-	_, p, err := ws.ReadMessage()
-	if err != nil {
-		fmt.Println("GRESKA PRILIKOM CITANJA PORUKE")
-		log.Println(err)
-		return
-	}
+	// _, p, err := ws.ReadMessage()
+	// if err != nil {
+	// 	fmt.Println("GRESKA PRILIKOM CITANJA PORUKE")
+	// 	log.Println(err)
+	// 	return
+	// }
 
-	values := mqtt_client.GetLastOneHourValues(string(p))
+	// values := mqtt_client.GetLastOneHourValues(string(p))
 
-	jsonData, err := json.Marshal(values)
-	if err != nil {
-		fmt.Println("Error encoding JSON:", err)
-		return
-	}
+	// jsonData, err := json.Marshal(values)
+	// if err != nil {
+	// 	fmt.Println("Error encoding JSON:", err)
+	// 	return
+	// }
 
-	if err := ws.WriteMessage(websocket.TextMessage, jsonData); err != nil {
-		fmt.Println("GRESKA PRILIKOM SLANJA PORUKE")
-		log.Println(err)
-		return
+	// if err := ws.WriteMessage(websocket.TextMessage, jsonData); err != nil {
+	// 	fmt.Println("GRESKA PRILIKOM SLANJA PORUKE")
+	// 	log.Println(err)
+	// 	return
+	// }
+
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+
+			newValue := mqtt_client.GetNewValue()
+
+			fmt.Println(newValue)
+
+			jsonData, err := json.Marshal(newValue)
+			if err != nil {
+				fmt.Println("Error encoding JSON:", err)
+				return
+			}
+
+			// fmt.Println(jsonData)
+
+			if err := ws.WriteMessage(websocket.TextMessage, jsonData); err != nil {
+				fmt.Println("GRESKA PRILIKOM SLANJA PORUKE")
+				log.Println(err)
+				return
+			}
+		}
 	}
 }
 

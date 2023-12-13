@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/services"
@@ -35,7 +34,7 @@ func (uc AmbientSensorController) GetValueForHour(c *gin.Context) {
 
 	results := mqtt_client.GetLastOneHourValues(c.Param("id"))
 
-	fmt.Println(results)
+	// fmt.Println(results)
 
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }

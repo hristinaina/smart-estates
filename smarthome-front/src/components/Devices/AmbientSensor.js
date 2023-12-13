@@ -35,9 +35,10 @@ export class AmbientSensor extends Component {
                         borderColor: 'rgba(255, 99, 132, 1)', 
                         borderWidth: 2,
                         fill: false,
-                    }, ],
+                    }, 
+                ],
             },
-
+            latestData: null,
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -51,7 +52,7 @@ export class AmbientSensor extends Component {
         };
         
 
-        this.message = null
+        this.values = null
 
     }
 
@@ -72,16 +73,17 @@ export class AmbientSensor extends Component {
         try {
             const result = await AmbientSensorService.getGraphData(this.id);
             const values = result.result
-            console.log("rezultat", values)
-            console.log(typeof(values))
+            this.values = new Map(Object.entries(values))
+            // console.log("rezultat", values)
+            // console.log(typeof(values))
 
             const timestamps = Object.keys(values);
             const humidityData = timestamps.map((timestamp) => values[timestamp].humidity);
             const temperatureData = timestamps.map((timestamp) => values[timestamp].temperature);
 
-            console.log("vreme: ", timestamps)
-            console.log("humidity: ", humidityData)
-            console.log("temperature: ", temperatureData)
+            // console.log("vreme: ", timestamps)
+            // console.log("humidity: ", humidityData)
+            // console.log("temperature: ", temperatureData)
         
             // if (this.chartInstance) {
             //     this.chartInstance.destroy();
@@ -102,7 +104,7 @@ export class AmbientSensor extends Component {
                         {
                             label: 'Temperature',
                             data: temperatureData,
-                            borderColor: 'rgba(255, 99, 132, 1)', // Prilagodi boju po potrebi
+                            borderColor: 'rgba(255, 99, 132, 1)', 
                             borderWidth: 2,
                             fill: false,
                         },
@@ -125,9 +127,9 @@ export class AmbientSensor extends Component {
                     this.mqttClient.subscribe('device/data/' + this.id);
                 });
 
-                // Handle incoming MQTT messages
-                this.mqttClient.on('message', (topic, message) => {
-                    this.handleMqttMessage(topic, message);
+                // Handle incoming MQTT valuess
+                this.mqttClient.on('values', (topic, values) => {
+                    this.handleMqttvalues(topic, values);
                 });
             }
         } catch (error) {
@@ -149,8 +151,8 @@ export class AmbientSensor extends Component {
 
         socket.onmessage = (msg) => {
             console.log(msg)
-            this.message = msg
-            // this.populateGraph(msg.data)
+            // this.values = msg
+            this.populateGraph(msg.data)
         }
 
         // const result = msg; // todo uzmi vrednost od soketa
@@ -165,8 +167,54 @@ export class AmbientSensor extends Component {
         }
     }
 
-    populateGraph = (msg) => {
-        // console.log(typeof(msg));
+    populateGraph = (message) => {
+        const { data } = this.state;
+        console.log("uslooo")
+        console.log(message)
+        console.log(this.values)
+
+        const newValue = JSON.parse(message);
+
+        const { humidity, temperature, timestamp } = newValue;
+
+        console.log(newValue.humidity)
+        console.log(newValue['temperature'])
+        console.log(timestamp)
+        // const key = newValue.timestamp; 
+        // this.values.set(key, {
+        //     temperature: newValue.temperature,
+        //     humidity: newValue.humidity
+        // });
+
+        // const timestamps = Object.keys(this.values);
+        // const humidityData = timestamps.map((timestamp) => this.values[timestamp].humidity);
+        // const temperatureData = timestamps.map((timestamp) => this.values[timestamp].temperature);
+
+        const updatedChartData = {
+            labels: [...data.labels, newValue.timestamp], // Dodajte novi timestamp u postojeće labele
+            datasets: [
+                {
+                    label: 'Humidity',
+                    data: [...data.datasets[0].data, newValue.humidity], // Dodajte novu vrednost humidity
+                    borderColor: 'rgba(128,104,148,1)',
+                    borderWidth: 2,
+                    fill: false,
+                },
+                {
+                    label: 'Temperature',
+                    data: [...data.datasets[1].data, newValue.temperature], // Dodajte novu vrednost temperature
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 2,
+                    fill: false,
+                },
+            ],
+        };
+
+        this.setState({
+            data: updatedChartData,
+        });
+
+        // console.log(this.values);
     
         // let timestamps = Object.keys(msg);
         // console.log('vreme: ', timestamps)
@@ -178,42 +226,42 @@ export class AmbientSensor extends Component {
         //     temperatureData.push(msg[timestamp].temperature);
         // });
 
-        const data = JSON.parse(msg);
+        // const data = JSON.parse(msg);
 
-        const timestamps = Object.keys(data);
+        // const timestamps = Object.keys(data);
 
-        const humidityData = timestamps.map((timestamp) => data[timestamp].humidity);
-        const temperatureData = timestamps.map((timestamp) => data[timestamp].temperature);
+        // const humidityData = timestamps.map((timestamp) => data[timestamp].humidity);
+        // const temperatureData = timestamps.map((timestamp) => data[timestamp].temperature);
 
-        console.log("vreme: ", timestamps)
-        console.log("humidity: ", humidityData)
-        console.log("temperature: ", temperatureData)
+        // console.log("vreme: ", timestamps)
+        // console.log("humidity: ", humidityData)
+        // console.log("temperature: ", temperatureData)
     
-        if (this.chartInstance) {
-            this.chartInstance.destroy();
-        }
+        // if (this.chartInstance) {
+        //     this.chartInstance.destroy();
+        // }
     
-        this.setState({
-            data: {
-                labels: timestamps,
-                datasets: [
-                    {
-                        label: 'Humidity',
-                        data: humidityData,
-                        borderColor: 'rgba(128,104,148,1)',
-                        borderWidth: 2,
-                        fill: false,
-                    },
-                    {
-                        label: 'Temperature',
-                        data: temperatureData,
-                        borderColor: 'rgba(255, 99, 132, 1)', // Prilagodi boju po potrebi
-                        borderWidth: 2,
-                        fill: false,
-                    },
-                ],
-            },
-        });
+        // this.setState({
+        //     data: {
+        //         labels: timestamps,
+        //         datasets: [
+        //             {
+        //                 label: 'Humidity',
+        //                 data: humidityData,
+        //                 borderColor: 'rgba(128,104,148,1)',
+        //                 borderWidth: 2,
+        //                 fill: false,
+        //             },
+        //             {
+        //                 label: 'Temperature',
+        //                 data: temperatureData,
+        //                 borderColor: 'rgba(255, 99, 132, 1)', // Prilagodi boju po potrebi
+        //                 borderWidth: 2,
+        //                 fill: false,
+        //             },
+        //         ],
+        //     },
+        // });
     };
     
 
@@ -223,14 +271,14 @@ export class AmbientSensor extends Component {
         this.setState((prevState) => ({
             switchOn: !prevState.switchOn,
         }));
-        const message = (!this.state.switchOn).toString();
-        this.mqttClient.publish(topic, message);
+        const values = (!this.state.switchOn).toString();
+        this.mqttClient.publish(topic, values);
     };
 
-    // Handle incoming MQTT messages
-    handleMqttMessage(topic, message) {
+    // Handle incoming MQTT valuess
+    handleMqttvalues(topic, values) {
         const { device } = this.state;
-        const newValue = message.toString();
+        const newValue = values.toString();
         const updatedData =
         {
             ...device,
@@ -258,17 +306,17 @@ export class AmbientSensor extends Component {
                 <Navigation />
                 <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
                 <div style={{ width: "fit-content", marginLeft: "auto", marginRight: "auto", marginTop: "10%" }}>
-                    <p className='device-title'>Id: {this.id}</p>
+                {/* /    <p className='device-title'>Id: {this.id}</p> */}
                     {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
-                    <p className='device-text'>Last Value: {device.Value}</p>
-                    <Stack direction="row" spacing={1} alignItems="center">
+                    {/* <p className='device-text'>Last Value: {device.Value}</p> */}
+                    {/* <Stack direction="row" spacing={1} alignItems="center"> */}
                         {/* <Typography>Off</Typography> */}
-                        <Switch
-                            checked={switchOn}
-                            onChange={this.handleSwitchToggle}
-                        />
-                        <Typography>On</Typography>
-                    </Stack>
+                        {/* <Switch */}
+                            {/* checked={switchOn} */}
+                            {/* onChange={this.handleSwitchToggle} */}
+                        {/* /> */}
+                        {/* <Typography>On</Typography> */}
+                    {/* </Stack> */}
                 </div>
 
                 <Line ref={(ref) => (this.chartInstance = ref)} id='graph' data={this.state.data} options={this.options} />

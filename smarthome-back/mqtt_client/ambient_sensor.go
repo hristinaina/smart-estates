@@ -16,6 +16,14 @@ var switchOn = false
 
 var influxdb influxdb2.Client
 
+type AmbientSensor struct {
+	Humidity    float64   `json:"humidity"`
+	Temperature float64   `json:"temperature"`
+	Timestemp   time.Time `json:"timestamp"`
+}
+
+var sensor AmbientSensor
+
 // HandleHeartBeat callback function called when subscribed to TopicOnline. Update heartbeat time when "online" message is received
 func (mc *MQTTClient) ReceiveValue(client mqtt.Client, msg mqtt.Message) {
 	influxdb = mc.influxDb
@@ -34,7 +42,8 @@ func (mc *MQTTClient) ReceiveValue(client mqtt.Client, msg mqtt.Message) {
 
 	saveValueToInfluxDb(mc.influxDb, deviceId, temperature, humidity)
 
-	// GetLastOneHourValues(mc.influxDb, "7") // todo izbrisi ovo
+	// todo posalji soketom
+	setNewValue(temperature, humidity, time.Now())
 
 	fmt.Printf("Ambient Sensor, id=%v, temeprature: %v °C, humidity: %v %% \n", deviceId, temperature, humidity)
 
@@ -44,11 +53,6 @@ func saveValueToInfluxDb(client influxdb2.Client, deviceId int, temperature, hum
 	Org := "Smart Home"
 	Bucket := "bucket"
 	writeAPI := client.WriteAPI(Org, Bucket)
-
-	fmt.Println("PODACI")
-	fmt.Println(deviceId)
-	fmt.Println(temperature)
-	fmt.Println(humidity)
 
 	point := influxdb2.NewPoint("measurement1", // table
 		map[string]string{"device_id": strconv.Itoa(deviceId)}, // tag
@@ -74,11 +78,6 @@ func (mc *MQTTClient) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("AmbientSensor id=%d, switch status: %s\n", deviceId, status)
 }
 
-type AmbientSensor struct {
-	Humidity    float64 `json:"humidity"`
-	Temperature float64 `json:"temperature"`
-}
-
 func GetLastOneHourValues(deviceId string) map[time.Time]AmbientSensor {
 	Org := "Smart Home"
 	Bucket := "bucket"
@@ -88,16 +87,6 @@ func GetLastOneHourValues(deviceId string) map[time.Time]AmbientSensor {
 	|> range(start: -1h, stop: now())
 	|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`,
 		Bucket, deviceId)
-
-	// result, err := queryAPI.QueryRaw(context.Background(), query, influxdb2.DefaultDialect())
-	// if err == nil {
-	// 	fmt.Println("QueryResult:")
-	// 	fmt.Println(result)
-	// } else {
-	// 	panic(err)
-	// }
-
-	// return nil
 
 	result, err := queryAPI.Query(context.Background(), query)
 	if err != nil {
@@ -113,18 +102,8 @@ func GetLastOneHourValues(deviceId string) map[time.Time]AmbientSensor {
 	if err == nil {
 		// Iterate over query response
 		for result.Next() {
-			// Notice when group key has changed
-			// if result.TableChanged() {
-			// 	fmt.Printf("table: %s\n", result.TableMetadata().String())
-			// }
 
-			val, ok := resultPoints[result.Record().Time()]
-
-			if !ok {
-				// val = models.Device{
-				//     user: fmt.Sprintf("%v", result.Record().ValueByKey("user")),
-				// }
-			}
+			val, _ := resultPoints[result.Record().Time()]
 
 			switch field := result.Record().Field(); field {
 			case "temperature":
@@ -134,10 +113,6 @@ func GetLastOneHourValues(deviceId string) map[time.Time]AmbientSensor {
 			default:
 				fmt.Printf("unrecognized field %s.\n", field)
 			}
-
-			// val.Timestamp = result.Record().Time()
-
-			// lista = append(lista, val)
 
 			resultPoints[result.Record().Time()] = val
 
@@ -156,4 +131,14 @@ func GetLastOneHourValues(deviceId string) map[time.Time]AmbientSensor {
 	// fmt.Println(lista)
 
 	return resultPoints
+}
+
+func setNewValue(temp, hmd float64, time time.Time) {
+	sensor.Temperature = temp
+	sensor.Humidity = hmd
+	sensor.Timestemp = time
+}
+
+func GetNewValue() AmbientSensor {
+	return sensor
 }
