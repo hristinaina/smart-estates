@@ -43,4 +43,9 @@
     border-radius: 10px;
     border: 3px solid var(--primary-color);
 }
-  
+
+.picker {
+    margin-top: 100px;
+    margin-bottom: 3em;
+    width: 90%;
+}

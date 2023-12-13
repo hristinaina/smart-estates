@@ -13,7 +13,6 @@ import LampService from '../../services/LampService';
 import CustomDateRangeDialog from '../Dialog/CustomDateRangeDialog';
 
 
-
 export class Lamp extends Component {
     connected = false;
 
