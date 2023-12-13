@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
 	"smarthome-back/controllers"
 	dto "smarthome-back/dto"
@@ -15,8 +16,8 @@ type LampController struct {
 	service services.LampService
 }
 
-func NewLampController(db *sql.DB) LampController {
-	return LampController{service: services.NewLampService(db)}
+func NewLampController(db *sql.DB, influxDb influxdb2.Client) LampController {
+	return LampController{service: services.NewLampService(db, influxDb)}
 }
 
 func (lc LampController) Get(c *gin.Context) {
@@ -111,4 +112,16 @@ func (lc LampController) Delete(c *gin.Context) {
 	}
 
 	c.JSON(204, isDeleted)
+}
+
+func (lc LampController) GetGraphData(c *gin.Context) {
+	from := c.Param("from")
+	to := c.Param("to")
+
+	data, err := lc.service.GetGraphData(from, to)
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+
+	c.JSON(200, gin.H{"data": data})
 }

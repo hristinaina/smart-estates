@@ -5,6 +5,7 @@ import (
 	_ "database/sql"
 	"errors"
 	_ "github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"smarthome-back/dto"
 	"smarthome-back/models/devices"
 	"smarthome-back/mqtt_client"
@@ -22,6 +23,7 @@ type DeviceService interface {
 
 type DeviceServiceImpl struct {
 	db                    *sql.DB
+	inflixDb              influxdb2.Client
 	airConditionerService AirConditionerService
 	evChargerService      EVChargerService
 	homeBatteryService    HomeBatteryService
@@ -31,10 +33,11 @@ type DeviceServiceImpl struct {
 }
 
 // todo send mqtt to all device_services
-func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient) DeviceService {
+func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceService {
 	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db),
 		evChargerService: NewEVChargerService(db), homeBatteryService: NewHomeBatteryService(db),
-		lampService: services.NewLampService(db), mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db)}
+		lampService: services.NewLampService(db, influxDb), mqtt: mqtt,
+		deviceRepository: repositories.NewDeviceRepository(db)}
 }
 
 func (res *DeviceServiceImpl) GetAll() []models.Device {

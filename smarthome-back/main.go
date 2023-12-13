@@ -38,7 +38,7 @@ func main() {
 		fmt.Println("Started listening to mqtt topics.")
 	}
 
-	routes.SetupRoutes(r, db, mqttClient)
+	routes.SetupRoutes(r, db, mqttClient, influxDb)
 	gs := services.NewGenerateSuperAdmin(db)
 	gs.GenerateSuperadmin()
 

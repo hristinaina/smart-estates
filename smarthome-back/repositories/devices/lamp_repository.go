@@ -1,8 +1,12 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
+	"log"
 	models "smarthome-back/models/devices"
 	devices "smarthome-back/models/devices/outside"
 	"smarthome-back/repositories"
@@ -13,14 +17,16 @@ type LampRepository interface {
 	GetAll() ([]devices.Lamp, error)
 	UpdateIsOnState(id int, isOn bool) (bool, error)
 	UpdateLightningState(id int, lightningState int) (bool, error)
+	GetLampData(from, to string) *api.QueryTableResult
 }
 
 type LampRepositoryImpl struct {
-	db *sql.DB
+	db       *sql.DB
+	influxdb influxdb2.Client
 }
 
-func NewLampRepository(db *sql.DB) LampRepository {
-	return &LampRepositoryImpl{db: db}
+func NewLampRepository(db *sql.DB, influxdb influxdb2.Client) LampRepository {
+	return &LampRepositoryImpl{db: db, influxdb: influxdb}
 }
 
 func (rl *LampRepositoryImpl) Get(id int) (devices.Lamp, error) {
@@ -78,6 +84,24 @@ func (rl *LampRepositoryImpl) UpdateLightningState(id int, lightningState int) (
 		return false, err
 	}
 	return true, nil
+}
+
+func (rl *LampRepositoryImpl) GetLampData(from, to string) *api.QueryTableResult {
+	client := rl.influxdb
+	queryAPI := client.QueryAPI("Smart Home")
+	// we are printing data that came in the last 10 minutes
+	query := fmt.Sprintf(`from(bucket: "bucket")
+            |> range(start: %s, stop: %s)
+            |> filter(fn: (r) => r._measurement == "measurement1")`, from, to)
+	results, err := queryAPI.Query(context.Background(), query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := results.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return results
 }
 
 // ScanRows mapping returned value from db to model - in this case in lamp model

@@ -18,7 +18,6 @@ import (
 // TODO : create while loop that will do publishes
 
 func (mc *MQTTClient) HandleValueChange(client mqtt.Client, msg mqtt.Message) {
-	fmt.Println("usaooooo")
 	parts := strings.Split(msg.Topic(), "/")
 	fmt.Println(msg.Topic())
 
@@ -81,17 +80,17 @@ func (mc *MQTTClient) PostNewLampValue(lamp models.Lamp, percentage float32) {
 
 	fmt.Println("Posted to influx db...")
 	// printing values from influx db (last 10 minutes)
-	mc.GetLampsFromInfluxDb()
+	mc.GetLampsFromInfluxDb("2023-01-01T00:00:00Z", "2023-12-31T00:00:00Z")
 
 }
 
-func (mc *MQTTClient) GetLampsFromInfluxDb() *api.QueryTableResult {
+func (mc *MQTTClient) GetLampsFromInfluxDb(from, to string) *api.QueryTableResult {
 	client := mc.influxDb
 	queryAPI := client.QueryAPI("Smart Home")
 	// we are printing data that came in the last 10 minutes
-	query := `from(bucket: "bucket")
-            |> range(start: -10m)
-            |> filter(fn: (r) => r._measurement == "measurement1")`
+	query := fmt.Sprintf(`from(bucket: "bucket")
+            |> range(start: %s, stop: %s)
+            |> filter(fn: (r) => r._measurement == "measurement1")`, from, to)
 	results, err := queryAPI.Query(context.Background(), query)
 	if err != nil {
 		log.Fatal(err)

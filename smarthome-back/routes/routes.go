@@ -2,6 +2,7 @@ package routes
 
 import (
 	"database/sql"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"smarthome-back/controllers"
 	devicesController "smarthome-back/controllers/devices"
 	"smarthome-back/middleware"
@@ -10,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient) {
+func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) {
 	userRoutes := r.Group("/api/users")
 	{
 		userController := controllers.NewUserController(db)
@@ -48,7 +49,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient) {
 
 	deviceRoutes := r.Group("/api/devices")
 	{
-		deviceController := controllers.NewDeviceController(db, mqtt)
+		deviceController := controllers.NewDeviceController(db, mqtt, influxDb)
 		middleware := middleware.NewMiddleware(db)
 		deviceRoutes.GET("/:id", deviceController.Get)
 		deviceRoutes.GET("/", deviceController.GetAll)
@@ -70,7 +71,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient) {
 
 	lampRoutes := r.Group("api/lamp")
 	{
-		lampController := devicesController.NewLampController(db)
+		lampController := devicesController.NewLampController(db, influxDb)
 		lampRoutes.GET("/:id", lampController.Get)
 		lampRoutes.GET("/", lampController.GetAll)
 		lampRoutes.PUT("/on/:id", lampController.TurnOn)
@@ -78,5 +79,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient) {
 		lampRoutes.PUT("/:id/:level", lampController.SetLightning)
 		lampRoutes.POST("/", lampController.Add)
 		lampRoutes.DELETE("/:id", lampController.Delete)
+		lampRoutes.GET("/graph/:from/:to", lampController.GetGraphData)
 	}
 }
