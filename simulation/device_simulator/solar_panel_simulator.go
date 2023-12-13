@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"math/rand"
 	"simulation/config"
 	"simulation/models"
 	"strconv"
@@ -40,23 +41,42 @@ func (ls *SolarPanelSimulator) ConnectSolarPanel() {
 }
 
 func (ls *SolarPanelSimulator) GenerateSolarPanelData() {
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(60 * time.Second)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
 			if ls.device.IsOn {
-				// Get the Unix timestamp from the current time
-				unixTimestamp := float64(time.Now().Unix())
-				sineValue := math.Sin(unixTimestamp)
-				percentage := math.Abs(math.Round(sineValue * 100))
-				config.PublishToTopic(ls.client, config.TopicPayload+strconv.Itoa(ls.device.Device.ID), strconv.FormatFloat(percentage,
-					'f', -1, 64))
-				fmt.Printf("Solar panel name=%s, id=%d, generated data: %f\n", ls.device.Device.Name, ls.device.Device.ID, percentage)
+				// SolarRadiation is in W/m^2
+				openMeteoResponse, err := config.GetSolarRadiation(45.45, 19) //todo get real lat and long
+				if err != nil {
+					fmt.Printf("Error: %v \n", err.Error())
+				} else {
+					solarRadiation := openMeteoResponse.Hourly.DirectNormalIrradiance[time.Now().Hour()]
+					fmt.Println(solarRadiation)
+					electricityProduction := calculateEletricityProduction(ls.device, solarRadiation)
+					config.PublishToTopic(ls.client, config.TopicPayload+strconv.Itoa(ls.device.Device.ID), strconv.FormatFloat(electricityProduction,
+						'f', -1, 64))
+					fmt.Printf("Solar panel name=%s, id=%d, generated data: %f\n", ls.device.Device.Name, ls.device.Device.ID, electricityProduction)
+				}
+
 			}
 		}
 	}
+}
+
+// solar radiation is used to scale electricity depending on sun intensity
+func calculateEletricityProduction(sp models.SolarPanel, radiation float64) float64 {
+	if radiation == 0 {
+		return 0
+	}
+	rand.Seed(time.Now().UnixNano())
+	hourProduction := sp.SurfaceArea * sp.Efficiency * 10 // multiply by 1000 and divide by 100 (percentage)
+	minuteProduction := hourProduction / 60
+	scalingFactor := radiation/(radiation+2) + rand.Float64()*(0.25-0.2) + 0.2 // create scaling factor depending on sun radiation and add random factor to show changes
+	electricity := math.Round(minuteProduction*scalingFactor*1e2) / 1e2        // scale eletricity with scaling factor (shown in Wh) and rounds to 2 decimal places
+	return electricity
 }
 
 func (ls *SolarPanelSimulator) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
