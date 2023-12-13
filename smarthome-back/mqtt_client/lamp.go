@@ -15,8 +15,6 @@ import (
 	"time"
 )
 
-// TODO : create while loop that will do publishes
-
 func (mc *MQTTClient) HandleValueChange(client mqtt.Client, msg mqtt.Message) {
 	parts := strings.Split(msg.Topic(), "/")
 	fmt.Println(msg.Topic())
@@ -80,7 +78,7 @@ func (mc *MQTTClient) PostNewLampValue(lamp models.Lamp, percentage float32) {
 
 	fmt.Println("Posted to influx db...")
 	// printing values from influx db (last 10 minutes)
-	mc.GetLampsFromInfluxDb("2023-01-01T00:00:00Z", "2023-12-31T00:00:00Z")
+	//mc.GetLampsFromInfluxDb("2023-01-01T00:00:00Z", "2023-12-31T00:00:00Z")
 
 }
 

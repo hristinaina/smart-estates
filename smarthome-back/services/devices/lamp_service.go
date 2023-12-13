@@ -8,6 +8,7 @@ import (
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices/outside"
 	repositories "smarthome-back/repositories/devices"
+	"sort"
 )
 
 type LampService interface {
@@ -169,10 +170,15 @@ func (ls *LampServiceImpl) GetGraphData(from, to string) ([]dtos.GraphData, erro
 		}
 	}
 	var graphData []dtos.GraphData
-	for key, value := range values {
+	var keys []float64
+	for k := range values {
+		keys = append(keys, k)
+	}
+	sort.Float64s(keys)
+	for _, k := range keys {
 		g := dtos.GraphData{
-			Count: value,
-			Value: key,
+			Count: values[k],
+			Value: k,
 		}
 		graphData = append(graphData, g)
 	}
