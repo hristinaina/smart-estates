@@ -90,9 +90,17 @@ func (rl *LampRepositoryImpl) GetLampData(from, to string) *api.QueryTableResult
 	client := rl.influxdb
 	queryAPI := client.QueryAPI("Smart Home")
 	// we are printing data that came in the last 10 minutes
-	query := fmt.Sprintf(`from(bucket: "bucket")
+	query := ""
+	if to != "" {
+		query = fmt.Sprintf(`from(bucket: "bucket")
             |> range(start: %s, stop: %s)
             |> filter(fn: (r) => r._measurement == "measurement1")`, from, to)
+	} else {
+		query = fmt.Sprintf(`from(bucket: "bucket")
+            |> range(start: %s)
+            |> filter(fn: (r) => r._measurement == "measurement1")`, from)
+	}
+
 	results, err := queryAPI.Query(context.Background(), query)
 	if err != nil {
 		log.Fatal(err)

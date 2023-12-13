@@ -117,7 +117,9 @@ func (lc LampController) Delete(c *gin.Context) {
 func (lc LampController) GetGraphData(c *gin.Context) {
 	from := c.Param("from")
 	to := c.Param("to")
-
+	if to == "-1" {
+		to = ""
+	}
 	data, err := lc.service.GetGraphData(from, to)
 	if controllers.CheckIfError(err, c) {
 		return
