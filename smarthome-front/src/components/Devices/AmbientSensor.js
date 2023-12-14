@@ -88,8 +88,6 @@ export class AmbientSensor extends Component {
             // if (this.chartInstance) {
             //     this.chartInstance.destroy();
             // }
-
-
             await this.setState({
                 data: {
                     labels: timestamps,
@@ -111,8 +109,6 @@ export class AmbientSensor extends Component {
                     ],
                 },
             });
-
-
 
             if (!this.connected) {
                 this.connected = true;
@@ -150,14 +146,8 @@ export class AmbientSensor extends Component {
         }
 
         socket.onmessage = (msg) => {
-            console.log(msg)
-            // this.values = msg
             this.populateGraph(msg.data)
         }
-
-        // const result = msg; // todo uzmi vrednost od soketa
-        
-
     }
 
     componentWillUnmount() {
@@ -167,42 +157,41 @@ export class AmbientSensor extends Component {
         }
     }
 
+    isTimestampInLastHour = (timestamp) => {
+        const currentTimestamp = new Date();
+        const timestampDate = new Date(timestamp);
+    
+        const timeDifference = currentTimestamp - timestampDate;
+
+        return timeDifference <= 3600000;
+    };
+
     populateGraph = (message) => {
         const { data } = this.state;
-        console.log("uslooo")
-        console.log(message)
-        console.log(this.values)
+        // console.log("uslooo")
+        // console.log(message)
+        // console.log(this.values)
 
         const newValue = JSON.parse(message);
 
-        const { humidity, temperature, timestamp } = newValue;
-
-        console.log(newValue.humidity)
-        console.log(newValue['temperature'])
-        console.log(timestamp)
-        // const key = newValue.timestamp; 
-        // this.values.set(key, {
-        //     temperature: newValue.temperature,
-        //     humidity: newValue.humidity
-        // });
-
-        // const timestamps = Object.keys(this.values);
-        // const humidityData = timestamps.map((timestamp) => this.values[timestamp].humidity);
-        // const temperatureData = timestamps.map((timestamp) => this.values[timestamp].temperature);
+        // console.log(newValue.humidity)
+        // console.log(newValue['temperature'])
+        // console.log(timestamp)
 
         const updatedChartData = {
-            labels: [...data.labels, newValue.timestamp], // Dodajte novi timestamp u postojeće labele
+            // labels: [...data.labels, newValue.timestamp], 
+            labels: data.labels.filter((label) => this.isTimestampInLastHour(label)).concat(newValue.timestamp),
             datasets: [
                 {
                     label: 'Humidity',
-                    data: [...data.datasets[0].data, newValue.humidity], // Dodajte novu vrednost humidity
+                    data: [...data.datasets[0].data, newValue.humidity],
                     borderColor: 'rgba(128,104,148,1)',
                     borderWidth: 2,
                     fill: false,
                 },
                 {
                     label: 'Temperature',
-                    data: [...data.datasets[1].data, newValue.temperature], // Dodajte novu vrednost temperature
+                    data: [...data.datasets[1].data, newValue.temperature], 
                     borderColor: 'rgba(255, 99, 132, 1)',
                     borderWidth: 2,
                     fill: false,
@@ -213,57 +202,7 @@ export class AmbientSensor extends Component {
         this.setState({
             data: updatedChartData,
         });
-
-        // console.log(this.values);
-    
-        // let timestamps = Object.keys(msg);
-        // console.log('vreme: ', timestamps)
-        // let humidityData = [];
-        // let temperatureData = [];
-    
-        // timestamps.forEach((timestamp) => {
-        //     humidityData.push(msg[timestamp].humidity);
-        //     temperatureData.push(msg[timestamp].temperature);
-        // });
-
-        // const data = JSON.parse(msg);
-
-        // const timestamps = Object.keys(data);
-
-        // const humidityData = timestamps.map((timestamp) => data[timestamp].humidity);
-        // const temperatureData = timestamps.map((timestamp) => data[timestamp].temperature);
-
-        // console.log("vreme: ", timestamps)
-        // console.log("humidity: ", humidityData)
-        // console.log("temperature: ", temperatureData)
-    
-        // if (this.chartInstance) {
-        //     this.chartInstance.destroy();
-        // }
-    
-        // this.setState({
-        //     data: {
-        //         labels: timestamps,
-        //         datasets: [
-        //             {
-        //                 label: 'Humidity',
-        //                 data: humidityData,
-        //                 borderColor: 'rgba(128,104,148,1)',
-        //                 borderWidth: 2,
-        //                 fill: false,
-        //             },
-        //             {
-        //                 label: 'Temperature',
-        //                 data: temperatureData,
-        //                 borderColor: 'rgba(255, 99, 132, 1)', // Prilagodi boju po potrebi
-        //                 borderWidth: 2,
-        //                 fill: false,
-        //             },
-        //         ],
-        //     },
-        // });
     };
-    
 
     handleSwitchToggle = () => {
         const topic = "lamp/switch/" + this.id;
