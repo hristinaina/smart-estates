@@ -1,5 +1,16 @@
 class DeviceService {
 
+  async get(id) {
+    try {
+      const response = await fetch(`http://localhost:8081/api/devices/${id}`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    }
+  }
+
   async getDevices(realEstateId) {
     try {
         const response = await fetch('http://localhost:8081/api/devices/estate/' + realEstateId, {

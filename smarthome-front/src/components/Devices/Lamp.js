@@ -12,6 +12,7 @@ import 'chart.js/auto';
 import LampService from '../../services/LampService';
 import CustomDateRangeDialog from '../Dialog/CustomDateRangeDialog';
 import { containerClasses } from '@mui/material';
+import DeviceService from '../../services/DeviceService';
 
 
 export class Lamp extends Component {
@@ -53,7 +54,9 @@ export class Lamp extends Component {
         const valid = await authService.validateUser();
         if (!valid) window.location.assign("/");
 
-        const { device } = this.state;  // todo instead of this get device from back by deviceId
+        // const { device } = this.state;  // todo instead of this get device from back by deviceId
+        const device = await DeviceService.get(this.id);
+        await this.setState({device: device});
         const updatedData =
         {
             ...device,
@@ -189,6 +192,7 @@ export class Lamp extends Component {
             <div>
                 <Navigation />
                 <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
+                <p id='device-name'>{this.state.device.Name}</p>
                 <div style={{ width: "fit-content", marginLeft: "auto", marginRight: "auto", marginTop: "10%" }}>
                     <p className='device-title'>Id: {this.id}</p>
                     {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}

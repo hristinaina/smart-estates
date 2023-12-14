@@ -116,3 +116,10 @@
 #custom-date-range:hover{
     cursor: pointer;
 }
+
+#device-name {
+    display: inline-block;
+    width: fit-content;
+    font-size: 3em;
+    margin-left: 1em;
+}
