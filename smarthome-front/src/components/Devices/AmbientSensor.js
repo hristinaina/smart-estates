@@ -7,6 +7,7 @@ import { Navigation } from '../Navigation/Navigation';
 import './AmbientSensor.css'
 import authService from '../../services/AuthService'
 import AmbientSensorService from '../../services/AmbientSensorService';
+import { Autocomplete, TextField, Button, Box, Grid } from '@mui/material';
 
 
 export class AmbientSensor extends Component {
@@ -38,6 +39,17 @@ export class AmbientSensor extends Component {
                 ],
             },
             latestData: null,
+
+            selectedOption: { label: '6h', value: '-6h' },
+            startDate: '',
+            endDate: '',
+            options: [
+                { label: '6h', value: '-6h' },
+                { label: '12h', value: '-12h' },
+                { label: '24h', value: '-24h' },
+                { label: 'last week', value: '-7d' },
+                { label: 'last month', value: '-30d' },
+            ],
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -83,18 +95,6 @@ export class AmbientSensor extends Component {
             const humidityData = timestamps.map((timestamp) => values[timestamp].humidity);
             const temperatureData = timestamps.map((timestamp) => values[timestamp].temperature);
 
-            // console.log("vreme: ", timestamps)
-            // console.log("humidity: ", humidityData)
-            // console.log("temperature: ", temperatureData)
-        
-            // if (this.chartInstance) {
-            //     this.chartInstance.destroy();
-            // }
-            // const formattedTimestamps = timestamps.map((timestamp) => {
-            //     const date = new Date(timestamp);
-            //     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' });
-            // });
-
             await this.setState({
                 data: {
                     labels: timestamps,
@@ -135,7 +135,8 @@ export class AmbientSensor extends Component {
         }
 
         socket.onmessage = (msg) => {
-            this.populateGraph(msg.data)
+            if(this.state.activeGraph === 1) 
+                this.populateGraph(msg.data)
         }
     }
 
@@ -155,10 +156,38 @@ export class AmbientSensor extends Component {
         return timeDifference <= 3600000;
     };
 
+    historyGraph = async (values) => {
+        const timestamps = Object.keys(values);
+        const humidityData = timestamps.map((timestamp) => values[timestamp].humidity);
+        const temperatureData = timestamps.map((timestamp) => values[timestamp].temperature);
+
+        await this.setState({
+            data: {
+                labels: timestamps,
+                datasets: [
+                    {
+                        label: 'Humidity',
+                        data: humidityData,
+                        borderColor: 'rgba(128,104,148,1)',
+                        borderWidth: 2,
+                        fill: false,
+                    },
+                    {
+                        label: 'Temperature',
+                        data: temperatureData,
+                        borderColor: 'rgba(255, 99, 132, 1)', 
+                        borderWidth: 2,
+                        fill: false,
+                    },
+                ],
+            },
+        });
+    }
+
     populateGraph = (message) => {
         const { data } = this.state;
-        console.log("uslooo")
-        console.log(message)
+        // console.log("uslooo")
+        // console.log(message)
         // console.log(this.values)
         // console.log(data.labels)
 
@@ -197,29 +226,48 @@ export class AmbientSensor extends Component {
         });
     };
 
-    handleSwitchToggle = () => {
-        const topic = "lamp/switch/" + this.id;
+    // handleSwitchToggle = () => {
+    //     const topic = "lamp/switch/" + this.id;
 
-        this.setState((prevState) => ({
-            switchOn: !prevState.switchOn,
-        }));
-        const values = (!this.state.switchOn).toString();
-        this.mqttClient.publish(topic, values);
+    //     this.setState((prevState) => ({
+    //         switchOn: !prevState.switchOn,
+    //     }));
+    //     const values = (!this.state.switchOn).toString();
+    //     this.mqttClient.publish(topic, values);
+    // };
+
+    // // Handle incoming MQTT valuess
+    // handleMqttvalues(topic, values) {
+    //     const { device } = this.state;
+    //     const newValue = values.toString();
+    //     const updatedData =
+    //     {
+    //         ...device,
+    //         Value: newValue + "%",
+    //     }
+    //     this.setState({
+    //         device: updatedData,
+    //     });
+    // }
+
+    handleOptionChange = async (event, value) => {
+        console.log(value)
+        this.setState({ selectedOption: value });
+        console.log('selektovana opcija', this.state.selectedOption)
+        const result = await AmbientSensorService.getDataForSelectedTime(this.id, value.value);
+        console.log("rezultat", result.result.result)
+        await this.historyGraph(result.result.result)
+        // todo ovde pozivi api - ali salji value ({label: 'last week', value: 'lastWeek'})
     };
-
-    // Handle incoming MQTT valuess
-    handleMqttvalues(topic, values) {
-        const { device } = this.state;
-        const newValue = values.toString();
-        const updatedData =
-        {
-            ...device,
-            Value: newValue + "%",
-        }
-        this.setState({
-            device: updatedData,
-        });
-    }
+    
+    handleDateChange = (fieldName, event) => {
+        this.setState({ [fieldName]: event.target.value });
+    };
+    
+    handleButtonClick = () => {
+        // Implementirajte logiku kada se pritisne dugme
+        console.log('Button clicked!');
+    };
 
     extractDeviceIdFromUrl() {
         const parts = window.location.href.split('/');
@@ -231,18 +279,78 @@ export class AmbientSensor extends Component {
     }
 
     render() {
-        const { device, switchOn } = this.state;
+        const { selectedOption, startDate, endDate, options } = this.state;
 
         return (
             <div>
                 <Navigation />
-                {/* <div className='top-bar'> */}
-                    <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer", float: "left" }} onClick={this.handleBackArrow} />
-                    <span className='buttons'>
-                        <span onClick={() => this.setActiveGraph(1)} className={this.state.activeGraph === 1 ? 'active-button' : 'non-active-button'}>Real Time</span>
-                        <span onClick={() => this.setActiveGraph(2)} className={this.state.activeGraph === 2 ? 'active-button' : 'non-active-button'}>History</span>
-                    </span>
-                {/* </div> */}
+                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer", float: "left" }} onClick={this.handleBackArrow} />
+                <span className='buttons'>
+                    <span onClick={() => this.setActiveGraph(1)} className={this.state.activeGraph === 1 ? 'active-button' : 'non-active-button'}>Real Time</span>
+                    <span onClick={() => this.setActiveGraph(2)} className={this.state.activeGraph === 2 ? 'active-button' : 'non-active-button'}>History</span>
+                </span>
+                {this.state.activeGraph === 2 && 
+                <div>
+                    <Grid container spacing={2}>
+                        <Grid item xs={2}></Grid>
+                        <Grid item xs={3}>
+                            <Autocomplete
+                            value={selectedOption}
+                            onChange={this.handleOptionChange}
+                            options={options}
+                            getOptionLabel={(option) => option.label}
+                            style={{ width: '100%' }}
+                            renderInput={(params) => (
+                                <TextField
+                                {...params}
+                                label="Select Time Range"
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                                />
+                            )}
+                            isOptionEqualToValue={(option, value) => option.value === value.value}
+                            renderOption={(props, option, { selected }) => (
+                                <li {...props}>
+                                <span>{option.label}</span>
+                                </li>
+                            )}
+                            disableClearable />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Box display="flex" alignItems="center" justifyContent="flex-end">
+                        <TextField
+                            label="Start Date"
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => this.handleDateChange('startDate', e)}
+                            InputLabelProps={{
+                            shrink: true,
+                            }}
+                            inputProps={{
+                                max: new Date().toISOString().split('T')[0], 
+                            }}
+                        />
+                        <TextField
+                            label="End Date"
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => this.handleDateChange('endDate', e)}
+                            InputLabelProps={{
+                            shrink: true,
+                            }}
+                            inputProps={{
+                                max: new Date().toISOString().split('T')[0], 
+                            }}
+                        />
+                        <Button variant="contained" color="primary" onClick={this.handleButtonClick}>
+                            Apply
+                        </Button>
+                        </Box>
+                    </Grid>
+                    </Grid>
+
+        </div>}
 
                 <div className='canvas'>
                     {this.state.activeGraph === 1 && <Line ref={(ref) => (this.chartInstance = ref)} id='graph' data={this.state.data} options={this.options} />}
