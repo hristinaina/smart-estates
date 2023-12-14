@@ -3,11 +3,12 @@ package mqtt_client
 import (
 	"database/sql"
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"os"
 	"smarthome-back/repositories"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 /*
@@ -19,6 +20,7 @@ const (
 	TopicStatusChanged = "device/status/" //from back to front (because front doesn't have to know about everything from simulation)
 	TopicPayload       = "device/data/"
 	TopicNewDevice     = "device/new/"
+	TopicAmbientSensor = "device/ambient/sensor"
 )
 
 type MQTTClient struct {
@@ -60,6 +62,8 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 
 func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicOnline+"+", mc.HandleHeartBeat)
+	mc.SubscribeToTopic("lamp/switch/"+"+", mc.HandleSwitchChange)
+	mc.SubscribeToTopic(TopicAmbientSensor, mc.ReceiveValue)
 	//todo subscribe here to other topics. Create your callback functions in other file
 
 	// Periodically check if the device is still online
@@ -90,4 +94,8 @@ func (mc *MQTTClient) Publish(topic string, message string) error {
 		fmt.Println("Error publishing message:", token.Error())
 	}
 	return token.Error()
+}
+
+func (mc *MQTTClient) GetInflux() influxdb2.Client {
+	return mc.influxDb
 }

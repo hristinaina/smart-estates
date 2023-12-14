@@ -113,7 +113,7 @@ export class Devices extends Component {
     //todo navigate to appropriate page
     handleClick(device) {
         if (device.Type === 'Ambient Sensor')
-            window.location.assign("/lamp/" + device.Id)
+            window.location.assign("/ambient-sensor/" + device.Id)
         else if (device.Type === 'Air conditioner')
             window.location.assign("/lamp/" + device.Id)
         else if (device.Type === 'Washing machine')

@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"net/http"
 	"smarthome-back/config"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/routes"
 	"smarthome-back/services"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -24,7 +26,6 @@ func main() {
 	//	fmt.Println("Error while opening session on aws")
 	//	panic(err)
 	//}
-
 	influxDb, err := config.SetupInfluxDb()
 	if err != nil {
 		fmt.Println(err)
@@ -38,7 +39,14 @@ func main() {
 		fmt.Println("Started listening to mqtt topics.")
 	}
 
+	// web socket
+	go func() {
+		config.SetupWebSocketRoutes()
+		http.ListenAndServe(":8082", nil)
+	}()
+
 	routes.SetupRoutes(r, db, mqttClient)
+
 	gs := services.NewGenerateSuperAdmin(db)
 	gs.GenerateSuperadmin()
 

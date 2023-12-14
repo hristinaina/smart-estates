@@ -119,7 +119,6 @@ const Registration = () => {
       setEmail('');
       setPassword('');
       setConfirmPassword('');
-      // TODO refresh slike
     };
 
     // sign up

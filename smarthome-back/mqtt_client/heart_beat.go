@@ -2,13 +2,14 @@ package mqtt_client
 
 import (
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/go-sql-driver/mysql"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	models "smarthome-back/models/devices"
 	"strconv"
 	"strings"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/go-sql-driver/mysql"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 // HandleHeartBeat callback function called when subscribed to TopicOnline. Update heartbeat time when "online" message is received
