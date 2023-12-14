@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React, { Component } from 'react';
 import {Line} from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns'
 import './Devices.css';
@@ -7,7 +7,8 @@ import { Navigation } from '../Navigation/Navigation';
 import './AmbientSensor.css'
 import authService from '../../services/AuthService'
 import AmbientSensorService from '../../services/AmbientSensorService';
-import { Autocomplete, TextField, Button, Box, Grid } from '@mui/material';
+import { Autocomplete, TextField, Button, Box, Grid, IconButton, Snackbar } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 
 export class AmbientSensor extends Component {
@@ -39,7 +40,8 @@ export class AmbientSensor extends Component {
                 ],
             },
             latestData: null,
-
+            open: false,
+            snackbarMessage: '',
             selectedOption: { label: '6h', value: '-6h' },
             startDate: '',
             endDate: '',
@@ -229,25 +231,25 @@ export class AmbientSensor extends Component {
     };
     
     handleButtonClick = async () => {
-        console.log('Button clicked!');
-        console.log(this.state.startDate)
-        console.log(this.state.endDate)
-        // todo proveri da li je start veci od end
-        if (new Date(this.state.startDate) > new Date(this.state.endDate)) {
-            console.log('startDate ne može biti veći od endDate');
-            // todo snack bar
+        if(this.state.startDate === '' || this.state.endDate === '') {
+            this.setState({ snackbarMessage: "Please enter dates" });
+            this.handleClick();
             return;
         }
-        // todo proveri da li je razlia izmdju veca od mesec dana
-        const oneMonth = 30 * 24 * 60 * 60 * 1000; // Broj milisekundi u jednom mesecu (približno)
+
+        if (new Date(this.state.startDate) > new Date(this.state.endDate)) {
+            this.setState({ snackbarMessage: "Start date cannot be greater than end date" });
+            this.handleClick();
+            return;
+        }
+        const oneMonth = 30 * 24 * 60 * 60 * 1000; 
         const difference = new Date(this.state.endDate) - new Date(this.state.startDate);
 
         if (difference > oneMonth) {
-            console.log('Razlika između startDate i endDate je veća od mesec dana');
+            this.setState({ snackbarMessage: 'The difference between start date and end date must not be more than one month'});
+            this.handleClick();
             return;
-            // todo snack bar
         }
-        // todo pozovi api
         const result = await AmbientSensorService.getDataForSelectedDate(this.id, this.state.startDate, this.state.endDate);
         console.log("datum graf ", result.result.result)
         result.result.result != null ? await this.historyGraph(result.result.result) : await this.historyGraph([]) 
@@ -262,8 +264,31 @@ export class AmbientSensor extends Component {
         window.location.assign("/devices")
     }
 
+    // snackbar
+    handleClick = () => {
+        this.setState({ open: true });
+    };
+
+    handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        this.setState({ open: false });
+    };
+
     render() {
         const { selectedOption, startDate, endDate, options } = this.state;
+
+        const action = (
+            <React.Fragment>
+                <IconButton
+                size="small"
+                aria-label="close"
+                color="inherit"
+                onClick={this.handleClose}>
+                <CloseIcon fontSize="small" />
+                </IconButton>
+            </React.Fragment>);
 
         return (
             <div>
@@ -335,6 +360,12 @@ export class AmbientSensor extends Component {
                     </Grid>
 
         </div>}
+        <Snackbar
+        open={this.state.open}
+        autoHideDuration={3000}
+        onClose={this.handleClose}
+        message={this.state.snackbarMessage}
+        action={action}/>
 
                 <div className='canvas'>
                     {this.state.activeGraph === 1 && <Line ref={(ref) => (this.chartInstance = ref)} id='graph' data={this.state.data} options={this.options} />}
