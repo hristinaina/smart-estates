@@ -13,6 +13,7 @@ import SPGraph from './SPGraph';
 import { TextField } from '@mui/material';
 import { Button } from 'reactstrap';
 import './SolarPanel.css'
+import { Snackbar } from "@mui/material";
 
 
 export class SolarPanel extends Component {
@@ -27,6 +28,9 @@ export class SolarPanel extends Component {
             email: '',
             startDate: '',
             endDate: '',
+            snackbarMessage: '',
+            showSnackbar: false,
+            open: false,
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -96,6 +100,9 @@ export class SolarPanel extends Component {
             "UserEmail": authService.getCurrentUser().Email,
         }
         this.mqttClient.publish(topic, JSON.stringify(message));
+
+        this.setState({ snackbarMessage: "Successfully changed switch state!" });
+        this.handleClick();
     };
 
     // Handle incoming MQTT messages
@@ -132,6 +139,18 @@ export class SolarPanel extends Component {
         window.location.assign("/devices")
     }
 
+    // snackbar
+    handleClick = () => {
+        this.setState({ open: true });
+    };
+
+    handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        this.setState({ open: false });
+    };
+
     render() {
         const { device, switchOn, data, email, startDate, endDate } = this.state;
 
@@ -142,33 +161,48 @@ export class SolarPanel extends Component {
                 <span className='estate-title'>{this.Name}</span>
                 <div className='sp-container'>
                     <div id="sp-left-card">
-                        <p className='device-title'>Id: {this.id}</p>
+                        <p className='sp-card-title'>Device Data</p>
+                        <p className='sp-data-text'>Number of panels:</p>
+                        <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.NumberOfPanels} InputProps={{
+                            readOnly: true,
+                        }} />
+                        <p className='sp-data-text'>Surface area per panel (m<sup>2</sup>):</p>
+                        <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.SurfaceArea} InputProps={{
+                            readOnly: true,
+                        }} />
+                        <p className='sp-data-text'>Efficiency per panel (%):</p>
+                        <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.Efficiency} InputProps={{
+                            readOnly: true,
+                        }} />
                         {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
-                        <p className='device-text'>Produced in previous minute (kW/m<sup>2</sup>): {device.Value}</p>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                            <Typography>Off</Typography>
+                        <p className='sp-data-text'>Status: </p>
+                        <Stack direction="row" className="status-alingment" spacing={1} alignItems="center">
+                            <Typography style={{ display: "inline", fontSize: "1.1em" }}>Off</Typography>
                             <Switch
                                 checked={switchOn}
                                 onChange={this.handleSwitchToggle}
                             />
-                            <Typography>On</Typography>
+                            <Typography style={{ display: "inline", fontSize: "1.1em" }}>On</Typography>
                         </Stack>
+                        <p className='sp-data-text'>Produced electricity in previous minute (kW/m<sup>2</sup>): </p>
+                        <p><b>{device.Value}</b></p>
                     </div>
                     <div id='sp-right-card'>
+                        <p className='sp-card-title'>Switch History</p>
                         <form onSubmit={this.handleFormSubmit} className='sp-container'>
                             <label>
                                 Email:
-                                <TextField style={{backgroundColor: "white"}} type="text" value={email} onChange={(e) => this.setState({ email: e.target.value })} />
+                                <TextField style={{ backgroundColor: "white" }} type="text" value={email} onChange={(e) => this.setState({ email: e.target.value })} />
                             </label>
                             <br />
                             <label>
                                 Start Date:
-                                <TextField style={{backgroundColor: "white"}} type="date" value={startDate} onChange={(e) => this.setState({ startDate: e.target.value })} />
+                                <TextField style={{ backgroundColor: "white" }} type="date" value={startDate} onChange={(e) => this.setState({ startDate: e.target.value })} />
                             </label>
                             <br />
                             <label>
                                 End Date:
-                                <TextField style={{backgroundColor: "white"}} type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
+                                <TextField style={{ backgroundColor: "white" }} type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
                             </label>
                             <br />
                             <Button type="submit" id='sp-data-button'>Fetch Data</Button>
@@ -176,6 +210,13 @@ export class SolarPanel extends Component {
                         <SPGraph data={data} />
                     </div>
                 </div>
+                <Snackbar
+                    open={this.state.open}
+                    autoHideDuration={3000}
+                    onClose={this.handleClose}
+                    message={this.state.snackbarMessage}
+                    action={this.action}
+                />
             </div>
         )
     }
