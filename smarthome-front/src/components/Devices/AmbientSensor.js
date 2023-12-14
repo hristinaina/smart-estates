@@ -4,10 +4,7 @@ import 'chartjs-adapter-date-fns'
 import './Devices.css';
 import 'chart.js/auto';
 import { Navigation } from '../Navigation/Navigation';
-import mqtt from 'mqtt';
-import Switch from '@mui/material/Switch';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import './AmbientSensor.css'
 import authService from '../../services/AuthService'
 import AmbientSensorService from '../../services/AmbientSensorService';
 
@@ -20,6 +17,7 @@ export class AmbientSensor extends Component {
         this.state = {
             device: {},
             switchOn: false,
+            activeGraph: 1,
             data: {
                 labels: [],
                 datasets: [
@@ -238,23 +236,23 @@ export class AmbientSensor extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
-                <div style={{ width: "fit-content", marginLeft: "auto", marginRight: "auto", marginTop: "10%" }}>
-                {/* /    <p className='device-title'>Id: {this.id}</p> */}
-                    {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
-                    {/* <p className='device-text'>Last Value: {device.Value}</p> */}
-                    {/* <Stack direction="row" spacing={1} alignItems="center"> */}
-                        {/* <Typography>Off</Typography> */}
-                        {/* <Switch */}
-                            {/* checked={switchOn} */}
-                            {/* onChange={this.handleSwitchToggle} */}
-                        {/* /> */}
-                        {/* <Typography>On</Typography> */}
-                    {/* </Stack> */}
-                </div>
+                {/* <div className='top-bar'> */}
+                    <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer", float: "left" }} onClick={this.handleBackArrow} />
+                    <span className='buttons'>
+                        <span onClick={() => this.setActiveGraph(1)} className={this.state.activeGraph === 1 ? 'active-button' : 'non-active-button'}>Real Time</span>
+                        <span onClick={() => this.setActiveGraph(2)} className={this.state.activeGraph === 2 ? 'active-button' : 'non-active-button'}>History</span>
+                    </span>
+                {/* </div> */}
 
-                <Line ref={(ref) => (this.chartInstance = ref)} id='graph' data={this.state.data} options={this.options} />
+                <div className='canvas'>
+                    {this.state.activeGraph === 1 && <Line ref={(ref) => (this.chartInstance = ref)} id='graph' data={this.state.data} options={this.options} />}
+                    {this.state.activeGraph === 2 && <Line ref={(ref) => (this.chartInstance = ref)} id='graph' data={this.state.data} options={this.options} />}
+                </div>
             </div>
         )
+    }
+
+    setActiveGraph = (graphNumber) => {
+        this.setState({ activeGraph: graphNumber });
     }
 }
