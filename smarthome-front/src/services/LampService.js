@@ -1,6 +1,44 @@
 
 class LampService {
 
+    async turnOn(id) {
+        const url = `http://localhost:8081/api/lamp/on/${id}`;
+
+        const requestOptions = {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+
+        const response = await fetch(url, requestOptions);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const responseData = await response.json();
+        return responseData;
+    }
+
+    async turnOff(id) {
+        const url = `http://localhost:8081/api/lamp/off/${id}`;
+
+        const requestOptions = {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+
+        const response = await fetch(url, requestOptions);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const responseData = await response.json();
+        return responseData;
+    }
+
     async getGraphData(id, from, to){
         try {
             const url = 'http://localhost:8081/api/lamp/graph/' + id + "/" + from + '/' + to;

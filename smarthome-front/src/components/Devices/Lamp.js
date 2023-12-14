@@ -123,6 +123,12 @@ export class Lamp extends Component {
         }));
         const message = (!this.state.switchOn).toString();
         this.mqttClient.publish(topic, message);
+
+        if (this.state.switchOn == true) {
+            const response = LampService.turnOn(this.id);
+        } else {
+            LampService.turnOff(this.id);
+        }
     };
 
     // Handle incoming MQTT messages
