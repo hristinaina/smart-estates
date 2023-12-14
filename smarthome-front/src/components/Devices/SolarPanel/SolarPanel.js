@@ -49,12 +49,16 @@ export class SolarPanel extends Component {
         }
         console.log(device);
 
+        const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
-        const historyData = await DeviceService.getSPGraphData(this.id, authService.getCurrentUser().Email, "2023-12-12", "2023-12-23");
+        const historyData = await DeviceService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
         this.setState({
             device: updatedData,
             switchOn: device.IsOn,
-            data: historyData
+            data: historyData,
+            email: user.Email,
+            startDate: "2023-12-12",
+            endDate: "2023-12-23",
         });
 
         try {
