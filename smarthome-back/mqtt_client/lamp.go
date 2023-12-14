@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func (mc *MQTTClient) HandleValueChange(client mqtt.Client, msg mqtt.Message) {
+func (mc *MQTTClient) HandleValueChange(_ mqtt.Client, msg mqtt.Message) {
 	parts := strings.Split(msg.Topic(), "/")
 	fmt.Println(msg.Topic())
 
@@ -28,16 +28,14 @@ func (mc *MQTTClient) HandleValueChange(client mqtt.Client, msg mqtt.Message) {
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
-	fmt.Println("DEVICE LAMPPP: ", device.Id)
 	percentage := string(msg.Payload())
-	fmt.Println("Percentage: ", percentage)
 	value, err := strconv.ParseFloat(percentage, 32)
 	if err != nil {
 		fmt.Println("Error converting string to float32:", err)
 		return
 	}
 
-	// Convert float64 to float32
+	// float64 to float32
 	val := float32(value)
 	mc.CheckValue(val, device)
 }
@@ -47,15 +45,19 @@ func (mc *MQTTClient) CheckValue(value float32, device models2.Device) {
 		if device.Type == enumerations.Lamp {
 			lamp, err := mc.lampRepository.Get(device.Id)
 			if err != nil {
-				fmt.Println("Error: ", err)
+				fmt.Println("Error happened: ", err)
 				// TODO: handle error
 			} else {
-				fmt.Println("Posting new lamp value to influxdb...")
-				fmt.Println(lamp)
-				mc.PostNewLampValue(lamp, value)
+				if value != device.LastValue {
+					fmt.Println("Posting new lamp value to influxdb...")
+					fmt.Println(lamp)
+					mc.PostNewLampValue(lamp, value)
+					// after new value is added to influx, last value property needs to be updated
+					_, err = mc.deviceRepository.UpdateLastValue(device.Id, value)
+				}
 			}
 		}
-		// TODO: handle other type
+		// TODO: handle other types
 	}
 }
 
@@ -77,11 +79,12 @@ func (mc *MQTTClient) PostNewLampValue(lamp models.Lamp, percentage float32) {
 	}
 
 	fmt.Println("Posted to influx db...")
-	// printing values from influx db (last 10 minutes)
+	// printing values from influx
 	//mc.GetLampsFromInfluxDb("2023-01-01T00:00:00Z", "2023-12-31T00:00:00Z")
 
 }
 
+// TODO: delete this later
 func (mc *MQTTClient) GetLampsFromInfluxDb(from, to string) *api.QueryTableResult {
 	client := mc.influxDb
 	queryAPI := client.QueryAPI("Smart Home")

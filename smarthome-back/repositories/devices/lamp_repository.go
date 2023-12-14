@@ -10,6 +10,7 @@ import (
 	models "smarthome-back/models/devices"
 	devices "smarthome-back/models/devices/outside"
 	"smarthome-back/repositories"
+	"strconv"
 )
 
 type LampRepository interface {
@@ -17,7 +18,7 @@ type LampRepository interface {
 	GetAll() ([]devices.Lamp, error)
 	UpdateIsOnState(id int, isOn bool) (bool, error)
 	UpdateLightningState(id int, lightningState int) (bool, error)
-	GetLampData(from, to string) *api.QueryTableResult
+	GetLampData(id int, from, to string) *api.QueryTableResult
 }
 
 type LampRepositoryImpl struct {
@@ -40,7 +41,12 @@ func (rl *LampRepositoryImpl) Get(id int) (devices.Lamp, error) {
 	if repositories.IsError(err) {
 		return devices.Lamp{}, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			fmt.Println("Database connection closing error: ", err)
+		}
+	}(rows)
 	lamps, err := ScanRows(rows)
 	lamp := lamps[0]
 	return lamp, err
@@ -56,7 +62,12 @@ func (rl *LampRepositoryImpl) GetAll() ([]devices.Lamp, error) {
 	if repositories.IsError(err) {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			fmt.Println("Database connection closing error: ", err)
+		}
+	}(rows)
 	return ScanRows(rows)
 }
 
@@ -86,19 +97,22 @@ func (rl *LampRepositoryImpl) UpdateLightningState(id int, lightningState int) (
 	return true, nil
 }
 
-func (rl *LampRepositoryImpl) GetLampData(from, to string) *api.QueryTableResult {
+// GetLampData is getting data from influx db
+func (rl *LampRepositoryImpl) GetLampData(id int, from, to string) *api.QueryTableResult {
 	client := rl.influxdb
 	queryAPI := client.QueryAPI("Smart Home")
 	// we are printing data that came in the last 10 minutes
 	query := ""
+	queryId := strconv.Itoa(id)
 	if to != "" {
 		query = fmt.Sprintf(`from(bucket: "bucket")
             |> range(start: %s, stop: %s)
-            |> filter(fn: (r) => r._measurement == "lamps")`, from, to)
+            |> filter(fn: (r) => r._measurement == "lamps" and r.Id == "%s")`, from, to, queryId)
 	} else {
 		query = fmt.Sprintf(`from(bucket: "bucket")
             |> range(start: %s)
-            |> filter(fn: (r) => r._measurement == "lamps")`, from)
+            |> filter(fn: (r) => r._measurement == "lamps" and r["Id"] == "%s")`, from, queryId)
+		fmt.Printf("Generated Flux query: %s\n", query)
 	}
 
 	results, err := queryAPI.Query(context.Background(), query)
@@ -112,7 +126,7 @@ func (rl *LampRepositoryImpl) GetLampData(from, to string) *api.QueryTableResult
 	return results
 }
 
-// ScanRows mapping returned value from db to model - in this case in lamp model
+// ScanRows parses value from db to model - in this case in lamp model
 func ScanRows(rows *sql.Rows) ([]devices.Lamp, error) {
 	var lamps []devices.Lamp
 	for rows.Next() {

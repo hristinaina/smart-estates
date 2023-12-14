@@ -79,6 +79,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		lampRoutes.PUT("/:id/:level", lampController.SetLightning)
 		lampRoutes.POST("/", lampController.Add)
 		lampRoutes.DELETE("/:id", lampController.Delete)
-		lampRoutes.GET("/graph/:from/:to", lampController.GetGraphData)
+		lampRoutes.GET("/graph/:id/:from/:to", lampController.GetGraphData)
 	}
 }

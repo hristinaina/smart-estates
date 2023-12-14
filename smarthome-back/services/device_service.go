@@ -78,10 +78,8 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 		// todo add new case after adding new Device Class
 	} else {
 		device = dto.ToDevice()
-		query := "INSERT INTO device (Name, Type, RealEstate, IsOnline)" +
-			"VALUES ( ?, ?, ?, ?);"
-		result, err := res.db.Exec(query, device.Name, device.Type, device.RealEstate,
-			device.IsOnline)
+		query := "INSERT INTO device (Name, Type, RealEstate, IsOnline) VALUES ( ?, ?, ?, ?);"
+		result, err := res.db.Exec(query, device.Name, device.Type, device.RealEstate, device.IsOnline)
 		if CheckIfError(err) {
 			return models.Device{}, err
 		}

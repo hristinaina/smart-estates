@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"log"
 	"smarthome-back/dto"
@@ -19,7 +20,7 @@ type LampService interface {
 	SetLightning(id int, level int) (models.Lamp, error)
 	Add(dto dto.DeviceDTO) (models.Lamp, error)
 	Delete(id int) (bool, error)
-	GetGraphData(from, to string) ([]dtos.GraphData, error)
+	GetGraphData(id int, from, to string) ([]dtos.GraphData, error)
 }
 
 type LampServiceImpl struct {
@@ -73,11 +74,12 @@ func (ls *LampServiceImpl) Add(dto dto.DeviceDTO) (models.Lamp, error) {
 	if err != nil {
 		return models.Lamp{}, err
 	}
-	defer tx.Rollback()
-	//currentTime := mysql.NullTime{
-	//	Time:  time.Now(),
-	//	Valid: true,
-	//}
+	defer func(tx *sql.Tx) {
+		err := tx.Rollback()
+		if err != nil {
+			fmt.Println("Rollback error: ", err)
+		}
+	}(tx)
 
 	// TODO: move transaction to repository
 	result, err := tx.Exec(`
@@ -153,9 +155,9 @@ func (ls *LampServiceImpl) Delete(id int) (bool, error) {
 	return true, nil
 }
 
-func (ls *LampServiceImpl) GetGraphData(from, to string) ([]dtos.GraphData, error) {
+func (ls *LampServiceImpl) GetGraphData(id int, from, to string) ([]dtos.GraphData, error) {
 	values := make(map[float64]int)
-	results := ls.repository.GetLampData(from, to)
+	results := ls.repository.GetLampData(id, from, to)
 
 	for results.Next() {
 		if results.Record().Value() != nil {

@@ -65,7 +65,7 @@ export class Lamp extends Component {
 
         try {
             // populating graph data
-            let data = await LampService.getAllGraphData();
+            let data = await LampService.getAllGraphData(this.id);
             let datasets = [];
             data.forEach((value, key) => {
                 datasets.push({
@@ -164,8 +164,8 @@ export class Lamp extends Component {
         console.log(to);
         this.closeDialog();
 
-        let customData = await LampService.getGraphData(from, to);
-        let newData = { ...this.state.data }; 
+        let customData = await LampService.getGraphData(this.id, from, to);
+        let newData = { ...this.state.data }; // shallow copy
         newData.datasets.push({
             label: 'from ' + from.slice(0, 10) + ' to ' + to.slice(0, 10),
             data: LampService.createGraphData(customData.data),

@@ -115,12 +115,25 @@ func (lc LampController) Delete(c *gin.Context) {
 }
 
 func (lc LampController) GetGraphData(c *gin.Context) {
+	cId := c.Param("id")
+	id, err := strconv.Atoi(cId)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Parsing string to int created an error"})
+		return
+	}
+	//var dateRange dtos.DateRange
+	//if err = c.BindJSON(&dateRange); err != nil {
+	//	c.JSON(400, gin.H{"error": "Invalid JSON"})
+	//	return
+	//}
+
 	from := c.Param("from")
 	to := c.Param("to")
 	if to == "-1" {
 		to = ""
 	}
-	data, err := lc.service.GetGraphData(from, to)
+
+	data, err := lc.service.GetGraphData(id, from, to)
 	if controllers.CheckIfError(err, c) {
 		return
 	}

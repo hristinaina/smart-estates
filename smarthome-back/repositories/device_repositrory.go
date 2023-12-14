@@ -12,6 +12,7 @@ type DeviceRepository interface {
 	GetAll() []models.Device
 	GetDevicesByUserID(userID int) ([]models.Device, error)
 	Update(device models.Device) bool
+	UpdateLastValue(id int, value float32) (bool, error)
 }
 
 type DeviceRepositoryImpl struct {
@@ -103,8 +104,7 @@ func (res *DeviceRepositoryImpl) GetDevicesByUserID(userID int) ([]models.Device
 	var devices []models.Device
 	for rows.Next() {
 		var device models.Device
-		err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.RealEstate, &device.IsOnline,
-			&device.LastValue)
+		err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.RealEstate, &device.IsOnline)
 		if err != nil {
 			return nil, err
 		}
@@ -128,4 +128,15 @@ func (res *DeviceRepositoryImpl) Update(device models.Device) bool {
 		return false
 	}
 	return true
+}
+
+func (res *DeviceRepositoryImpl) UpdateLastValue(id int, value float32) (bool, error) {
+	query := `UPDATE device
+              SET device.LastValue = ? 
+              WHERE Device.Id = ?`
+	_, err := res.db.Exec(query, value, id)
+	if CheckIfError(err) {
+		return false, err
+	}
+	return true, nil
 }
