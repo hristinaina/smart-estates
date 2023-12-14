@@ -72,15 +72,9 @@ func (mc *MQTTClient) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("AmbientSensor id=%d, switch status: %s\n", deviceId, status)
 }
 
-func GetLastOneHourValues(influxdb influxdb2.Client, deviceId string) map[time.Time]AmbientSensor {
+func processingQuery(influxdb influxdb2.Client, query string) map[time.Time]AmbientSensor {
 	Org := "Smart Home"
-	Bucket := "bucket"
 	queryAPI := influxdb.QueryAPI(Org)
-
-	query := fmt.Sprintf(`from(bucket:"%s") 
-	|> range(start: -1h, stop: now())
-	|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`,
-		Bucket, deviceId)
 
 	result, err := queryAPI.Query(context.Background(), query)
 	if err != nil {
@@ -117,12 +111,32 @@ func GetLastOneHourValues(influxdb influxdb2.Client, deviceId string) map[time.T
 		panic(err)
 	}
 
-	// fmt.Println("REZULTAT")
-	// fmt.Println(resultPoints)
-	// fmt.Println("LISTA")
-	// fmt.Println(lista)
-
 	return resultPoints
+}
+
+func GetLastOneHourValues(influxdb influxdb2.Client, deviceId string) map[time.Time]AmbientSensor {
+	query := fmt.Sprintf(`from(bucket:"bucket") 
+		|> range(start: -1h, stop: now())
+		|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`, deviceId)
+
+	return processingQuery(influxdb, query)
+}
+
+func GetValuesForSelectedTime(influxdb influxdb2.Client, selectedTime, deviceId string) map[time.Time]AmbientSensor {
+	query := fmt.Sprintf(`from(bucket:"bucket") 
+	|> range(start: %s, stop: now())
+	|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`, selectedTime, deviceId)
+
+	return processingQuery(influxdb, query)
+}
+
+func GetValuesForDate(influxdb influxdb2.Client, start, end, deviceId string) map[time.Time]AmbientSensor {
+	query := fmt.Sprintf(`from(bucket:"bucket") 
+	|> range(start: %s, stop: %s)
+	|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`,
+		start, end, deviceId)
+
+	return processingQuery(influxdb, query)
 }
 
 func setNewValue(temp, hmd float64, time time.Time) {
@@ -133,110 +147,4 @@ func setNewValue(temp, hmd float64, time time.Time) {
 
 func GetNewValue() AmbientSensor {
 	return sensor
-}
-
-func GetValuesForSelectedTime(influxdb influxdb2.Client, selectedTime, deviceId string) map[time.Time]AmbientSensor {
-	Org := "Smart Home"
-	Bucket := "bucket"
-	queryAPI := influxdb.QueryAPI(Org)
-
-	query := fmt.Sprintf(`from(bucket:"%s") 
-	|> range(start: %s, stop: now())
-	|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`,
-		Bucket, selectedTime, deviceId)
-
-	result, err := queryAPI.Query(context.Background(), query)
-	if err != nil {
-		fmt.Println("Error executing InfluxDB query:", err)
-		return nil
-	}
-
-	var resultPoints map[time.Time]AmbientSensor
-	resultPoints = make(map[time.Time]AmbientSensor)
-
-	if err == nil {
-		// Iterate over query response
-		for result.Next() {
-
-			val, _ := resultPoints[result.Record().Time()]
-
-			switch field := result.Record().Field(); field {
-			case "temperature":
-				val.Temperature = result.Record().Value().(float64)
-			case "humidity":
-				val.Humidity = result.Record().Value().(float64)
-			default:
-				fmt.Printf("unrecognized field %s.\n", field)
-			}
-
-			resultPoints[result.Record().Time()] = val
-
-		}
-		// check for an error
-		if result.Err() != nil {
-			fmt.Printf("query parsing error: %s\n", result.Err().Error())
-		}
-	} else {
-		panic(err)
-	}
-
-	// fmt.Println("REZULTAT")
-	// fmt.Println(resultPoints)
-	// fmt.Println("LISTA")
-	// fmt.Println(lista)
-
-	return resultPoints
-}
-
-func GetValuesForDate(influxdb influxdb2.Client, start, end, deviceId string) map[time.Time]AmbientSensor {
-	Org := "Smart Home"
-	Bucket := "bucket"
-	queryAPI := influxdb.QueryAPI(Org)
-
-	fmt.Println("start")
-	fmt.Println(start)
-	fmt.Println("end")
-	fmt.Println(end)
-
-	query := fmt.Sprintf(`from(bucket:"%s") 
-	|> range(start: %s, stop: %s)
-	|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`,
-		Bucket, start, end, deviceId)
-
-	result, err := queryAPI.Query(context.Background(), query)
-	if err != nil {
-		fmt.Println("Error executing InfluxDB query:", err)
-		return nil
-	}
-
-	var resultPoints map[time.Time]AmbientSensor
-	resultPoints = make(map[time.Time]AmbientSensor)
-
-	if err == nil {
-		// Iterate over query response
-		for result.Next() {
-
-			val, _ := resultPoints[result.Record().Time()]
-
-			switch field := result.Record().Field(); field {
-			case "temperature":
-				val.Temperature = result.Record().Value().(float64)
-			case "humidity":
-				val.Humidity = result.Record().Value().(float64)
-			default:
-				fmt.Printf("unrecognized field %s.\n", field)
-			}
-
-			resultPoints[result.Record().Time()] = val
-
-		}
-		// check for an error
-		if result.Err() != nil {
-			fmt.Printf("query parsing error: %s\n", result.Err().Error())
-		}
-	} else {
-		panic(err)
-	}
-
-	return resultPoints
 }
