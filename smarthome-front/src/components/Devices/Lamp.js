@@ -11,6 +11,7 @@ import authService from '../../services/AuthService';
 import 'chart.js/auto';
 import LampService from '../../services/LampService';
 import CustomDateRangeDialog from '../Dialog/CustomDateRangeDialog';
+import { containerClasses } from '@mui/material';
 
 
 export class Lamp extends Component {
@@ -155,11 +156,24 @@ export class Lamp extends Component {
         this.setState({showCustomDateRangeDialog: false,})
     }
 
-    confirmNewDateRange = (from, to) => {
+    confirmNewDateRange = async (from, to) => {
+        from = from.toISOString();
+        to = to.toISOString();
         console.log("confirmed");
         console.log(from);
         console.log(to);
         this.closeDialog();
+
+        let customData = await LampService.getGraphData(from, to);
+        let newData = { ...this.state.data }; 
+        newData.datasets.push({
+            label: 'from ' + from.slice(0, 10) + ' to ' + to.slice(0, 10),
+            data: LampService.createGraphData(customData.data),
+            borderColor: LampService.getRandomColor(),
+            borderWidth: 2,
+            fill: false,
+        });
+        await this.setState({data: newData});
     }
 
     render() {
@@ -183,7 +197,7 @@ export class Lamp extends Component {
                     </Stack>
                 </div>
 
-                <Line id='graph' data={this.state.data} options={this.options} />
+                <Line key={JSON.stringify(this.state.data)} id='graph' data={this.state.data} options={this.options} />
                 <div id='custom-date-range-container'>
                     <button id='custom-date-range' onClick={this.openDialog}>Add custom date range</button>
                 </div>

@@ -47,11 +47,23 @@ class LampService {
         return data;
     }
 
+    createGraphData(graphData) {
+        let values = []
+        for (let i = 0; i < 101; i++) {
+            values.push(0);
+        }
+        graphData.forEach((res, i) => {
+            values[res.Value] = res.Count; 
+        });
+
+        return values;
+    }
+
     getRandomColor() {
         const r = Math.floor(Math.random() * 256);
         const g = Math.floor(Math.random() * 256);
         const b = Math.floor(Math.random() * 256);
-        const alpha = 1; // You can adjust the alpha (transparency) if needed
+        const alpha = 1;
         return `rgba(${r},${g},${b},${alpha})`;
     }
 }
