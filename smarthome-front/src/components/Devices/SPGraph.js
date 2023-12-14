@@ -4,11 +4,11 @@ import { Line } from 'react-chartjs-2';
 
 const SPGraph = ({ data }) => {
   const chartData = {
-    labels: data.labels,
+    labels: data.Labels,
     datasets: [
       {
         label: 'Switch status',
-        data: data.values,
+        data: data.Values,
         borderColor: 'rgba(75,192,192,1)',
         borderWidth: 2,
         fill: false,

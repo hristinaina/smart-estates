@@ -1,8 +1,13 @@
 package dto
 
-type ActionGraph struct {
+type ActionGraphRequest struct {
 	DeviceId  int
 	UserEmail string
 	StartDate string
 	EndDate   string
+}
+
+type ActionGraphResponse struct {
+	Labels []string
+	Values []interface{}
 }

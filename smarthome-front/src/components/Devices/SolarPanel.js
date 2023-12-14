@@ -44,7 +44,7 @@ export class SolarPanel extends Component {
         }
         console.log(device);
 
-        const historyData = await DeviceService.getSPGraphData(this.id, authService.getCurrentUser().Email, null, null);
+        const historyData = await DeviceService.getSPGraphData(this.id, authService.getCurrentUser().Email, "2023-12-12", "2023-12-23");
         this.setState({
             device: updatedData,
             switchOn: device.IsOn,

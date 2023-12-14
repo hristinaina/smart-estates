@@ -18,7 +18,7 @@ type SolarPanelService interface {
 	Add(estate dto.DeviceDTO) models.SolarPanel
 	Get(id int) models.SolarPanel
 	UpdateSP(device models.SolarPanel) bool
-	GetGraphData(data dto.ActionGraph) (interface{}, error)
+	GetGraphData(data dto.ActionGraphRequest) (dto.ActionGraphResponse, error)
 }
 
 type SolarPanelServiceImpl struct {
@@ -39,30 +39,32 @@ func (s *SolarPanelServiceImpl) Add(dto dto.DeviceDTO) models.SolarPanel {
 	return s.repository.Add(dto)
 }
 
-func (s *SolarPanelServiceImpl) GetGraphData(data dto.ActionGraph) (interface{}, error) {
+// todo change all return types
+func (s *SolarPanelServiceImpl) GetGraphData(data dto.ActionGraphRequest) (dto.ActionGraphResponse, error) {
 	influxOrg := "Smart Home"
 	influxBucket := "bucket"
 
 	// Create InfluxDB query API
 	queryAPI := s.influxDb.QueryAPI(influxOrg)
-	fmt.Println(data)
 	// Define your InfluxDB query with conditions
-	query := fmt.Sprintf(`from(bucket:"%s")|> range(start: %d, stop: %d) 
+	query := fmt.Sprintf(`from(bucket:"%s")|> range(start: %s, stop: %s) 
 			|> filter(fn: (r) => r["_measurement"] == "solar_panel"
 			and r["_field"] == "isOn" and r["user_id"] == "%s" and r["device_id"] == "%d")`, influxBucket,
 		data.StartDate, data.EndDate, data.UserEmail, data.DeviceId)
-	// todo konvertovati datume ??
 
 	result, err := queryAPI.Query(context.Background(), query)
 	if err != nil {
 		fmt.Printf("Error executing InfluxDB query: %v\n", err)
-		return nil, err
+		return dto.ActionGraphResponse{}, err
 	}
 
+	var response dto.ActionGraphResponse
 	// Iterate over query results
 	for result.Next() {
-		// Process the result, e.g., print data points
-		fmt.Printf("Record: %v\n", result.Record().Values)
+		if result.Record().Value() != nil {
+			response.Labels = append(response.Labels, result.Record().Time().Format("2006-01-02 15:04:05 MST"))
+			response.Values = append(response.Values, result.Record().Value())
+		}
 	}
 
 	// Check for errors
@@ -72,7 +74,7 @@ func (s *SolarPanelServiceImpl) GetGraphData(data dto.ActionGraph) (interface{},
 
 	// Close the result set
 	result.Close()
-	return nil, nil
+	return response, nil
 }
 
 func (s *SolarPanelServiceImpl) UpdateSP(device models.SolarPanel) bool {

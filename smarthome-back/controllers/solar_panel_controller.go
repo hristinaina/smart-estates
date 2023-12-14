@@ -30,7 +30,7 @@ func (uc SolarPanelController) Get(c *gin.Context) {
 }
 
 func (uc SolarPanelController) GetGraphData(c *gin.Context) {
-	var data dto.ActionGraph
+	var data dto.ActionGraphRequest
 	// convert json object to model device
 	if err := c.BindJSON(&data); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid JSON"})
