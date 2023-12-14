@@ -5,31 +5,66 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 
 const CustomDateRangeDialog = ({onConfirm, onCancel}) => {
-    const [isChoosen, setIsChoosen] = useState(true);  // true so that is not displayed at the beginning
+    const [displayError, setDisplayError] = useState(false);  // true so that is not displayed at the beginning
+    const [errorMessage, setErrorMessage] = useState('Please choose dates');
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
 
     const handleStartDateChange = (date) => {
         setStartDate(date);
         if (endDate != null) {
-            setIsChoosen(true);
+            setDisplayError(false);
+            isDateRangeValid();
         }
     };
 
     const handleEndDateChange = (date) => {
         setEndDate(date);
         if (startDate != null) {
-            setIsChoosen(true);
+            setDisplayError(false);
+            isDateRangeValid();
         }
     };
 
     const handleConfirm = () => {
-        if (startDate != null && endDate != null) {
+        if (startDate != null && endDate != null && isDateRangeValid()) {
             onConfirm(startDate, endDate);
         } else {
-            setIsChoosen(false);
+            setDisplayError(true);
         }
     }
+
+    const isDateRangeValid = () => {
+        const maxDaysDifference = 30;
+        const millisecondsInDay = 24 * 60 * 60 * 1000;
+    
+        if (startDate && endDate) {
+            const daysDifference = Math.floor((endDate - startDate) / millisecondsInDay);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Set time to midnight
+    
+            if (startDate > today || endDate > today) {
+                setDisplayError(true);
+                setErrorMessage('Can\'t choose dates in the future.');
+                console.log("returned false0");
+            } else if (daysDifference > maxDaysDifference) {
+                setDisplayError(true);
+                setErrorMessage('Please choose a range within 30 days.');
+                console.log("returned false");
+                return false;
+            } else if (daysDifference < 0) {
+                setDisplayError(true);
+                setErrorMessage('Please check order of dates.');
+                console.log("returned false 2");
+                return false;
+            } else {
+                setDisplayError(false);
+                setErrorMessage('');
+                console.log("returned true");
+                return true;
+            }
+        }
+      };
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -51,7 +86,7 @@ const CustomDateRangeDialog = ({onConfirm, onCancel}) => {
                     onChange={handleEndDateChange}
                 />
                 <p></p>
-                {!isChoosen && <p id='please-choose-dates'>Please choose dates</p>}
+                {displayError && <p id='please-choose-dates'>{errorMessage}</p>}
                 <button onClick={onCancel}>CANCEL</button>
                 <button onClick={handleConfirm}>CONFIRM</button>
                 {/* <button onClick={() => onConfirm(selectedDate)}>CONFIRM</button> */}
