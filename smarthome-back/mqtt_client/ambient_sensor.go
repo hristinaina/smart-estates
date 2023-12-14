@@ -187,3 +187,56 @@ func GetValuesForSelectedTime(influxdb influxdb2.Client, selectedTime, deviceId 
 
 	return resultPoints
 }
+
+func GetValuesForDate(influxdb influxdb2.Client, start, end, deviceId string) map[time.Time]AmbientSensor {
+	Org := "Smart Home"
+	Bucket := "bucket"
+	queryAPI := influxdb.QueryAPI(Org)
+
+	fmt.Println("start")
+	fmt.Println(start)
+	fmt.Println("end")
+	fmt.Println(end)
+
+	query := fmt.Sprintf(`from(bucket:"%s") 
+	|> range(start: %s, stop: %s)
+	|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`,
+		Bucket, start, end, deviceId)
+
+	result, err := queryAPI.Query(context.Background(), query)
+	if err != nil {
+		fmt.Println("Error executing InfluxDB query:", err)
+		return nil
+	}
+
+	var resultPoints map[time.Time]AmbientSensor
+	resultPoints = make(map[time.Time]AmbientSensor)
+
+	if err == nil {
+		// Iterate over query response
+		for result.Next() {
+
+			val, _ := resultPoints[result.Record().Time()]
+
+			switch field := result.Record().Field(); field {
+			case "temperature":
+				val.Temperature = result.Record().Value().(float64)
+			case "humidity":
+				val.Humidity = result.Record().Value().(float64)
+			default:
+				fmt.Printf("unrecognized field %s.\n", field)
+			}
+
+			resultPoints[result.Record().Time()] = val
+
+		}
+		// check for an error
+		if result.Err() != nil {
+			fmt.Printf("query parsing error: %s\n", result.Err().Error())
+		}
+	} else {
+		panic(err)
+	}
+
+	return resultPoints
+}

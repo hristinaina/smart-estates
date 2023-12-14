@@ -228,9 +228,29 @@ export class AmbientSensor extends Component {
         this.setState({ [fieldName]: event.target.value });
     };
     
-    handleButtonClick = () => {
-        // Implementirajte logiku kada se pritisne dugme
+    handleButtonClick = async () => {
         console.log('Button clicked!');
+        console.log(this.state.startDate)
+        console.log(this.state.endDate)
+        // todo proveri da li je start veci od end
+        if (new Date(this.state.startDate) > new Date(this.state.endDate)) {
+            console.log('startDate ne može biti veći od endDate');
+            // todo snack bar
+            return;
+        }
+        // todo proveri da li je razlia izmdju veca od mesec dana
+        const oneMonth = 30 * 24 * 60 * 60 * 1000; // Broj milisekundi u jednom mesecu (približno)
+        const difference = new Date(this.state.endDate) - new Date(this.state.startDate);
+
+        if (difference > oneMonth) {
+            console.log('Razlika između startDate i endDate je veća od mesec dana');
+            return;
+            // todo snack bar
+        }
+        // todo pozovi api
+        const result = await AmbientSensorService.getDataForSelectedDate(this.id, this.state.startDate, this.state.endDate);
+        console.log("datum graf ", result.result.result)
+        result.result.result != null ? await this.historyGraph(result.result.result) : await this.historyGraph([]) 
     };
 
     extractDeviceIdFromUrl() {
