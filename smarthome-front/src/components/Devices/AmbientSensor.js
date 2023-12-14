@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import {Line} from 'react-chartjs-2';
+import 'chartjs-adapter-date-fns'
 import './Devices.css';
 import 'chart.js/auto';
 import { Navigation } from '../Navigation/Navigation';
@@ -45,15 +46,19 @@ export class AmbientSensor extends Component {
 
         this.options = {
             scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        displayFormats: {
+                            quarter: 'HH:MM'
+                        }
+                    }
+                },
                 y: {
                     beginAtZero: true,
                 },
             },
         };
-        
-
-        this.values = null
-
     }
 
     async componentDidMount() {
@@ -73,8 +78,7 @@ export class AmbientSensor extends Component {
         try {
             const result = await AmbientSensorService.getGraphData(this.id);
             const values = result.result
-            this.values = new Map(Object.entries(values))
-            // console.log("rezultat", values)
+            console.log("rezultat", values)
             // console.log(typeof(values))
 
             const timestamps = Object.keys(values);
@@ -88,6 +92,11 @@ export class AmbientSensor extends Component {
             // if (this.chartInstance) {
             //     this.chartInstance.destroy();
             // }
+            // const formattedTimestamps = timestamps.map((timestamp) => {
+            //     const date = new Date(timestamp);
+            //     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' });
+            // });
+
             await this.setState({
                 data: {
                     labels: timestamps,
@@ -110,24 +119,6 @@ export class AmbientSensor extends Component {
                 },
             });
 
-            if (!this.connected) {
-                this.connected = true;
-                this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
-                    clientId: "react-front-nvt-2023-AmbientSensor",
-                    clean: false,
-                    keepalive: 60
-                });
-
-                // Subscribe to the MQTT topic for device status
-                this.mqttClient.on('connect', () => {
-                    this.mqttClient.subscribe('device/data/' + this.id);
-                });
-
-                // Handle incoming MQTT valuess
-                this.mqttClient.on('values', (topic, values) => {
-                    this.handleMqttvalues(topic, values);
-                });
-            }
         } catch (error) {
             console.log("Error trying to connect to broker");
             console.log(error);
@@ -168,9 +159,10 @@ export class AmbientSensor extends Component {
 
     populateGraph = (message) => {
         const { data } = this.state;
-        // console.log("uslooo")
-        // console.log(message)
+        console.log("uslooo")
+        console.log(message)
         // console.log(this.values)
+        // console.log(data.labels)
 
         const newValue = JSON.parse(message);
 
@@ -178,8 +170,11 @@ export class AmbientSensor extends Component {
         // console.log(newValue['temperature'])
         // console.log(timestamp)
 
+        // const refreshData = 
+
+        // const formattedTimestamp = new Date(newValue.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' });
+
         const updatedChartData = {
-            // labels: [...data.labels, newValue.timestamp], 
             labels: data.labels.filter((label) => this.isTimestampInLastHour(label)).concat(newValue.timestamp),
             datasets: [
                 {
