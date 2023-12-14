@@ -186,20 +186,8 @@ export class AmbientSensor extends Component {
 
     populateGraph = (message) => {
         const { data } = this.state;
-        // console.log("uslooo")
-        // console.log(message)
-        // console.log(this.values)
-        // console.log(data.labels)
 
         const newValue = JSON.parse(message);
-
-        // console.log(newValue.humidity)
-        // console.log(newValue['temperature'])
-        // console.log(timestamp)
-
-        // const refreshData = 
-
-        // const formattedTimestamp = new Date(newValue.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' });
 
         const updatedChartData = {
             labels: data.labels.filter((label) => this.isTimestampInLastHour(label)).concat(newValue.timestamp),
@@ -226,38 +214,14 @@ export class AmbientSensor extends Component {
         });
     };
 
-    // handleSwitchToggle = () => {
-    //     const topic = "lamp/switch/" + this.id;
-
-    //     this.setState((prevState) => ({
-    //         switchOn: !prevState.switchOn,
-    //     }));
-    //     const values = (!this.state.switchOn).toString();
-    //     this.mqttClient.publish(topic, values);
-    // };
-
-    // // Handle incoming MQTT valuess
-    // handleMqttvalues(topic, values) {
-    //     const { device } = this.state;
-    //     const newValue = values.toString();
-    //     const updatedData =
-    //     {
-    //         ...device,
-    //         Value: newValue + "%",
-    //     }
-    //     this.setState({
-    //         device: updatedData,
-    //     });
-    // }
+    updateGraph = async (value) => {
+        const result = await AmbientSensorService.getDataForSelectedTime(this.id, value);
+        await this.historyGraph(result.result.result)
+    }
 
     handleOptionChange = async (event, value) => {
-        console.log(value)
         this.setState({ selectedOption: value });
-        console.log('selektovana opcija', this.state.selectedOption)
-        const result = await AmbientSensorService.getDataForSelectedTime(this.id, value.value);
-        console.log("rezultat", result.result.result)
-        await this.historyGraph(result.result.result)
-        // todo ovde pozivi api - ali salji value ({label: 'last week', value: 'lastWeek'})
+        await this.updateGraph(value.value)
     };
     
     handleDateChange = (fieldName, event) => {
@@ -287,7 +251,7 @@ export class AmbientSensor extends Component {
                 <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer", float: "left" }} onClick={this.handleBackArrow} />
                 <span className='buttons'>
                     <span onClick={() => this.setActiveGraph(1)} className={this.state.activeGraph === 1 ? 'active-button' : 'non-active-button'}>Real Time</span>
-                    <span onClick={() => this.setActiveGraph(2)} className={this.state.activeGraph === 2 ? 'active-button' : 'non-active-button'}>History</span>
+                    <span onClick={() => { this.setActiveGraph(2); this.updateGraph(this.state.selectedOption.value) }} className={this.state.activeGraph === 2 ? 'active-button' : 'non-active-button'}>History</span>
                 </span>
                 {this.state.activeGraph === 2 && 
                 <div>
