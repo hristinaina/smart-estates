@@ -14,8 +14,6 @@ import (
 
 var switchOn = false
 
-var influxdb influxdb2.Client
-
 type AmbientSensor struct {
 	Humidity    float64   `json:"humidity"`
 	Temperature float64   `json:"temperature"`
@@ -24,10 +22,7 @@ type AmbientSensor struct {
 
 var sensor AmbientSensor
 
-// HandleHeartBeat callback function called when subscribed to TopicOnline. Update heartbeat time when "online" message is received
 func (mc *MQTTClient) ReceiveValue(client mqtt.Client, msg mqtt.Message) {
-	influxdb = mc.influxDb
-
 	payload := string(msg.Payload())
 
 	var data map[string]interface{}
@@ -42,7 +37,6 @@ func (mc *MQTTClient) ReceiveValue(client mqtt.Client, msg mqtt.Message) {
 
 	saveValueToInfluxDb(mc.influxDb, deviceId, temperature, humidity)
 
-	// todo posalji soketom
 	setNewValue(temperature, humidity, time.Now())
 
 	fmt.Printf("Ambient Sensor, id=%v, temeprature: %v °C, humidity: %v %% \n", deviceId, temperature, humidity)
@@ -78,7 +72,7 @@ func (mc *MQTTClient) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("AmbientSensor id=%d, switch status: %s\n", deviceId, status)
 }
 
-func GetLastOneHourValues(deviceId string) map[time.Time]AmbientSensor {
+func GetLastOneHourValues(influxdb influxdb2.Client, deviceId string) map[time.Time]AmbientSensor {
 	Org := "Smart Home"
 	Bucket := "bucket"
 	queryAPI := influxdb.QueryAPI(Org)
@@ -96,8 +90,6 @@ func GetLastOneHourValues(deviceId string) map[time.Time]AmbientSensor {
 
 	var resultPoints map[time.Time]AmbientSensor
 	resultPoints = make(map[time.Time]AmbientSensor)
-
-	// lista := []AmbientSensor{}
 
 	if err == nil {
 		// Iterate over query response

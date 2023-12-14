@@ -95,3 +95,7 @@ func (mc *MQTTClient) Publish(topic string, message string) error {
 	}
 	return token.Error()
 }
+
+func (mc *MQTTClient) GetInflux() influxdb2.Client {
+	return mc.influxDb
+}

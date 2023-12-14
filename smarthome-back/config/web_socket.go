@@ -56,7 +56,7 @@ func SendAmbientValues(w http.ResponseWriter, r *http.Request) {
 
 			newValue := mqtt_client.GetNewValue()
 
-			fmt.Println(newValue)
+			// fmt.Println(newValue)
 
 			jsonData, err := json.Marshal(newValue)
 			if err != nil {
