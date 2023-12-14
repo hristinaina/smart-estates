@@ -1,18 +1,18 @@
 
 import { Component } from 'react';
-import './Devices.css';
-import { Navigation } from '../Navigation/Navigation';
+import '../Devices.css';
+import { Navigation } from '../../Navigation/Navigation';
 import mqtt from 'mqtt';
 import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import authService from '../../services/AuthService';
-import DeviceService from '../../services/DeviceService';
-import { Line } from 'react-chartjs-2';
+import authService from '../../../services/AuthService';
+import DeviceService from '../../../services/DeviceService';
 import 'chart.js/auto';
 import SPGraph from './SPGraph';
 import { TextField } from '@mui/material';
 import { Button } from 'reactstrap';
+import './SolarPanel.css'
 
 
 export class SolarPanel extends Component {
@@ -30,6 +30,7 @@ export class SolarPanel extends Component {
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
+        this.Name = "";
     }
 
     async componentDidMount() {
@@ -44,6 +45,7 @@ export class SolarPanel extends Component {
         }
         console.log(device);
 
+        this.Name = device.Device.Name;
         const historyData = await DeviceService.getSPGraphData(this.id, authService.getCurrentUser().Email, "2023-12-12", "2023-12-23");
         this.setState({
             device: updatedData,
@@ -112,14 +114,14 @@ export class SolarPanel extends Component {
 
     handleFormSubmit = async (e) => {
         e.preventDefault();
-    
+
         const { email, startDate, endDate } = this.state;
         console.log(email, startDate, endDate);
         const historyData = await DeviceService.getSPGraphData(this.id, email, startDate, endDate);
         this.setState({
-          data: historyData,
+            data: historyData,
         });
-      };
+    };
 
     extractDeviceIdFromUrl() {
         const parts = window.location.href.split('/');
@@ -137,38 +139,43 @@ export class SolarPanel extends Component {
             <div>
                 <Navigation />
                 <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
-                <div style={{ width: "fit-content", marginLeft: "auto", marginRight: "auto", marginTop: "10%" }}>
-                    <p className='device-title'>Id: {this.id}</p>
-                    {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
-                    <p className='device-text'>Produced in previous minute (kW/m<sup>2</sup>): {device.Value}</p>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                        <Typography>Off</Typography>
-                        <Switch
-                            checked={switchOn}
-                            onChange={this.handleSwitchToggle}
-                        />
-                        <Typography>On</Typography>
-                    </Stack>
+                <span className='estate-title'>{this.Name}</span>
+                <div className='sp-container'>
+                    <div id="sp-left-card">
+                        <p className='device-title'>Id: {this.id}</p>
+                        {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
+                        <p className='device-text'>Produced in previous minute (kW/m<sup>2</sup>): {device.Value}</p>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                            <Typography>Off</Typography>
+                            <Switch
+                                checked={switchOn}
+                                onChange={this.handleSwitchToggle}
+                            />
+                            <Typography>On</Typography>
+                        </Stack>
+                    </div>
+                    <div id='sp-right-card'>
+                        <form onSubmit={this.handleFormSubmit} className='sp-container'>
+                            <label>
+                                Email:
+                                <TextField style={{backgroundColor: "white"}} type="text" value={email} onChange={(e) => this.setState({ email: e.target.value })} />
+                            </label>
+                            <br />
+                            <label>
+                                Start Date:
+                                <TextField style={{backgroundColor: "white"}} type="date" value={startDate} onChange={(e) => this.setState({ startDate: e.target.value })} />
+                            </label>
+                            <br />
+                            <label>
+                                End Date:
+                                <TextField style={{backgroundColor: "white"}} type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
+                            </label>
+                            <br />
+                            <Button type="submit" id='sp-data-button'>Fetch Data</Button>
+                        </form>
+                        <SPGraph data={data} />
+                    </div>
                 </div>
-                <form onSubmit={this.handleFormSubmit}>
-                    <label>
-                        Email:
-                        <TextField type="text" value={email} onChange={(e) => this.setState({ email: e.target.value })} />
-                    </label>
-                    <br />
-                    <label>
-                        Start Date:
-                        <TextField type="date" value={startDate} onChange={(e) => this.setState({ startDate: e.target.value })} />
-                    </label>
-                    <br />
-                    <label>
-                        End Date:
-                        <TextField type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
-                    </label>
-                    <br />
-                    <Button type="submit">Fetch Data</Button>
-                </form>
-                <SPGraph data={data} />
             </div>
         )
     }

@@ -17,34 +17,15 @@ const SPGraph = ({ data }) => {
     ],
   };
 
-  const options = {
-    scales: {
-      x: [
-        {
-          type: 'time',
-          time: {
-            unit: 'hour',
-          },
+    const options = {
+      scales: {
+        y: {
+          beginAtZero: false,
         },
-      ],
-      y: [
-        {
-          ticks: {
-            beginAtZero: true,
-            max: 1, // Set max to 1 for binary true/false values
-          },
-        },
-      ],
-    },
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top',
       },
-    },
   };
 
-  return <Line data={chartData} options={options} />;
+  return <Line style={{marginTop: "30px", marginBottom: "5px"}} data={chartData} options={options} />;
 };
 
 export default SPGraph;
