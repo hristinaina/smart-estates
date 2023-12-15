@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import {Line} from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns'
-import './Devices.css';
+import '../Devices.css';
 import 'chart.js/auto';
-import { Navigation } from '../Navigation/Navigation';
+import { Navigation } from '../../Navigation/Navigation';
 import './AmbientSensor.css'
-import authService from '../../services/AuthService'
-import AmbientSensorService from '../../services/AmbientSensorService';
+import authService from '../../../services/AuthService'
+import AmbientSensorService from '../../../services/AmbientSensorService';
 import { Autocomplete, TextField, Button, Box, Grid, IconButton, Snackbar } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
@@ -293,7 +293,7 @@ export class AmbientSensor extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer", float: "left" }} onClick={this.handleBackArrow} />
+                <img src='/images/arrow.png' id='arrow' alt='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer", float: "left" }} onClick={this.handleBackArrow} />
                 <span className='buttons'>
                     <span onClick={() => this.setActiveGraph(1)} className={this.state.activeGraph === 1 ? 'active-button' : 'non-active-button'}>Real Time</span>
                     <span onClick={() => { this.setActiveGraph(2); this.updateGraph(this.state.selectedOption.value) }} className={this.state.activeGraph === 2 ? 'active-button' : 'non-active-button'}>History</span>

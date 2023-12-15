@@ -99,3 +99,8 @@
     font-weight: 500;
 
 }
+
+#ac-dropdown {
+    margin: 0 1em !important;
+    width: 75%;
+}

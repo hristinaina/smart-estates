@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import DeviceService from "../../services/DeviceService";
 import ImageService from "../../services/ImageService";
 import authService from '../../services/AuthService'
-import { Snackbar } from "@mui/material";
+import { FormControl, InputLabel, MenuItem, Select, Snackbar } from "@mui/material";
+import SpecialModeForm from "./AirConditioner/SpecialModeForm";
 
 
 export class NewDevice extends Component {
@@ -19,6 +20,7 @@ export class NewDevice extends Component {
             powerConsumption: 200,
             minTemp: 16,
             maxTemp: 31,
+            acModes: [],
             batterySize: 13,
             chargingPower: 2.3,
             connections: 1,
@@ -170,6 +172,16 @@ export class NewDevice extends Component {
         });
     }
 
+    handleACModes = (event) => {
+        const acModes = event.target.value;
+
+        this.setState((prevState) => ({
+            acModes,
+        }), () => {
+            this.checkButton();
+        });
+    };
+
     handleBatterySize = (event) => {
         const batterySize = event.target.value;
 
@@ -235,7 +247,7 @@ export class NewDevice extends Component {
             this.setState({ isButtonDisabled: true })
         }
         else {
-            if (this.state.selectedType == 1 && (this.state.minTemp >= this.state.maxTemp || this.state.minTemp < -40 || this.state.maxTemp > 60)) {
+            if (this.state.selectedType == 1 && (this.state.minTemp >= this.state.maxTemp || this.state.minTemp < -40 || this.state.maxTemp > 60 || this.state.acModes.length === 0)) {
                 this.setState({ isButtonDisabled: true })
             }
             else if (this.state.selectedType == 7 && (this.state.batterySize > 100000 || this.state.batterySize < 1)) {
@@ -384,6 +396,23 @@ export class NewDevice extends Component {
                                     value={this.state.maxTemp}
                                     onChange={this.handleMaxTemp}
                                 />
+                                <p className="new-real-estate-label">Select modes:</p>
+                                <FormControl id="ac-dropdown">
+                                    {/* <InputLabel id="multi-select-dropdown-label">Select Modes</InputLabel> */}
+                                    <Select
+                                        labelId="multi-select-dropdown-label"
+                                        id="multi-select-dropdown"
+                                        multiple
+                                        value={this.state.acModes}
+                                        onChange={this.handleACModes}
+                                        renderValue={(selected) => selected.join(', ')}>
+                                    <MenuItem value="Cooling">Cooling</MenuItem>
+                                    <MenuItem value="Heating">Heating</MenuItem>
+                                    <MenuItem value="Automatic">Automatic</MenuItem>
+                                    <MenuItem value="Ventilation">Ventilation</MenuItem>
+                                    </Select>
+                                </FormControl>
+                                <SpecialModeForm/>
                             </div>
                         )}
                         {this.state.showBatterySize && (
