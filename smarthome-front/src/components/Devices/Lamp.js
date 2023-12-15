@@ -126,6 +126,7 @@ export class Lamp extends Component {
     }
 
     turnOnSwitch = () => {
+        console.log("usaooo");
         const topic = "lamp/switch/" + this.id;
 
         this.setState((prevState) => ({
@@ -143,11 +144,17 @@ export class Lamp extends Component {
         }));
         const message = (!this.state.switchOn).toString();
         this.mqttClient.publish(topic, message);
-
-        if (message == true) {
+        console.log(message);
+        if (message == "true") {
+            console.log("ukljuceno");
             let l = await LampService.turnOn(this.id);
+            console.log(l);
+            await this.setState({lamp: l});
         } else {
+            console.log("iskljuceno");
             let l = await LampService.turnOff(this.id);
+            console.log(l);
+            await this.setState({lamp: l});
         }
     };
 
