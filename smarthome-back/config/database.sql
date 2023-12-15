@@ -31,7 +31,8 @@ CREATE TABLE device (
                         Type INT NOT NULL,
                         RealEstate INT NOT NULL,
                         IsOnline BOOLEAN,
-                        StatusTimeStamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        StatusTimeStamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        LastValue DOUBLE DEFAULT -1
 );
 
 CREATE TABLE consumptionDevice (
@@ -53,6 +54,13 @@ CREATE TABLE evCharger (
                            ChargingPower DOUBLE NOT NULL,
                            Connections INT NOT NULL,
                            FOREIGN KEY (DeviceId) REFERENCES device(Id)
+);
+
+CREATE TABLE lamp (
+	DeviceId INT PRIMARY KEY,
+    IsOn bool,
+    LightningLevel int,
+    FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
 );
 
 CREATE TABLE homeBattery (
@@ -84,20 +92,24 @@ VALUES
     (5, 'ma ne znam', 0, '102 Elm Blvd', 'Hamlet City', 65.0, 2, 'path/to/picture5.jpg', 0, 2, ''),
     (6, 'Spavamise2', 1, '103 Elm Blvd', 'Hamlet City', 70.0, 2, 'path/to/picture6.jpg', 0, 2, '');
 
-INSERT INTO device (Id, Name, Type, RealEstate, IsOnline, StatusTimeStamp)
+INSERT INTO device (Id, Name, Type, RealEstate, IsOnline, StatusTimeStamp, LastValue)
 VALUES
-    (1, 'Masina Sladja', 2,  1, false, '2023-12-06 15:30:00'),
-    (2, 'Prsk prsk', 5, 1, false, '2023-12-06 15:30:00'),
-    (3, 'Neka klima', 1, 2, false, '2023-12-06 15:30:00'),
-    (4, 'Panelcic', 6, 2, false, '2023-12-06 15:30:00'),
-    (5, 'Punjac1', 8, 2, false, '2023-12-06 15:30:00'),
-    (6, 'Baterija1', 7, 2, false, '2023-12-06 15:30:00');
+    (1, 'Masina Sladja', 2,  1, false, '2023-12-06 15:30:00', -1),
+    (2, 'Prsk prsk', 5, 1, false, '2023-12-06 15:30:00', -1),
+    (3, 'Neka klima', 1, 2, false, '2023-12-06 15:30:00', -1),
+    (4, 'Panelcic', 6, 2, false, '2023-12-06 15:30:00', -1),
+    (5, 'Punjac1', 8, 2, false, '2023-12-06 15:30:00', -1),
+    (6, 'Baterija1', 7, 2, false, '2023-12-06 15:30:00', -1), 
+	(7, 'Lampica u sobici', 3, 1, false, '2023-12-06 15:30:00', -1),
+    (8, 'Lampetina', 3, 1, false, '2023-12-06 15:30:00', -1);
 
 INSERT INTO consumptionDevice (DeviceId, PowerSupply, PowerConsumption)
 VALUES
     (1, 1, 200),
     (2, 0, 0),
-    (3, 1, 300);
+    (3, 1, 300),
+	(7, 0, 50),
+    (8, 1, 75);
 
 INSERT INTO airConditioner (DeviceId, MinTemperature, MaxTemperature)
 VALUES
@@ -106,6 +118,11 @@ VALUES
 INSERT INTO evCharger (DeviceId, ChargingPower, Connections)
 VALUES
     (5, 10, 2);
+    
+INSERT INTO lamp(DeviceId, IsOn, LightningLevel)
+VALUES
+	(7, false, 0),
+    (8, true, 2);
 
 INSERT INTO solarPanel (DeviceId, SurfaceArea, Efficiency, NumberOfPanels, IsOn)
 VALUES

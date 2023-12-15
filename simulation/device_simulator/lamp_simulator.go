@@ -2,7 +2,9 @@ package device_simulator
 
 import (
 	"fmt"
-	"math"
+	// "math"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"math/rand"
 	"simulation/config"
 	"simulation/models"
 	"strconv"
@@ -41,16 +43,16 @@ func (ls *LampSimulator) ConnectLamp() {
 // GenerateLampData Simulate sending periodic Lamp data
 func (ls *LampSimulator) GenerateLampData() {
 	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
-
+    defer ticker.Stop()
 	for {
 		select {
-		case <-ticker.C:
+        case <-ticker.C:
 			if ls.switchOn {
 				// Get the Unix timestamp from the current time
-				unixTimestamp := float64(time.Now().Unix())
-				sineValue := math.Sin(unixTimestamp)
-				percentage := math.Abs(math.Round(sineValue * 100))
+				// unixTimestamp := float64(time.Now().Unix())
+				// sineValue := math.Sin(unixTimestamp)
+				// percentage := math.Abs(math.Round(sineValue * 100))
+				percentage := float64(ls.getOutsideBrightness())
 				config.PublishToTopic(ls.client, config.TopicPayload+strconv.Itoa(ls.device.ID), strconv.FormatFloat(percentage,
 					'f', -1, 64))
 				fmt.Printf("Lamp name=%s, id=%d, generated data: %f\n", ls.device.Name, ls.device.ID, percentage)
@@ -69,3 +71,14 @@ func (ls *LampSimulator) HandleSwitchChange(client mqtt.Client, msg mqtt.Message
 	ls.switchOn = status == "true"
 	fmt.Printf("Lamp id=%d, switch status: %s\n", deviceId, status)
 }
+
+func (ls *LampSimulator) getOutsideBrightness() int {
+	hour := time.Now().Hour()
+
+	if hour >= 6 && hour < 16 {
+		return rand.Intn(30) + 70
+	} else {
+		return rand.Intn(30)
+	}
+}
+ 

@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	_ "database/sql"
 	"errors"
-	_ "fmt"
 	_ "github.com/gin-gonic/gin"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"smarthome-back/dto"
 	"smarthome-back/models/devices"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/repositories"
+	services "smarthome-back/services/devices"
 	"strconv"
 )
 
@@ -23,17 +23,21 @@ type DeviceService interface {
 
 type DeviceServiceImpl struct {
 	db                    *sql.DB
+	inflixDb              influxdb2.Client
 	airConditionerService AirConditionerService
 	evChargerService      EVChargerService
 	homeBatteryService    HomeBatteryService
 	solarPanelService     SolarPanelService
+	lampService           services.LampService
 	mqtt                  *mqtt_client.MQTTClient
 	deviceRepository      repositories.DeviceRepository
 }
 
 func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceService {
 	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db), evChargerService: NewEVChargerService(db),
-		homeBatteryService: NewHomeBatteryService(db), mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db), solarPanelService: NewSolarPanelService(db, influxDb)}
+		homeBatteryService: NewHomeBatteryService(db), lampService: services.NewLampService(db, influxDb),
+		mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db),
+		solarPanelService: NewSolarPanelService(db, influxDb)}
 }
 
 func (res *DeviceServiceImpl) GetAll() []models.Device {
@@ -61,6 +65,12 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 	var device models.Device
 	if dto.Type == 1 {
 		device = res.airConditionerService.Add(dto).ToDevice()
+	} else if dto.Type == 3 {
+		lamp, err := res.lampService.Add(dto)
+		if err != nil {
+			return models.Device{}, err
+		}
+		device = lamp.ToDevice()
 	} else if dto.Type == 8 {
 		device = res.evChargerService.Add(dto).ToDevice()
 	} else if dto.Type == 7 {
@@ -69,10 +79,8 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 		device = res.solarPanelService.Add(dto).ToDevice()
 	} else {
 		device = dto.ToDevice()
-		query := "INSERT INTO device (Name, Type, RealEstate, IsOnline)" +
-			"VALUES ( ?, ?, ?, ?);"
-		result, err := res.db.Exec(query, device.Name, device.Type, device.RealEstate,
-			device.IsOnline)
+		query := "INSERT INTO device (Name, Type, RealEstate, IsOnline) VALUES ( ?, ?, ?, ?);"
+		result, err := res.db.Exec(query, device.Name, device.Type, device.RealEstate, device.IsOnline)
 		if CheckIfError(err) {
 			return models.Device{}, err
 		}

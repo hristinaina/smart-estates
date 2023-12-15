@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"smarthome-back/repositories"
+	repositories2 "smarthome-back/repositories/devices"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -29,6 +30,7 @@ type MQTTClient struct {
 	client               mqtt.Client
 	deviceRepository     repositories.DeviceRepository
 	solarPanelRepository repositories.SolarPanelRepository
+	lampRepository   repositories2.LampRepository
 	influxDb             influxdb2.Client
 }
 
@@ -45,6 +47,7 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 		client:               client,
 		deviceRepository:     repositories.NewDeviceRepository(db),
 		solarPanelRepository: repositories.NewSolarPanelRepository(db),
+		lampRepository:   repositories2.NewLampRepository(db, influxDb),
 		influxDb:             influxDb,
 	}
 }
@@ -55,6 +58,7 @@ func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicAmbientSensor, mc.ReceiveValue)
 	mc.SubscribeToTopic(TopicSPSwitch+"+", mc.HandleSPSwitch)
 	mc.SubscribeToTopic(TopicSPData+"+", mc.HandleSPData)
+	mc.SubscribeToTopic(TopicPayload+"+", mc.HandleValueChange)
 	//todo subscribe here to other topics. Create your callback functions in other file
 
 	// Periodically check if the device is still online

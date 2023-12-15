@@ -265,7 +265,7 @@ export class NewDevice extends Component {
             const data = {
                 Name: this.state.name,
                 Type: parseInt(this.state.selectedType),
-                Picture: "/images/" + this.state.selectedImage.name,
+                // Picture: "/images/" + this.state.selectedImage.name,
                 RealEstate: this.id,
                 PowerSupply: parseInt(this.state.selectedPowerSupply),
                 PowerConsumption: parseFloat(this.state.powerConsumption),

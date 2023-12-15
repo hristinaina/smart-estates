@@ -15,7 +15,7 @@ func main() {
 	r := gin.Default()
 	r.Use(config.SetupCORS())
 
-	db := config.SetupDatabase()
+	db := config.SetupMySQL()
 	// session for aws
 	// _, err := session.NewSession(&aws.Config{
 	// 	Region:      aws.String("eu-central-1"),

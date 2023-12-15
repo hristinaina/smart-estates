@@ -17,7 +17,7 @@ const (
 	Bucket = "bucket"
 )
 
-func SetupDatabase() *sql.DB {
+func SetupMySQL() *sql.DB {
 
 	database, err := sql.Open("mysql", "root:siit2020@tcp(localhost:3306)/smart_home")
 	if err != nil {
