@@ -42,16 +42,19 @@ export class SolarPanel extends Component {
         if (!valid) window.location.assign("/");
 
         const device = await DeviceService.getSPById(this.id);
+        let lastValue = await DeviceService.getSPLastValue(this.id);
+        if (lastValue == null) lastValue = 0.0;
         const updatedData =
         {
             ...device,
-            Value: "Loading...",
+            Value: lastValue,
         }
         console.log(device);
 
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
         const historyData = await DeviceService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
+    
         this.setState({
             device: updatedData,
             switchOn: device.IsOn,

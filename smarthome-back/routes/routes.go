@@ -66,6 +66,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		SolarPanelController := controllers.NewSolarPanelController(db, influxDb)
 		solarPanelRoutes.GET("/:id", SolarPanelController.Get)
 		solarPanelRoutes.PUT("/graphData", middleware.RequireAuth, SolarPanelController.GetGraphData)
+		solarPanelRoutes.GET("/lastValue/:id", middleware.RequireAuth, SolarPanelController.GetValueFromLastMinute)
 	}
 	uploadImageRoutes := r.Group("/api/upload")
 	{

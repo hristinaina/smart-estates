@@ -43,3 +43,14 @@ func (uc SolarPanelController) GetGraphData(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, graphData)
 }
+
+func (uc SolarPanelController) GetValueFromLastMinute(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	CheckIfError(err, c)
+	graphData, err := uc.service.GetValueFromLastMinute(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No data found"})
+		return
+	}
+	c.JSON(http.StatusOK, graphData)
+}

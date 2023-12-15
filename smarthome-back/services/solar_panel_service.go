@@ -20,6 +20,7 @@ type SolarPanelService interface {
 	Get(id int) models.SolarPanel
 	UpdateSP(device models.SolarPanel) bool
 	GetGraphData(data dto.ActionGraphRequest) (dto.ActionGraphResponse, error)
+	GetValueFromLastMinute(id int) (interface{}, error)
 }
 
 type SolarPanelServiceImpl struct {
@@ -40,7 +41,6 @@ func (s *SolarPanelServiceImpl) Add(dto dto.DeviceDTO) models.SolarPanel {
 	return s.repository.Add(dto)
 }
 
-// todo change all return types
 func (s *SolarPanelServiceImpl) GetGraphData(data dto.ActionGraphRequest) (dto.ActionGraphResponse, error) {
 	influxOrg := "Smart Home"
 	influxBucket := "bucket"
@@ -87,4 +87,39 @@ func (s *SolarPanelServiceImpl) GetGraphData(data dto.ActionGraphRequest) (dto.A
 
 func (s *SolarPanelServiceImpl) UpdateSP(device models.SolarPanel) bool {
 	return s.repository.UpdateSP(device)
+}
+
+func (s *SolarPanelServiceImpl) GetValueFromLastMinute(id int) (interface{}, error) {
+	influxOrg := "Smart Home"
+	influxBucket := "bucket"
+
+	// Create InfluxDB query API
+	queryAPI := s.influxDb.QueryAPI(influxOrg)
+	// Define your InfluxDB query with conditions
+	query := fmt.Sprintf(`from(bucket:"%s")|> range(start: -1m30s) 
+			|> filter(fn: (r) => r["_measurement"] == "solar_panel"
+			and r["_field"] == "electricity" and r["device_id"] == "%d")`, influxBucket, id)
+
+	result, err := queryAPI.Query(context.Background(), query)
+	if err != nil {
+		fmt.Printf("Error executing InfluxDB query: %v\n", err)
+		return 0.0, err
+	}
+
+	var value interface{}
+	// Iterate over query results
+	for result.Next() {
+		if result.Record().Value() != nil {
+			value = result.Record().Value()
+		}
+	}
+
+	// Check for errors
+	if result.Err() != nil {
+		fmt.Printf("Error processing InfluxDB query results: %v\n", result.Err())
+	}
+
+	// Close the result set
+	result.Close()
+	return value, nil
 }
