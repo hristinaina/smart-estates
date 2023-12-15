@@ -12,6 +12,7 @@ import (
 	"smarthome-back/dto"
 	"smarthome-back/models/devices"
 	"smarthome-back/repositories"
+	"time"
 )
 
 type SolarPanelService interface {
@@ -58,11 +59,18 @@ func (s *SolarPanelServiceImpl) GetGraphData(data dto.ActionGraphRequest) (dto.A
 		return dto.ActionGraphResponse{}, err
 	}
 
+	localLocation, err := time.LoadLocation("Local")
+	if err != nil {
+		fmt.Println("Error loading local time zone:", err)
+		return dto.ActionGraphResponse{}, err
+	}
+
 	var response dto.ActionGraphResponse
 	// Iterate over query results
 	for result.Next() {
 		if result.Record().Value() != nil {
-			response.Labels = append(response.Labels, result.Record().Time().Format("2006-01-02 15:04:05 MST"))
+			localTime := result.Record().Time().In(localLocation)
+			response.Labels = append(response.Labels, localTime.Format("2006-01-02 15:04:05 MST"))
 			response.Values = append(response.Values, result.Record().Value())
 		}
 	}
