@@ -34,7 +34,7 @@ func NewAmbientSensorSimulator(client mqtt.Client, device models.Device) *Ambien
 }
 
 func (as *AmbientSensorSimulator) ConnectAmbientSensor() {
-	go SendHeartBeat(as.client, as.device)
+	go SendHeartBeat(as.client, as.device.ID, as.device.Name)
 	go as.GenerateAmbientSensorData()
 	config.SubscribeToTopic(as.client, topicSwitch+strconv.Itoa(as.device.ID), as.HandleSwitchChange)
 }
