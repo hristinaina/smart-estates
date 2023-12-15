@@ -23,10 +23,14 @@ export class NewDevice extends Component {
             chargingPower: 2.3,
             connections: 1,
             selectedPowerSupply: 0,
+            efficiency: 20,
+            surfaceArea: 1.5,
+            panelsNum: 1,
             showPowerSupply: true,
             showPowerConsumption: false,
             showAirConditioner: false,
             showBatterySize: false,
+            showSolarPanel: false,
             showCharger: false,
             isButtonDisabled: true,
             snackbarMessage: '',
@@ -43,7 +47,7 @@ export class NewDevice extends Component {
         { value: 3, label: 'Lamp' },
         { value: 4, label: 'Vehicle gate' },
         { value: 5, label: 'Sprinkler' },
-        { value: 6, label: 'Solar panel' },
+        { value: 6, label: 'Solar system' },
         { value: 7, label: 'Battery storage' },
         { value: 8, label: 'Electric vehicle charger' },
     ];
@@ -62,6 +66,7 @@ export class NewDevice extends Component {
                 showAirConditioner: false,
                 showBatterySize: false,
                 showCharger: false,
+                showSolarPanel: false,
             });
 
             if (selectedType == 6 || selectedType == 7 || selectedType == 8) {
@@ -91,6 +96,10 @@ export class NewDevice extends Component {
             } else if (selectedType == 8) {
                 this.setState({
                     showCharger: true,
+                });
+            } else if (selectedType == 6) {
+                this.setState({
+                    showSolarPanel: true,
                 });
             }
             this.checkButton();
@@ -182,6 +191,30 @@ export class NewDevice extends Component {
         });
     }
 
+    handlePanelsNum = (event) => {
+        const panelsNum = event.target.value;
+
+        this.setState({ panelsNum }, () => {
+            this.checkButton();
+        });
+    }
+    
+    handleEfficiency = (event) => {
+        const efficiency = event.target.value;
+
+        this.setState({ efficiency }, () => {
+            this.checkButton();
+        });
+    }
+
+    handleSurfaceArea = (event) => {
+        const surfaceArea = event.target.value;
+
+        this.setState({ surfaceArea }, () => {
+            this.checkButton();
+        });
+    }
+
 
     handleImageChange = (event) => {
         const file = event.target.files[0];
@@ -216,6 +249,10 @@ export class NewDevice extends Component {
                 || this.state.chargingPower < 1 || this.state.chargingPower > 360)) {
                 this.setState({ isButtonDisabled: true })
             }
+            else if (this.state.selectedType == 6 && (this.state.efficiency < 0 || this.state.efficiency > 100
+                || this.state.surfaceArea < 0 || this.state.surfaceArea > 9999 || this.state.panelsNum < 1 || this.state.panelsNum > 1000 )) {
+                this.setState({ isButtonDisabled: true })
+            }
             else {
                 this.setState({ isButtonDisabled: false })
             }
@@ -238,6 +275,9 @@ export class NewDevice extends Component {
                 Connections: parseInt(this.state.connections),
                 Size: parseFloat(this.state.batterySize),
                 UserId: authService.getCurrentUser().Id,
+                SurfaceArea: parseFloat(this.state.surfaceArea),
+                Efficiency: parseFloat(this.state.efficiency),
+                NumberOfPanels: parseInt(this.state.panelsNum),
             };
             const result = await DeviceService.createDevice(data);
             console.log(result);
@@ -331,16 +371,16 @@ export class NewDevice extends Component {
                                     className="new-real-estate-input"
                                     type="number"
                                     name="min-temp"
-                                    placeholder="Enter the min temp of your air conditioner (in celsius)"
+                                    placeholder="Enter the minimal temperature (in celsius)"
                                     value={this.state.minTemp}
                                     onChange={this.handleMinTemp}
                                 />
-                                <p className="new-real-estate-label">Maximum temperature: (celsius)</p>
+                                <p className="new-real-estate-label">Maximum temperature (celsius):</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"
                                     name="max-temp"
-                                    placeholder="Enter the min temp of your air conditioner (in celsius)"
+                                    placeholder="Enter the maximal temperature (in celsius)"
                                     value={this.state.maxTemp}
                                     onChange={this.handleMaxTemp}
                                 />
@@ -356,6 +396,37 @@ export class NewDevice extends Component {
                                     placeholder="Enter the battery size (in kWh)"
                                     value={this.state.batterySize}
                                     onChange={this.handleBatterySize}
+                                />
+                            </div>
+                        )}
+                        {this.state.showSolarPanel && (
+                            <div>
+                                <p className="new-real-estate-label">Number of panels:</p>
+                                <input
+                                    className="new-real-estate-input"
+                                    type="number"
+                                    name="panels"
+                                    placeholder="Enter the number of panels"
+                                    value={this.state.panelsNum}
+                                    onChange={this.handlePanelsNum}
+                                />
+                                <p className="new-real-estate-label">Surface area per panel (m<sup>2</sup>):</p>
+                                <input
+                                    className="new-real-estate-input"
+                                    type="number"
+                                    name="surface-area"
+                                    placeholder="Enter the surface area (in square meters)"
+                                    value={this.state.surfaceArea}
+                                    onChange={this.handleSurfaceArea}
+                                />
+                                <p className="new-real-estate-label">Efficiency per panel (%):</p>
+                                <input
+                                    className="new-real-estate-input"
+                                    type="number"
+                                    name="efficiency"
+                                    placeholder="Enter the efficiency (in percentages)"
+                                    value={this.state.efficiency}
+                                    onChange={this.handleEfficiency}
                                 />
                             </div>
                         )}

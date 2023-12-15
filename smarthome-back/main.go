@@ -45,8 +45,7 @@ func main() {
 		http.ListenAndServe(":8082", nil)
 	}()
 
-	routes.SetupRoutes(r, db, mqttClient)
-
+	routes.SetupRoutes(r, db, mqttClient, influxDb)
 	gs := services.NewGenerateSuperAdmin(db)
 	gs.GenerateSuperadmin()
 

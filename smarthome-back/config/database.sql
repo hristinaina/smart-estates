@@ -2,13 +2,13 @@ CREATE DATABASE smart_home;
 use smart_home;
 
 CREATE TABLE user (
-                    Id INT PRIMARY KEY,
-                    Email VARCHAR(255) UNIQUE,
-                    Password VARCHAR(255),
-                    Name VARCHAR(255),
-                    Surname VARCHAR(255),
-                    Role INT,
-                    isLogin BOOLEAN DEFAULT false
+                      Id INT PRIMARY KEY,
+                      Email VARCHAR(255) UNIQUE,
+                      Password VARCHAR(255),
+                      Name VARCHAR(255),
+                      Surname VARCHAR(255),
+                      Role INT,
+                      isLogin BOOLEAN DEFAULT false
 );
 
 CREATE TABLE realestate (
@@ -35,10 +35,10 @@ CREATE TABLE device (
 );
 
 CREATE TABLE consumptionDevice (
-                                DeviceId INT PRIMARY KEY,
-                                PowerSupply INT NOT NULL,
-                                PowerConsumption DOUBLE,
-                                FOREIGN KEY (DeviceId) REFERENCES device(Id)
+                                   DeviceId INT PRIMARY KEY,
+                                   PowerSupply INT NOT NULL,
+                                   PowerConsumption DOUBLE,
+                                   FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
 CREATE TABLE airConditioner (
@@ -49,15 +49,24 @@ CREATE TABLE airConditioner (
 );
 
 CREATE TABLE evCharger (
-                        DeviceId INT PRIMARY KEY,
-                        ChargingPower DOUBLE NOT NULL,
-                        Connections INT NOT NULL,
-                        FOREIGN KEY (DeviceId) REFERENCES device(Id)
+                           DeviceId INT PRIMARY KEY,
+                           ChargingPower DOUBLE NOT NULL,
+                           Connections INT NOT NULL,
+                           FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
 CREATE TABLE homeBattery (
+                             DeviceId INT PRIMARY KEY,
+                             Size DOUBLE NOT NULL,
+                             FOREIGN KEY (DeviceId) REFERENCES device(Id)
+);
+
+CREATE TABLE solarPanel (
                             DeviceId INT PRIMARY KEY,
-                            Size DOUBLE NOT NULL,
+                            SurfaceArea DOUBLE NOT NULL,
+                            Efficiency DOUBLE NOT NULL,
+                            NumberOfPanels INT NOT NULL,
+                            IsOn BOOLEAN,
                             FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
@@ -98,6 +107,11 @@ INSERT INTO evCharger (DeviceId, ChargingPower, Connections)
 VALUES
     (5, 10, 2);
 
+INSERT INTO solarPanel (DeviceId, SurfaceArea, Efficiency, NumberOfPanels, IsOn)
+VALUES
+    (4, 2.3, 30, 3, true);
+
 INSERT INTO homeBattery (DeviceId, Size)
 VALUES
     (6, 10);
+    

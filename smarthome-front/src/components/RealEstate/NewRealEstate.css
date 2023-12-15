@@ -54,6 +54,7 @@
 .new-real-estate-input:focus, .new-real-estate-select:focus{
     border: 2px solid #806894 !important;
     border-color: #806894 !important;
+    outline: #806894;
 }
 
 

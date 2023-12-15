@@ -33,13 +33,13 @@ func NewLampSimulator(client mqtt.Client, device models.Device) *LampSimulator {
 }
 
 func (ls *LampSimulator) ConnectLamp() {
-	go SendHeartBeat(ls.client, ls.device)
+	go SendHeartBeat(ls.client, ls.device.ID, ls.device.Name)
 	go ls.GenerateLampData()
 	config.SubscribeToTopic(ls.client, topicSwitch+strconv.Itoa(ls.device.ID), ls.HandleSwitchChange)
 }
 
 // GenerateLampData Simulate sending periodic Lamp data
-func (ls LampSimulator) GenerateLampData() {
+func (ls *LampSimulator) GenerateLampData() {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
