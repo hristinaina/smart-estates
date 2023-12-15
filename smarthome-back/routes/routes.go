@@ -82,7 +82,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		ambientSensor.POST("/selected-time/:id", ambientSensorController.GetValueForSelectedTime)
 		ambientSensor.POST("/selected-date/:id", ambientSensorController.GetValuesForDate)
 	}
-	
+
 	lampRoutes := r.Group("api/lamp")
 	{
 		lampController := devicesController.NewLampController(db, influxDb)
@@ -94,5 +94,16 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		lampRoutes.POST("/", lampController.Add)
 		lampRoutes.DELETE("/:id", lampController.Delete)
 		lampRoutes.GET("/graph/:id/:from/:to", lampController.GetGraphData)
+	}
+
+	vehicleGateRoutes := r.Group("api/vehicle-gate")
+	{
+		vehicleGateController := devicesController.NewVehicleGateController(db, influxDb)
+		vehicleGateRoutes.GET("/:id", vehicleGateController.Get)
+		vehicleGateRoutes.GET("/", vehicleGateController.GetAll)
+		vehicleGateRoutes.PUT("/open/:id", vehicleGateController.Open)
+		vehicleGateRoutes.PUT("/close/:id", vehicleGateController.Close)
+		vehicleGateRoutes.PUT("/private/:id", vehicleGateController.ToPrivate)
+		vehicleGateRoutes.PUT("/public/:id", vehicleGateController.ToPublic)
 	}
 }

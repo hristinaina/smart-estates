@@ -46,7 +46,11 @@ func (repo *VehicleGateRepositoryImpl) Get(id int) (models.VehicleGate, error) {
 }
 
 func (repo *VehicleGateRepositoryImpl) GetAll() ([]models.VehicleGate, error) {
-	query := `SELECT * FROM vehiclegate`
+	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
+       		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, v.IsOpen, v.Mode
+			  FROM vehiclegate v 
+    		  JOIN ConsumptionDevice ON v.DeviceId = ConsumptionDevice.DeviceId
+   			  JOIN Device ON ConsumptionDevice.DeviceId = Device.Id`
 	rows, err := repo.db.Query(query)
 	if repositories.IsError(err) {
 		return nil, err
@@ -54,7 +58,10 @@ func (repo *VehicleGateRepositoryImpl) GetAll() ([]models.VehicleGate, error) {
 	defer rows.Close()
 
 	gates, err := repo.scanRows(rows)
-	return gates, err
+	if err != nil {
+		return nil, err
+	}
+	return gates, nil
 }
 
 func (repo *VehicleGateRepositoryImpl) UpdateIsOpen(id int, isOpen bool) (bool, error) {
@@ -67,7 +74,7 @@ func (repo *VehicleGateRepositoryImpl) UpdateIsOpen(id int, isOpen bool) (bool, 
 	if repositories.IsError(err) {
 		return false, err
 	}
-	return true, err
+	return true, nil
 }
 
 func (repo *VehicleGateRepositoryImpl) UpdateMode(id int, mode enumerations.VehicleGateMode) (bool, error) {
