@@ -22,6 +22,7 @@ export class Lamp extends Component {
         super(props);
         this.state = {
             device: {},
+            lamp: {},
             switchOn: false,
             showCustomDateRangeDialog: false,
             data: {
@@ -56,7 +57,9 @@ export class Lamp extends Component {
 
         // const { device } = this.state;  // todo instead of this get device from back by deviceId
         const device = await DeviceService.get(this.id);
-        await this.setState({device: device});
+        const lamp = await LampService.get(this.id);
+        await this.setState({device: device, lamp: lamp});
+        
         const updatedData =
         {
             ...device,
@@ -105,6 +108,10 @@ export class Lamp extends Component {
                 this.mqttClient.on('message', (topic, message) => {
                     this.handleMqttMessage(topic, message);
                 });
+
+                if (lamp.IsOn) {
+                    this.turnOnSwitch();
+                }
             }
         } catch (error) {
             console.error(error);
@@ -118,7 +125,17 @@ export class Lamp extends Component {
         }
     }
 
-    handleSwitchToggle = () => {
+    turnOnSwitch = () => {
+        const topic = "lamp/switch/" + this.id;
+
+        this.setState((prevState) => ({
+            switchOn: !prevState.switchOn,
+        }));
+        const message = (true).toString();
+        this.mqttClient.publish(topic, message);
+    }
+
+    handleSwitchToggle = async() => {
         const topic = "lamp/switch/" + this.id;
 
         this.setState((prevState) => ({
@@ -127,10 +144,10 @@ export class Lamp extends Component {
         const message = (!this.state.switchOn).toString();
         this.mqttClient.publish(topic, message);
 
-        if (this.state.switchOn == true) {
-            const response = LampService.turnOn(this.id);
+        if (message == true) {
+            let l = await LampService.turnOn(this.id);
         } else {
-            LampService.turnOff(this.id);
+            let l = await LampService.turnOff(this.id);
         }
     };
 
@@ -138,14 +155,20 @@ export class Lamp extends Component {
     handleMqttMessage(topic, message) {
         const { device } = this.state;
         const newValue = message.toString();
+        let lastIndex = topic.lastIndexOf("/");
+        let resultSubstring = topic.substring(lastIndex + 1);
+        let curr_id = parseInt(resultSubstring, 10);
         const updatedData =
         {
             ...device,
             Value: newValue + "%",
         }
-        this.setState({
-            device: updatedData,
-        });
+        if (this.id == curr_id) {
+            this.setState({
+                device: updatedData,
+            });
+        }
+        
     }
 
     extractDeviceIdFromUrl() {
