@@ -182,6 +182,12 @@ export class NewDevice extends Component {
         });
     };
 
+
+    handleAddSpecialMode = (specialMode) => {
+        // Handle the special mode addition logic here
+        console.log('Adding special mode:', specialMode);
+    };
+
     handleBatterySize = (event) => {
         const batterySize = event.target.value;
 
@@ -412,7 +418,9 @@ export class NewDevice extends Component {
                                     <MenuItem value="Ventilation">Ventilation</MenuItem>
                                     </Select>
                                 </FormControl>
-                                <SpecialModeForm/>
+
+                                <SpecialModeForm onAdd={this.handleAddSpecialMode}/>
+                                
                             </div>
                         )}
                         {this.state.showBatterySize && (
@@ -522,6 +530,7 @@ export class NewDevice extends Component {
                     action={this.action}
                 />
             </div>
+            
         )
     }
 }

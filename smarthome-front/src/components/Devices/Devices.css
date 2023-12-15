@@ -90,17 +90,16 @@
     box-shadow: none;
     background-color: rgba(0, 0, 0, 0.12);
     cursor: default;
-  }
+}
 
 .devices-title{
     margin-top: 0.5em;
     margin-bottom: 0.5em;
     font-size: 1.8em;
     font-weight: 500;
-
 }
 
 #ac-dropdown {
-    margin: 0 1em !important;
+    margin: 0 1em 3em 1em !important;
     width: 75%;
 }
