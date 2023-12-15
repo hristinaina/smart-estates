@@ -112,6 +112,7 @@ export class Lamp extends Component {
                 if (lamp.IsOn) {
                     this.turnOnSwitch();
                 }
+                this.startSimulation();
             }
         } catch (error) {
             console.error(error);
@@ -126,12 +127,15 @@ export class Lamp extends Component {
     }
 
     turnOnSwitch = () => {
-        console.log("usaooo");
-        const topic = "lamp/switch/" + this.id;
-
         this.setState((prevState) => ({
             switchOn: !prevState.switchOn,
         }));
+        
+    }
+
+    startSimulation = () => {
+        console.log("usaooo");
+        const topic = "lamp/switch/" + this.id;
         const message = (true).toString();
         this.mqttClient.publish(topic, message);
     }
@@ -142,10 +146,11 @@ export class Lamp extends Component {
         this.setState((prevState) => ({
             switchOn: !prevState.switchOn,
         }));
-        const message = (!this.state.switchOn).toString();
-        this.mqttClient.publish(topic, message);
-        console.log(message);
-        if (message == "true") {
+        // const message = (true).toString();
+        // this.mqttClient.publish(topic, message);
+        // console.log(message);
+        // TODO: check this
+        if (this.state.lamp.IsOn == false) {
             console.log("ukljuceno");
             let l = await LampService.turnOn(this.id);
             console.log(l);
@@ -216,7 +221,7 @@ export class Lamp extends Component {
     }
 
     render() {
-        const { device, switchOn } = this.state;
+        const { device, switchOn, lamp } = this.state;
 
         return (
             <div>
@@ -226,7 +231,11 @@ export class Lamp extends Component {
                 <div style={{ width: "fit-content", marginLeft: "auto", marginRight: "auto", marginTop: "10%" }}>
                     <p className='device-title'>Id: {this.id}</p>
                     {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
-                    <p className='device-text'>Last Value: {device.Value}</p>
+                    <p className='device-text'>Read Illumination: {device.Value}</p>
+                    <p className='device-text'>Light bulb is {switchOn && Number(device.Value.slice(0, -1)) < 50 ? 'ON' : 'OFF'}</p>
+                    { console.log("Switchhh: ") }
+                    {console.log(switchOn) }
+                    {console.log(device.Value)}
                     <Stack direction="row" spacing={1} alignItems="center">
                         <Typography>Off</Typography>
                         <Switch

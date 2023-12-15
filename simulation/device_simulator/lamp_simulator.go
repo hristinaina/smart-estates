@@ -69,10 +69,10 @@ func (ls *LampSimulator) HandleSwitchChange(client mqtt.Client, msg mqtt.Message
 func (ls *LampSimulator) getOutsideBrightness() int {
 	hour := time.Now().Hour()
 
-	if hour >= 6 && hour < 18 {
-		return rand.Intn(30)
-	} else {
+	if hour >= 6 && hour < 16 {
 		return rand.Intn(30) + 70
+	} else {
+		return rand.Intn(30)
 	}
 }
  
