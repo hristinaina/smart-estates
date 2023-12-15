@@ -419,8 +419,8 @@ export class NewDevice extends Component {
                                     </Select>
                                 </FormControl>
 
-                                <SpecialModeForm onAdd={this.handleAddSpecialMode}/>
-                                
+                                <SpecialModeForm onAdd={this.handleAddSpecialMode} acModes={this.state.acModes} minTemp={this.state.minTemp} maxTemp={this.state.maxTemp}/>
+
                             </div>
                         )}
                         {this.state.showBatterySize && (

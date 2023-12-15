@@ -21,6 +21,7 @@ import {
     DialogContentText,
     DialogActions,
     IconButton,
+    Snackbar,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import './SpecialModeForm.css'
@@ -32,11 +33,14 @@ class SpecialModeForm extends Component {
         this.state = {
             start: '',
             end: '',
-            mode: 'cooling',
+            mode: props.acModes.length > 0 ? props.acModes[0] : '',
             temperature: 20,
             selectedDays: [],
             specialModes: [],
             showDialog: false,
+            snackbarMessage: '',
+            showSnackbar: false,
+            openSnackbar: false,
         };
     }
 
@@ -50,7 +54,42 @@ class SpecialModeForm extends Component {
 
     handleAdd = () => {
         const { start, end, mode, temperature, selectedDays, specialModes } = this.state;
+        const { minTemp, maxTemp } = this.props;
+        // check if a day is selected
+        if(selectedDays.length === 0) {
+            this.setState({ snackbarMessage: "Please select a day" });
+            this.handleClick();
+            return;
+        }
+        // check if a temp between min and max
+        if (temperature < minTemp || temperature > maxTemp) {
+            this.setState({ snackbarMessage: "Temperature is out of the range" });
+            this.handleClick();
+            return;
+        }
+        // check if is start < end
+        if (new Date(`2000-01-01 ${start}`) >= new Date(`2000-01-01 ${end}`)) {
+            this.setState({ snackbarMessage: "Start time must be before end time" });
+            this.handleClick();
+            return;
+        }
+        // check if something already exists for that day, if there is, check if the start or end is between those 2 times
+        const existingModeForDay = specialModes.find(
+            (item) =>
+                item.selectedDays.some((day) => selectedDays.includes(day)) &&
+                ((new Date(`2000-01-01 ${start}`) >= new Date(`2000-01-01 ${item.start}`) &&
+                    new Date(`2000-01-01 ${start}`) <= new Date(`2000-01-01 ${item.end}`)) ||
+                    (new Date(`2000-01-01 ${end}`) >= new Date(`2000-01-01 ${item.start}`) &&
+                        new Date(`2000-01-01 ${end}`) <= new Date(`2000-01-01 ${item.end}`)))
+        );
+    
+        if (existingModeForDay) {
+            this.setState({ snackbarMessage: "There is already a mode for selected day and time" });
+            this.handleClick();
+            return;
+        }
 
+        // if everything alright add mode
         const specialMode = {
             start,
             end,
@@ -61,12 +100,12 @@ class SpecialModeForm extends Component {
 
         this.props.onAdd(specialMode);
 
-        // Resetovanje polja nakon dodavanja
+        // reset data
         this.setState({
             specialModes: [...specialModes, specialMode],
             start: '',
             end: '',
-            mode: 'cooling',
+            mode: '',
             temperature: 20,
             selectedDays: [],
         });
@@ -86,10 +125,25 @@ class SpecialModeForm extends Component {
         this.setState({ specialModes: specialModesCopy });
     };
 
+    // snackbar
+    handleClick = () => {
+        this.setState({ openSnackbar: true });
+    };
+
+    handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        this.setState({ openSnackbar: false });
+    };
+
     render() {
+
+        const { acModes, minTemp, maxTemp } = this.props;
+
         return (
         <div>
-            <Button variant="contained" color="primary" onClick={this.openDialog}>
+            <Button variant="contained" color="primary" onClick={this.openDialog} disabled={acModes.length === 0 || minTemp >= maxTemp}>
                 Add Special Mode
             </Button>
 
@@ -111,12 +165,12 @@ class SpecialModeForm extends Component {
                     <div className='secondRow'>
                         <span className="a">Mode:</span>
                         <FormControl>
-                            {/* <InputLabel>Mode</InputLabel> */}
                             <Select value={this.state.mode} onChange={(e) => this.setState({ mode: e.target.value })}>
-                                <MenuItem value="cooling">Cooling</MenuItem>
-                                <MenuItem value="heating">Heating</MenuItem>
-                                <MenuItem value="automatic">Automatic</MenuItem>
-                                <MenuItem value="ventilation">Ventilation</MenuItem>
+                                {acModes.map((mode) => (
+                                    <MenuItem key={mode} value={mode}>
+                                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                                    </MenuItem>
+                                ))}
                             </Select>
                         </FormControl>
 
@@ -139,13 +193,13 @@ class SpecialModeForm extends Component {
                             value={this.state.selectedDays}
                             onChange={this.handleSelectedDays}
                             renderValue={(selected) => selected.join(', ')}>
-                        <MenuItem value="Monday">Ponedeljak</MenuItem>
-                        <MenuItem value="Tuesday">Utorak</MenuItem>
-                        <MenuItem value="Wednesday">Sreda</MenuItem>
-                        <MenuItem value="Thursday">Cetvrtak</MenuItem>
-                        <MenuItem value="Friday">Petak</MenuItem>
-                        <MenuItem value="Saturday">Subota</MenuItem>
-                        <MenuItem value="Sunday">Nedelja</MenuItem>
+                        <MenuItem value="Monday">Monday</MenuItem>
+                        <MenuItem value="Tuesday">Tuesday</MenuItem>
+                        <MenuItem value="Wednesday">Wednesday</MenuItem>
+                        <MenuItem value="Thursday">Thursday</MenuItem>
+                        <MenuItem value="Friday">Friday</MenuItem>
+                        <MenuItem value="Saturday">Saturday</MenuItem>
+                        <MenuItem value="Sunday">Sunday</MenuItem>
                         </Select>
                     </FormControl>
                 <Button variant="contained" color="primary" onClick={this.handleAdd}>ADD</Button>
@@ -199,6 +253,14 @@ class SpecialModeForm extends Component {
                 </div>
             </DialogActions>
             </Dialog>
+
+            <Snackbar
+                    open={this.state.openSnackbar}
+                    autoHideDuration={3000}
+                    onClose={this.handleClose}
+                    message={this.state.snackbarMessage}
+                    action={this.action}
+                />
         </div>
     );
     }
