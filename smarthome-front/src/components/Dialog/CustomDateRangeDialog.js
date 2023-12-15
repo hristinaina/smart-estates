@@ -42,25 +42,26 @@ const CustomDateRangeDialog = ({onConfirm, onCancel}) => {
             const daysDifference = Math.floor((endDate - startDate) / millisecondsInDay);
             const today = new Date();
             today.setHours(0, 0, 0, 0); // Set time to midnight
-    
-            if (startDate > today || endDate > today) {
+            if (daysDifference == 0) {
+                setDisplayError(true);
+                setErrorMessage('Can\'t choose the same dates for range.');
+                return false;
+            }
+            else if (startDate > today || endDate > today) {
                 setDisplayError(true);
                 setErrorMessage('Can\'t choose dates in the future.');
-                console.log("returned false0");
+                return false;
             } else if (daysDifference > maxDaysDifference) {
                 setDisplayError(true);
                 setErrorMessage('Please choose a range within 30 days.');
-                console.log("returned false");
                 return false;
             } else if (daysDifference < 0) {
                 setDisplayError(true);
                 setErrorMessage('Please check order of dates.');
-                console.log("returned false 2");
                 return false;
             } else {
                 setDisplayError(false);
                 setErrorMessage('');
-                console.log("returned true");
                 return true;
             }
         }

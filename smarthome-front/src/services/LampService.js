@@ -1,6 +1,17 @@
 
 class LampService {
 
+    async get(id) {
+        try {
+            const response = await fetch(`http://localhost:8081/api/lamp/${id}`);
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching data: ', error);
+            throw error;
+        }
+    }
+
     async turnOn(id) {
         const url = `http://localhost:8081/api/lamp/on/${id}`;
 
@@ -41,7 +52,6 @@ class LampService {
 
     async getGraphData(id, from, to){
         try {
-            const url = 'http://localhost:8081/api/lamp/graph/' + id + "/" + from + '/' + to;
             const response = await fetch('http://localhost:8081/api/lamp/graph/' + id + "/" + from + '/' + to);
             const data = await response.json();
             return data;
