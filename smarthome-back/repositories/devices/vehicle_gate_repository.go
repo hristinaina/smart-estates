@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"log"
 	"smarthome-back/enumerations"
 	models2 "smarthome-back/models/devices"
 	models "smarthome-back/models/devices/outside"
@@ -15,6 +16,7 @@ type VehicleGateRepository interface {
 	GetAll() ([]models.VehicleGate, error)
 	UpdateIsOpen(id int, isOpen bool) (bool, error)
 	UpdateMode(id int, mode enumerations.VehicleGateMode) (bool, error)
+	Delete(id int) (bool, error)
 }
 
 type VehicleGateRepositoryImpl struct {
@@ -90,6 +92,42 @@ func (repo *VehicleGateRepositoryImpl) UpdateMode(id int, mode enumerations.Vehi
 
 	_, err := repo.db.Exec(query, queryMode, id)
 	if repositories.IsError(err) {
+		return false, err
+	}
+	return true, nil
+}
+
+func (repo *VehicleGateRepositoryImpl) Delete(id int) (bool, error) {
+	_, err := repo.Get(id)
+	if err != nil {
+		return false, err
+	}
+
+	tx, err := repo.db.Begin()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			log.Fatal(err)
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}()
+
+	_, err = tx.Exec("DELETE FROM VehicleGate WHERE DeviceId = ?", id)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = tx.Exec("DELETE FROM ConsumptionDevice WHERE DeviceId = ?", id)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = tx.Exec("DELETE FROM Device WHERE Id = ?", id)
+	if err != nil {
 		return false, err
 	}
 	return true, nil

@@ -110,6 +110,24 @@ func (dto *DeviceDTO) ToLamp() m.Lamp {
 	}
 }
 
+func (dto *DeviceDTO) ToVehicleGate() m.VehicleGate {
+	return m.VehicleGate{
+		ConsumptionDevice: models.ConsumptionDevice{
+			Device: models.Device{
+				Id:         dto.Id,
+				Name:       dto.Name,
+				Type:       dto.Type,
+				RealEstate: dto.RealEstate,
+				IsOnline:   dto.IsOnline,
+			},
+			PowerSupply:      dto.PowerSupply,
+			PowerConsumption: dto.PowerConsumption,
+		},
+		IsOpen: false,
+		Mode:   enumerations.Private,
+	}
+}
+
 func (dto *DeviceDTO) ToDevice() models.Device {
 	return models.Device{
 		//todo change according to code from front.

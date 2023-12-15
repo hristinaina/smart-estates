@@ -71,6 +71,8 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 			return models.Device{}, err
 		}
 		device = lamp.ToDevice()
+	} else if dto.Type == 4 {
+
 	} else if dto.Type == 8 {
 		device = res.evChargerService.Add(dto).ToDevice()
 	} else if dto.Type == 7 {
