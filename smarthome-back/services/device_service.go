@@ -29,6 +29,7 @@ type DeviceServiceImpl struct {
 	homeBatteryService    HomeBatteryService
 	solarPanelService     SolarPanelService
 	lampService           services.LampService
+	vehicleGateService    services.VehicleGateService
 	mqtt                  *mqtt_client.MQTTClient
 	deviceRepository      repositories.DeviceRepository
 }
@@ -36,7 +37,8 @@ type DeviceServiceImpl struct {
 func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceService {
 	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db), evChargerService: NewEVChargerService(db),
 		homeBatteryService: NewHomeBatteryService(db), lampService: services.NewLampService(db, influxDb),
-		mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db),
+		vehicleGateService: services.NewVehicleGateService(db, influxDb),
+		mqtt:               mqtt, deviceRepository: repositories.NewDeviceRepository(db),
 		solarPanelService: NewSolarPanelService(db, influxDb)}
 }
 
@@ -72,7 +74,11 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 		}
 		device = lamp.ToDevice()
 	} else if dto.Type == 4 {
-
+		gate, err := res.vehicleGateService.Add(dto)
+		if err != nil {
+			return models.Device{}, err
+		}
+		device = gate.ToDevice()
 	} else if dto.Type == 8 {
 		device = res.evChargerService.Add(dto).ToDevice()
 	} else if dto.Type == 7 {

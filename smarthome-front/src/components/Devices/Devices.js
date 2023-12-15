@@ -121,7 +121,7 @@ export class Devices extends Component {
         else if (device.Type === 'Lamp')
             window.location.assign("/lamp/" + device.Id)
         else if (device.Type === 'Vehicle gate')
-            window.location.assign("/lamp/" + device.Id)
+            window.location.assign("/vehicle-gate/" + device.Id)
         else if (device.Type === 'Sprinkler')
             window.location.assign("/lamp/" + device.Id)
         else if (device.Type === 'Solar panel')
