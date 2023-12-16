@@ -16,7 +16,7 @@ export class NewDevice extends Component {
             selectedImage: null,
             imagePreview: null,
             name: "",
-            powerConsumption: 200,
+            powerConsumption: 0.8,
             minTemp: 16,
             maxTemp: 31,
             batterySize: 13,
@@ -241,7 +241,7 @@ export class NewDevice extends Component {
             else if (this.state.selectedType == 7 && (this.state.batterySize > 100000 || this.state.batterySize < 1)) {
                 this.setState({ isButtonDisabled: true })
             }
-            else if (this.state.selectedPowerSupply == 1 && (this.state.powerConsumption > 60000 || this.state.powerConsumption <= 0)
+            else if (this.state.selectedPowerSupply == 1 && (this.state.powerConsumption > 300 || this.state.powerConsumption <= 0)
                 && (this.state.selectedType != 6 && this.state.selectedType != 7 && this.state.selectedType != 8)) {
                 this.setState({ isButtonDisabled: true })
             }
@@ -353,12 +353,12 @@ export class NewDevice extends Component {
                         )}
                         {this.state.showPowerConsumption && (
                             <div>
-                                <p className="new-real-estate-label">Power consumption (watts):</p>
+                                <p className="new-real-estate-label">Power consumption (kWh):</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"
                                     name="power-consumption"
-                                    placeholder="Enter the power consumption of your device (in watts)"
+                                    placeholder="Enter the power consumption of your device (kWh)"
                                     value={this.state.powerConsumption}
                                     onChange={this.handlePowerConsumption}
                                 />
@@ -432,12 +432,12 @@ export class NewDevice extends Component {
                         )}
                         {this.state.showCharger && (
                             <div>
-                                <p className="new-real-estate-label">Charging power (kWatts):</p>
+                                <p className="new-real-estate-label">Charging power (kW):</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"
                                     name="charging-power"
-                                    placeholder="Enter the charging power (in kwatts)"
+                                    placeholder="Enter the charging power (in kW)"
                                     value={this.state.chargingPower}
                                     onChange={this.handleChargingPower}
                                 />

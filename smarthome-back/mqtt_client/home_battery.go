@@ -3,6 +3,7 @@ package mqtt_client
 import (
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"math/rand"
 	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices"
 	"strconv"
@@ -41,11 +42,14 @@ func (mc *MQTTClient) handleConsumption() {
 		totalConsumption := 0.0
 		for _, device := range devices {
 			fmt.Println("\tdevice id", device.Device.Id)
-			if device.Device.IsOnline && device.PowerSupply == enumerations.PowerSupplyType(enumerations.Home) {
-				totalConsumption = totalConsumption + device.PowerConsumption
+			if device.Device.IsOnline && device.PowerSupply == enumerations.Home {
+				rand.Seed(time.Now().UnixNano())
+				scalingFactor := 0.8 + rand.Float64()*0.2                                      // get a number between 0.9 and 1.1
+				totalConsumption = totalConsumption + device.PowerConsumption*scalingFactor/60 // divide by 60 to get consumption for previous minute
 			}
-		} //todo izmjeniti na frontu da se unosi u Wh ili KWh i prevesti u EnergyConsumption
+		}
 		fmt.Println(totalConsumption)
+		//todo save total consumption to influxdb (for 4.9)
 
 		batteries, err := mc.homeBatteryRepository.GetAllByEstateId(value.Id)
 		if err != nil {
@@ -53,8 +57,22 @@ func (mc *MQTTClient) handleConsumption() {
 		}
 		for _, hb := range batteries {
 			fmt.Println("\tbattery id", hb.Device.Id)
-
+			if hb.CurrentValue-totalConsumption >= 0 {
+				hb.CurrentValue = hb.CurrentValue - totalConsumption
+				totalConsumption = 0
+				//todo save battery to db and info to influx
+			} else {
+				consumed := hb.CurrentValue
+				totalConsumption = totalConsumption - hb.CurrentValue
+				hb.CurrentValue = 0
+				fmt.Println(consumed)
+				//todo save battery to db and info(consumed) to influx
+			}
 		}
+		if totalConsumption != 0 {
+			//todo electrodistribution (influxdb)
+		}
+
 	}
 
 }
