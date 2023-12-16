@@ -33,7 +33,7 @@ class SpecialModeForm extends Component {
         this.state = {
             start: '',
             end: '',
-            mode: props.acModes.length > 0 ? props.acModes[0] : '',
+            mode: '',
             temperature: 20,
             selectedDays: [],
             specialModes: [],
@@ -45,7 +45,6 @@ class SpecialModeForm extends Component {
     }
 
     handleSelectedDays = (event) => {
-        console.log('dani', event.target.value)
         const selectedDays = event.target.value;
 
         this.setState((prevState) => ({
@@ -55,7 +54,8 @@ class SpecialModeForm extends Component {
 
     handleAdd = () => {
         const { start, end, mode, temperature, selectedDays, specialModes } = this.state;
-        const { minTemp, maxTemp } = this.props;
+        const { acModes, minTemp, maxTemp } = this.props;
+        const selectedMode = mode === '' ? acModes[0] : this.state.mode;
         // check if a day is selected
         if(selectedDays.length === 0) {
             this.setState({ snackbarMessage: "Please select a day" });
@@ -94,17 +94,19 @@ class SpecialModeForm extends Component {
         const specialMode = {
             start,
             end,
-            mode,
+            selectedMode,
             temperature,
             selectedDays,
         };
+
+        console.log(specialMode)
 
         // reset data
         this.setState({
             specialModes: [...specialModes, specialMode],
             start: '',
             end: '',
-            mode: '',
+            mode: selectedMode,
             temperature: 20,
             selectedDays: [],
         });
@@ -169,7 +171,7 @@ class SpecialModeForm extends Component {
                     <div className='secondRow'>
                         <span className="a">Mode:</span>
                         <FormControl>
-                            <Select value={this.state.mode} onChange={(e) => this.setState({ mode: e.target.value })}>
+                            <Select value={this.state.mode === '' ? acModes[0] : this.state.mode } onChange={(e) => this.setState({ mode: e.target.value })}>
                                 {acModes.map((mode) => (
                                     <MenuItem key={mode} value={mode}>
                                     {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -225,7 +227,7 @@ class SpecialModeForm extends Component {
                                 <TableRow key={index}>
                                     <TableCell>{item.start}</TableCell>
                                     <TableCell>{item.end}</TableCell>
-                                    <TableCell>{item.mode}</TableCell>
+                                    <TableCell>{item.selectedMode}</TableCell>
                                     <TableCell>{item.temperature}</TableCell>
                                     <TableCell>
                                         {item.selectedDays.map((day, dayIndex) => (

@@ -176,13 +176,12 @@ export class NewDevice extends Component {
     handleACModes = (event) => {
         const acModes = event.target.value;
 
-        this.setState((prevState) => ({
+        this.setState(() => ({
             acModes,
         }), () => {
             this.checkButton();
         });
     };
-
 
     handleAddSpecialMode = (specialMode) => {
         this.setState({ specialModes: specialMode,});
@@ -234,7 +233,6 @@ export class NewDevice extends Component {
         });
     }
 
-
     handleImageChange = (event) => {
         const file = event.target.files[0];
 
@@ -280,7 +278,6 @@ export class NewDevice extends Component {
 
     createDevice = async () => {
         console.log("api for new device sent");
-        console.log("spec", this.state.specialModes)
         try {
             const data = {
                 Name: this.state.name,
@@ -301,17 +298,15 @@ export class NewDevice extends Component {
                 Efficiency: parseFloat(this.state.efficiency),
                 NumberOfPanels: parseInt(this.state.panelsNum),
             };
-            console.log('data: ', data)
             const result = await DeviceService.createDevice(data);
-            console.log(result);
             // uploading image
-            // const formData = new FormData();
-            // formData.append('image', this.state.selectedImage);
-            // var name = String(document.getElementsByName('name')[0].value).trim();
-            // const substr = this.state.selectedImage.name.split(".")[1].trim();
-            // name += "." + substr;
-            // ImageService.uploadImage(formData, "devices&" + name);
-            // window.location.assign("/devices")
+            const formData = new FormData();
+            formData.append('image', this.state.selectedImage);
+            var name = String(document.getElementsByName('name')[0].value).trim();
+            const substr = this.state.selectedImage.name.split(".")[1].trim();
+            name += "." + substr;
+            ImageService.uploadImage(formData, "devices&" + name);
+            window.location.assign("/devices")
         } catch (error) {
             this.setState({ snackbarMessage: "Device name must be unique per user." });
             this.handleClick();
@@ -319,10 +314,7 @@ export class NewDevice extends Component {
     };
 
     adaptACModes(lista) {
-        const acModes = lista; 
-        const result = acModes.map(mode => mode.charAt(0)).join(',');
-        console.log(result);
-        return result;
+        return lista.map(mode => mode).join(',');
     }
 
     cancel() {
