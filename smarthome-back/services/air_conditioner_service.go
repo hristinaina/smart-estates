@@ -20,7 +20,6 @@ func NewAirConditionerService(db *sql.DB) AirConditionerService {
 	return &AirConditionerServiceImpl{db: db}
 }
 
-// RADI
 func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 	query := `
 		SELECT
@@ -37,6 +36,7 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 			AirConditioner.Mode,
 			SpecialModes.StartTime,
 			SpecialModes.EndTime,
+			SpecialModes.Mode,
 			SpecialModes.Temperature,
 			SpecialModes.SelectedDays
 		FROM
@@ -63,6 +63,7 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 
 	for rows.Next() {
 		var startTimeStr, endTimeStr string
+		var mode string
 		var selectedDays string
 		var temperature float32
 
@@ -80,6 +81,7 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 			&ac.Mode,
 			&startTimeStr,
 			&endTimeStr,
+			&mode,
 			&temperature,
 			&selectedDays,
 		)
@@ -95,6 +97,7 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 		specialMode := models.SpecialMode{
 			StartTime:    startTimeStr,
 			EndTime:      endTimeStr,
+			Mode:         mode,
 			Temperature:  temperature,
 			SelectedDays: selectedDays,
 		}

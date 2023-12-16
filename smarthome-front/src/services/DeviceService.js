@@ -83,9 +83,9 @@ class DeviceService {
 }
 
 
-  async getSPById(id) {
+  async getDeviceById(id, path) {
     try {
-        const response = await fetch('http://localhost:8081/api/sp/' + id, {
+        const response = await fetch(path + id, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
