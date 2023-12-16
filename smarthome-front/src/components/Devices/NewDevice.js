@@ -21,6 +21,7 @@ export class NewDevice extends Component {
             minTemp: 16,
             maxTemp: 31,
             acModes: [],
+            specialModes: [],
             batterySize: 13,
             chargingPower: 2.3,
             connections: 1,
@@ -184,7 +185,7 @@ export class NewDevice extends Component {
 
 
     handleAddSpecialMode = (specialMode) => {
-        // Handle the special mode addition logic here
+        this.setState({ specialModes: specialMode,});
         console.log('Adding special mode:', specialMode);
     };
 
@@ -279,6 +280,7 @@ export class NewDevice extends Component {
 
     createDevice = async () => {
         console.log("api for new device sent");
+        console.log("spec", this.state.specialModes)
         try {
             const data = {
                 Name: this.state.name,
@@ -289,6 +291,8 @@ export class NewDevice extends Component {
                 PowerConsumption: parseFloat(this.state.powerConsumption),
                 MinTemperature: parseInt(this.state.minTemp),
                 MaxTemperature: parseInt(this.state.maxTemp),
+                Mode: this.adaptACModes(this.state.acModes, true),
+                SpecialMode: JSON.stringify(this.state.specialModes),
                 ChargingPower: parseFloat(this.state.chargingPower),
                 Connections: parseInt(this.state.connections),
                 Size: parseFloat(this.state.batterySize),
@@ -297,21 +301,29 @@ export class NewDevice extends Component {
                 Efficiency: parseFloat(this.state.efficiency),
                 NumberOfPanels: parseInt(this.state.panelsNum),
             };
+            console.log('data: ', data)
             const result = await DeviceService.createDevice(data);
             console.log(result);
             // uploading image
-            const formData = new FormData();
-            formData.append('image', this.state.selectedImage);
-            var name = String(document.getElementsByName('name')[0].value).trim();
-            const substr = this.state.selectedImage.name.split(".")[1].trim();
-            name += "." + substr;
-            ImageService.uploadImage(formData, "devices&" + name);
-            window.location.assign("/devices")
+            // const formData = new FormData();
+            // formData.append('image', this.state.selectedImage);
+            // var name = String(document.getElementsByName('name')[0].value).trim();
+            // const substr = this.state.selectedImage.name.split(".")[1].trim();
+            // name += "." + substr;
+            // ImageService.uploadImage(formData, "devices&" + name);
+            // window.location.assign("/devices")
         } catch (error) {
             this.setState({ snackbarMessage: "Device name must be unique per user." });
             this.handleClick();
         }
     };
+
+    adaptACModes(lista) {
+        const acModes = lista; 
+        const result = acModes.map(mode => mode.charAt(0)).join(',');
+        console.log(result);
+        return result;
+    }
 
     cancel() {
         window.location.assign("/devices")

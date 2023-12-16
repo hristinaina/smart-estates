@@ -1,8 +1,11 @@
 package dto
 
 import (
+	"encoding/json"
+	"fmt"
 	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices"
+	"strings"
 )
 
 type DeviceDTO struct {
@@ -15,6 +18,8 @@ type DeviceDTO struct {
 	PowerConsumption float64
 	MinTemperature   float32
 	MaxTemperature   float32
+	Mode             string
+	SpecialMode      string // todo izmeni ovo
 	ChargingPower    float64
 	Connections      uint
 	Size             float64
@@ -43,6 +48,8 @@ func (dto *DeviceDTO) ToAirConditioner() models.AirConditioner {
 		},
 		MinTemperature: dto.MinTemperature,
 		MaxTemperature: dto.MaxTemperature,
+		Mode:           dto.Mode,
+		SpecialMode:    dto.ToSpecialMode(),
 	}
 }
 
@@ -99,4 +106,29 @@ func (dto *DeviceDTO) ToDevice() models.Device {
 		RealEstate: dto.RealEstate,
 		IsOnline:   dto.IsOnline,
 	}
+}
+
+func (dto *DeviceDTO) ToSpecialMode() []models.SpecialMode {
+	var specialModesDTO []models.SpecialModeDTO
+	err := json.Unmarshal([]byte(dto.SpecialMode), &specialModesDTO)
+	if err != nil {
+		fmt.Println("Error decoding JSON:", err)
+		return nil
+	}
+
+	var result []models.SpecialMode
+
+	fmt.Println(specialModesDTO)
+
+	for _, mode := range specialModesDTO {
+
+		selectedDays := strings.Join(mode.SelectedDays, ",")
+
+		sm := models.NewSpecialMode(mode.Start, mode.End, mode.Mode, mode.Temperature, selectedDays)
+
+		result = append(result, sm)
+	}
+
+	fmt.Println(result)
+	return result
 }

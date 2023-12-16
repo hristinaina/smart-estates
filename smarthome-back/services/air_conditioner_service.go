@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"smarthome-back/dto"
 	models "smarthome-back/models/devices"
-	"time"
 )
 
 type AirConditionerService interface {
@@ -21,61 +20,8 @@ func NewAirConditionerService(db *sql.DB) AirConditionerService {
 	return &AirConditionerServiceImpl{db: db}
 }
 
-// func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
-// 	// todo change this
-// 	query := `
-// 		SELECT
-// 			Device.Id,
-// 			Device.Name,
-// 			Device.Type,
-// 			Device.RealEstate,
-// 			Device.IsOnline,
-// 			Device.StatusTimeStamp,
-// 			ConsumptionDevice.PowerSupply,
-// 			ConsumptionDevice.PowerConsumption,
-// 			AirConditioner.MinTemperature,
-// 			AirConditioner.MaxTemperature
-// 		FROM
-// 			AirConditioner
-// 		JOIN ConsumptionDevice ON AirConditioner.DeviceId = ConsumptionDevice.DeviceId
-// 		JOIN Device ON ConsumptionDevice.DeviceId = Device.Id
-// 		WHERE
-// 			Device.Id = ?
-// 	`
-
-// 	// Execute the query
-// 	row := s.db.QueryRow(query, id)
-
-// 	var ac models.AirConditioner
-// 	var device models.Device
-// 	var consDevice models.ConsumptionDevice
-
-//		err := row.Scan(
-//			&device.Id,
-//			&device.Name,
-//			&device.Type,
-//			&device.RealEstate,
-//			&device.IsOnline,
-//			&device.StatusTimeStamp,
-//			&consDevice.PowerSupply,
-//			&consDevice.PowerConsumption,
-//			&ac.MinTemperature,
-//			&ac.MaxTemperature,
-//		)
-//		if err != nil {
-//			if err == sql.ErrNoRows {
-//				fmt.Println("No air conditioner found with the specified ID")
-//			} else {
-//				fmt.Println("Error retrieving air conditioner:", err)
-//			}
-//			return models.AirConditioner{}
-//		}
-//		consDevice.Device = device
-//		ac.Device = consDevice
-//		return ac
-//	}
+// RADI
 func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
-	fmt.Println("USLOOOOOOOOOOO")
 	query := `
 		SELECT
 			Device.Id,
@@ -142,25 +88,13 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 			return models.AirConditioner{}
 		}
 
-		startTime, err := time.Parse("15:04:05", startTimeStr)
-		if err != nil {
-			fmt.Println("Error parsing StartTime:", err)
-			return models.AirConditioner{}
-		}
-
-		endTime, err := time.Parse("15:04:05", endTimeStr)
-		if err != nil {
-			fmt.Println("Error parsing StartTime:", err)
-			return models.AirConditioner{}
-		}
-
 		consDevice.Device = device
 		ac.Device = consDevice
 
 		// Dodajte svaki red rezultata kao poseban SpecialMode
 		specialMode := models.SpecialMode{
-			StartTime:    startTime,
-			EndTime:      endTime,
+			StartTime:    startTimeStr,
+			EndTime:      endTimeStr,
 			Temperature:  temperature,
 			SelectedDays: selectedDays,
 		}
@@ -173,6 +107,7 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 }
 
 func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner {
+	fmt.Println("USLOOOOOOOOOOOOOOO")
 	// TODO: add some validation and exception throwing
 	device := dto.ToAirConditioner()
 	tx, err := s.db.Begin()
@@ -188,12 +123,14 @@ func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner
 	`, device.Device.Device.Name, device.Device.Device.Type, device.Device.Device.RealEstate,
 		device.Device.Device.IsOnline)
 	if err != nil {
+		fmt.Println(err)
 		return models.AirConditioner{}
 	}
 
 	// Get the last inserted device ID
 	deviceID, err := result.LastInsertId()
 	if err != nil {
+		fmt.Println(err)
 		return models.AirConditioner{}
 	}
 
@@ -203,23 +140,38 @@ func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner
 		VALUES (?, ?, ?)
 	`, deviceID, device.Device.PowerSupply, device.Device.PowerConsumption)
 	if err != nil {
+		fmt.Println(err)
 		return models.AirConditioner{}
 	}
 
 	// todo add mode
 	// Insert the new air conditioner into the AirConditioner table
 	result, err = tx.Exec(`
-		INSERT INTO AirConditioner (DeviceId, MinTemperature, MaxTemperature)
-		VALUES (?, ?, ?)
-	`, deviceID, device.MinTemperature, device.MaxTemperature)
+		INSERT INTO AirConditioner (DeviceId, MinTemperature, MaxTemperature, Mode)
+		VALUES (?, ?, ?, ?)
+	`, deviceID, device.MinTemperature, device.MaxTemperature, device.Mode)
 	if err != nil {
+		fmt.Println("ovde je greska")
+		fmt.Println(err)
 		return models.AirConditioner{}
 	}
 
 	// todo add special mode
+	for _, mode := range device.SpecialMode {
+		result, err = tx.Exec(`
+		INSERT INTO specialModes (DeviceId, StartTime, EndTime, Mode, Temperature, SelectedDays)
+		VALUES (?, ?, ?, ?, ?, ?)
+	`, deviceID, mode.StartTime, mode.EndTime, mode.Mode, mode.Temperature, mode.SelectedDays)
+		if err != nil {
+			fmt.Println("ovde jeeeeeeeeeee")
+			fmt.Println(err)
+			return models.AirConditioner{}
+		}
+	}
 
 	// Commit the transaction
 	if err := tx.Commit(); err != nil {
+		fmt.Println(err)
 		return models.AirConditioner{}
 	}
 	device.Device.Device.Id = int(deviceID)

@@ -45,6 +45,7 @@ class SpecialModeForm extends Component {
     }
 
     handleSelectedDays = (event) => {
+        console.log('dani', event.target.value)
         const selectedDays = event.target.value;
 
         this.setState((prevState) => ({
@@ -68,11 +69,11 @@ class SpecialModeForm extends Component {
             return;
         }
         // check if is start < end
-        if (new Date(`2000-01-01 ${start}`) >= new Date(`2000-01-01 ${end}`)) {
-            this.setState({ snackbarMessage: "Start time must be before end time" });
-            this.handleClick();
-            return;
-        }
+        // if (new Date(`2000-01-01 ${start}`) >= new Date(`2000-01-01 ${end}`)) {
+        //     this.setState({ snackbarMessage: "Start time must be before end time" });
+        //     this.handleClick();
+        //     return;
+        // }
         // check if something already exists for that day, if there is, check if the start or end is between those 2 times
         const existingModeForDay = specialModes.find(
             (item) =>
@@ -97,8 +98,6 @@ class SpecialModeForm extends Component {
             temperature,
             selectedDays,
         };
-
-        this.props.onAdd(specialMode);
 
         // reset data
         this.setState({
@@ -136,6 +135,11 @@ class SpecialModeForm extends Component {
         }
         this.setState({ openSnackbar: false });
     };
+
+    handleSave = () => {
+        this.setState({ showDialog: false });
+        this.props.onAdd(this.state.specialModes);
+    }
 
     render() {
 
