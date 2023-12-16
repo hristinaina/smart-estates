@@ -17,6 +17,7 @@ type VehicleGateRepository interface {
 	UpdateIsOpen(id int, isOpen bool) (bool, error)
 	UpdateMode(id int, mode enumerations.VehicleGateMode) (bool, error)
 	Delete(id int) (bool, error)
+	GetLicensePlates(id int) ([]string, error)
 }
 
 type VehicleGateRepositoryImpl struct {
@@ -43,8 +44,16 @@ func (repo *VehicleGateRepositoryImpl) Get(id int) (models.VehicleGate, error) {
 	defer rows.Close()
 
 	gates, err := repo.scanRows(rows)
+	if repositories.IsError(err) {
+		return models.VehicleGate{}, err
+	}
 	gate := gates[0]
-	return gate, err
+	licensePlates, err := repo.GetLicensePlates(gate.ConsumptionDevice.Device.Id)
+	if repositories.CheckIfError(err) {
+		return models.VehicleGate{}, err
+	}
+	gate.LicensePlates = licensePlates
+	return gate, nil
 }
 
 func (repo *VehicleGateRepositoryImpl) GetAll() ([]models.VehicleGate, error) {
@@ -60,10 +69,19 @@ func (repo *VehicleGateRepositoryImpl) GetAll() ([]models.VehicleGate, error) {
 	defer rows.Close()
 
 	gates, err := repo.scanRows(rows)
+	gatesWithPlates := make([]models.VehicleGate, 0)
 	if err != nil {
 		return nil, err
 	}
-	return gates, nil
+	for _, gate := range gates {
+		licensePlates, err := repo.GetLicensePlates(gate.ConsumptionDevice.Device.Id)
+		if repositories.CheckIfError(err) {
+			return nil, err
+		}
+		gate.LicensePlates = licensePlates
+		gatesWithPlates = append(gatesWithPlates, gate)
+	}
+	return gatesWithPlates, nil
 }
 
 func (repo *VehicleGateRepositoryImpl) UpdateIsOpen(id int, isOpen bool) (bool, error) {
@@ -116,6 +134,11 @@ func (repo *VehicleGateRepositoryImpl) Delete(id int) (bool, error) {
 		}
 	}()
 
+	_, err = tx.Exec("DELETE FROM licenseplate WHERE DeviceId = ?", id)
+	if err != nil {
+		return false, err
+	}
+
 	_, err = tx.Exec("DELETE FROM VehicleGate WHERE DeviceId = ?", id)
 	if err != nil {
 		return false, err
@@ -131,6 +154,36 @@ func (repo *VehicleGateRepositoryImpl) Delete(id int) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func (repo *VehicleGateRepositoryImpl) GetLicensePlates(id int) ([]string, error) {
+	query := `SELECT PlateNumber FROM licensePlate WHERE DeviceId = ?`
+
+	rows, err := repo.db.Query(query, id)
+	if repositories.IsError(err) {
+		return nil, err
+	}
+	defer rows.Close()
+
+	licensePlates, err := repo.scanLicensePlateRows(rows)
+	return licensePlates, err
+}
+
+func (repo *VehicleGateRepositoryImpl) scanLicensePlateRows(rows *sql.Rows) ([]string, error) {
+	licensePlates := make([]string, 0)
+	for rows.Next() {
+		var (
+			//id           int
+			licensePlate string
+		)
+		if err := rows.Scan(&licensePlate); err != nil {
+			fmt.Println("Error: ", err.Error())
+			return nil, err
+		}
+		licensePlates = append(licensePlates, licensePlate)
+	}
+
+	return licensePlates, nil
 }
 
 // scanRows parses value from db to desired model - in this case to vehicle gate

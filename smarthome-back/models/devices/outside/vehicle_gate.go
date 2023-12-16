@@ -9,6 +9,7 @@ type VehicleGate struct {
 	ConsumptionDevice models.ConsumptionDevice
 	IsOpen            bool
 	Mode              enumerations.VehicleGateMode
+	LicensePlates     []string
 }
 
 func NewVehicleGate(device models.ConsumptionDevice) VehicleGate {
@@ -16,6 +17,7 @@ func NewVehicleGate(device models.ConsumptionDevice) VehicleGate {
 		ConsumptionDevice: device,
 		IsOpen:            false,
 		Mode:              enumerations.Private,
+		LicensePlates:     make([]string, 0),
 	}
 }
 

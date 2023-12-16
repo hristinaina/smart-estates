@@ -57,17 +57,17 @@ CREATE TABLE evCharger (
 );
 
 CREATE TABLE lamp (
-	DeviceId INT PRIMARY KEY,
-    IsOn bool,
-    LightningLevel int,
-    FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
+                            DeviceId INT PRIMARY KEY,
+                            IsOn bool,
+                            LightningLevel int,
+                            FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
 );
 
 CREATE TABLE vehicleGate (
-    DeviceId INT PRIMARY KEY,
-    IsOpen bool,
-    Mode int,
-    FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
+                            DeviceId INT PRIMARY KEY,
+                            IsOpen bool,
+                            Mode int,
+                            FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
 );
 
 CREATE TABLE homeBattery (
@@ -83,6 +83,12 @@ CREATE TABLE solarPanel (
                             NumberOfPanels INT NOT NULL,
                             IsOn BOOLEAN,
                             FOREIGN KEY (DeviceId) REFERENCES device(Id)
+);
+
+CREATE TABLE licensePlate (
+                            DeviceId INT,
+                            PlateNumber VARCHAR(255),
+                            FOREIGN KEY (DeviceId) REFERENCES vehicleGate(DeviceId)
 );
 
 INSERT INTO user (Id, Email, Password, Name, Surname, Role)
@@ -148,4 +154,11 @@ VALUES
 INSERT INTO homeBattery (DeviceId, Size)
 VALUES
     (6, 10);
+
+INSERT INTO licensePlate(DeviceId, PlateNumber)
+VALUES
+    (9, 'NS-123-45'),
+    (9, 'NS-456-22'),
+    (9, 'NS-222-34'),
+    (10, 'NS-123-45');
     
