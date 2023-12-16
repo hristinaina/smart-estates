@@ -3,12 +3,10 @@ package mqtt_client
 import (
 	"database/sql"
 	"fmt"
-	"os"
-	"smarthome-back/repositories"
-	"time"
-
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"os"
+	"smarthome-back/repositories"
 )
 
 /*
@@ -29,6 +27,7 @@ type MQTTClient struct {
 	client               mqtt.Client
 	deviceRepository     repositories.DeviceRepository
 	solarPanelRepository repositories.SolarPanelRepository
+	realEstateRepository repositories.RealEstateRepository
 	influxDb             influxdb2.Client
 }
 
@@ -45,6 +44,7 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 		client:               client,
 		deviceRepository:     repositories.NewDeviceRepository(db),
 		solarPanelRepository: repositories.NewSolarPanelRepository(db),
+		realEstateRepository: *repositories.NewRealEstateRepository(db),
 		influxDb:             influxDb,
 	}
 }
@@ -57,20 +57,8 @@ func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicSPData+"+", mc.HandleSPData)
 	//todo subscribe here to other topics. Create your callback functions in other file
 
-	// Periodically check if the device is still online
-	go func() {
-		ticker := time.NewTicker(30 * time.Second)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ticker.C:
-				// This block will be executed every time the ticker ticks
-				fmt.Println("checking device status...")
-				mc.CheckDeviceStatus()
-			}
-		}
-	}()
+	mc.StartConsumptionThread()
+	mc.StartDeviceStatusThread()
 }
 
 func (mc *MQTTClient) SubscribeToTopic(topic string, handler mqtt.MessageHandler) {
