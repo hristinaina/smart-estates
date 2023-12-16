@@ -21,7 +21,7 @@ func NewSpecialMode(startTime, endTime, mode string, temperature float32, sc str
 type SpecialModeDTO struct {
 	Start        string
 	End          string
-	Mode         string
+	SelectedMode string
 	Temperature  float32
 	SelectedDays []string
 }

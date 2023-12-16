@@ -118,13 +118,14 @@ func (dto *DeviceDTO) ToSpecialMode() []models.SpecialMode {
 
 	var result []models.SpecialMode
 
+	fmt.Println("OVDE SAM")
 	fmt.Println(specialModesDTO)
 
 	for _, mode := range specialModesDTO {
 
 		selectedDays := strings.Join(mode.SelectedDays, ",")
 
-		sm := models.NewSpecialMode(mode.Start, mode.End, mode.Mode, mode.Temperature, selectedDays)
+		sm := models.NewSpecialMode(mode.Start, mode.End, mode.SelectedMode, mode.Temperature, selectedDays)
 
 		result = append(result, sm)
 	}
