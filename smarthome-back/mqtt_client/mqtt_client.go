@@ -24,11 +24,12 @@ const (
 )
 
 type MQTTClient struct {
-	client               mqtt.Client
-	deviceRepository     repositories.DeviceRepository
-	solarPanelRepository repositories.SolarPanelRepository
-	realEstateRepository repositories.RealEstateRepository
-	influxDb             influxdb2.Client
+	client                mqtt.Client
+	deviceRepository      repositories.DeviceRepository
+	solarPanelRepository  repositories.SolarPanelRepository
+	realEstateRepository  repositories.RealEstateRepository
+	homeBatteryRepository repositories.HomeBatteryRepository
+	influxDb              influxdb2.Client
 }
 
 func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
@@ -41,11 +42,12 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 		return nil
 	}
 	return &MQTTClient{
-		client:               client,
-		deviceRepository:     repositories.NewDeviceRepository(db),
-		solarPanelRepository: repositories.NewSolarPanelRepository(db),
-		realEstateRepository: *repositories.NewRealEstateRepository(db),
-		influxDb:             influxDb,
+		client:                client,
+		deviceRepository:      repositories.NewDeviceRepository(db),
+		solarPanelRepository:  repositories.NewSolarPanelRepository(db),
+		realEstateRepository:  *repositories.NewRealEstateRepository(db),
+		influxDb:              influxDb,
+		homeBatteryRepository: repositories.NewHomeBatteryRepository(db),
 	}
 }
 

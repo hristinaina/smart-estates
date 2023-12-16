@@ -3,6 +3,7 @@ package mqtt_client
 import (
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices"
 	"strconv"
 	"time"
@@ -26,23 +27,35 @@ func (mc *MQTTClient) StartConsumptionThread() {
 }
 
 func (mc *MQTTClient) handleConsumption() {
-	//todo dobavi rs
 	realEstates, err := mc.realEstateRepository.GetAll()
 	if err != nil {
 		return
 	}
 	for _, value := range realEstates {
 		fmt.Println("rs id:", value.Id)
+
 		devices, err := mc.deviceRepository.GetConsumptionDevicesByEstateId(value.Id)
 		if err != nil {
 			return
 		}
+		totalConsumption := 0.0
 		for _, device := range devices {
 			fmt.Println("\tdevice id", device.Device.Id)
+			if device.Device.IsOnline && device.PowerSupply == enumerations.PowerSupplyType(enumerations.Home) {
+				totalConsumption = totalConsumption + device.PowerConsumption
+			}
+		} //todo izmjeniti na frontu da se unosi u Wh ili KWh i prevesti u EnergyConsumption
+		fmt.Println(totalConsumption)
+
+		batteries, err := mc.homeBatteryRepository.GetAllByEstateId(value.Id)
+		if err != nil {
+			return
+		}
+		for _, hb := range batteries {
+			fmt.Println("\tbattery id", hb.Device.Id)
+
 		}
 	}
-	//todo dobavi consumption devices za taj rs
-	//todo dobavi baterije za taj rs
 
 }
 
