@@ -23,9 +23,6 @@ func main() {
 
 	// listen if new device has been added
 	config.SubscribeToTopic(client, config.TopicNewDevice+"+", device_simulator.HandleNewDevice)
-	openMeteoResponse, err := config.GetTemp()
-	fmt.Println(openMeteoResponse)
-	fmt.Println(err)
 
 	select {}
 }

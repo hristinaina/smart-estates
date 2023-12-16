@@ -3,7 +3,6 @@ package device_simulator
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"simulation/config"
 	"simulation/models"
 	"strconv"
@@ -42,8 +41,9 @@ func (as *AmbientSensorSimulator) ConnectAmbientSensor() {
 // za back
 // GenerateAmbientSensorData Simulate sending periodic AmbientSensor data
 func (as *AmbientSensorSimulator) GenerateAmbientSensorData() {
-	temperature := 22
-	humidity := 35
+	var indoorTemperature, indoorHumidity float64
+	slope := 0.8
+	intercept := 20.0
 
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
@@ -51,25 +51,25 @@ func (as *AmbientSensorSimulator) GenerateAmbientSensorData() {
 	for {
 		select {
 		case <-ticker.C:
-			temperature = temperature + rand.Intn(3) - 1
-			humidity = humidity + rand.Intn(3) - 1
-			if humidity < 0 {
-				humidity = 0
+			openMeteoResponse, err := config.GetTemp()
+			if err != nil {
+				fmt.Printf("Error: %v \n", err.Error())
 			}
-			if humidity > 100 {
-				humidity = 100
-			}
+
+			indoorTemperature = slope*openMeteoResponse.Current.Temperature2m + intercept
+			indoorHumidity = openMeteoResponse.Current.RelativeHumidity2m / 2
+
 			data := map[string]interface{}{
 				"id":          as.device.ID,
-				"temperature": temperature,
-				"humidity":    humidity,
+				"temperature": indoorTemperature,
+				"humidity":    indoorHumidity,
 			}
 			jsonString, err := json.Marshal(data)
 			if err != nil {
 				fmt.Println("greska")
 			}
 			config.PublishToTopic(as.client, "device/ambient/sensor", string(jsonString)) // todo eventualno promeni topic ako bude potrebno
-			fmt.Printf("AmbientSensor name=%s, id=%d, temeprature: %v °C, humidity: %v %% \n", as.device.Name, as.device.ID, temperature, humidity)
+			fmt.Printf("AmbientSensor name=%s, id=%d, temeprature: %v °C, humidity: %v %% \n", as.device.Name, as.device.ID, indoorTemperature, indoorHumidity)
 		}
 	}
 }
