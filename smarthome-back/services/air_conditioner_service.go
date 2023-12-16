@@ -62,10 +62,10 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 	var specialModes []models.SpecialMode
 
 	for rows.Next() {
-		var startTimeStr, endTimeStr string
-		var mode string
-		var selectedDays string
-		var temperature float32
+		var startTimeStr, endTimeStr sql.NullString
+		var mode sql.NullString
+		var selectedDays sql.NullString
+		var temperature sql.NullFloat64
 
 		err := rows.Scan(
 			&device.Id,
@@ -93,13 +93,21 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 		consDevice.Device = device
 		ac.Device = consDevice
 
-		// Dodajte svaki red rezultata kao poseban SpecialMode
-		specialMode := models.SpecialMode{
-			StartTime:    startTimeStr,
-			EndTime:      endTimeStr,
-			Mode:         mode,
-			Temperature:  temperature,
-			SelectedDays: selectedDays,
+		specialMode := models.SpecialMode{}
+		if startTimeStr.Valid {
+			specialMode.StartTime = startTimeStr.String
+		}
+		if endTimeStr.Valid {
+			specialMode.EndTime = endTimeStr.String
+		}
+		if mode.Valid {
+			specialMode.Mode = mode.String
+		}
+		if temperature.Valid {
+			specialMode.Temperature = float32(temperature.Float64)
+		}
+		if selectedDays.Valid {
+			specialMode.SelectedDays = selectedDays.String
 		}
 		specialModes = append(specialModes, specialMode)
 	}
@@ -110,8 +118,6 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 }
 
 func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner {
-	fmt.Println("USLOOOOOOOOOOOOOOO")
-	// TODO: add some validation and exception throwing
 	device := dto.ToAirConditioner()
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -147,7 +153,6 @@ func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner
 		return models.AirConditioner{}
 	}
 
-	// todo add mode
 	// Insert the new air conditioner into the AirConditioner table
 	result, err = tx.Exec(`
 		INSERT INTO AirConditioner (DeviceId, MinTemperature, MaxTemperature, Mode)
@@ -159,16 +164,17 @@ func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner
 		return models.AirConditioner{}
 	}
 
-	// todo add special mode
-	for _, mode := range device.SpecialMode {
-		result, err = tx.Exec(`
-		INSERT INTO specialModes (DeviceId, StartTime, EndTime, Mode, Temperature, SelectedDays)
-		VALUES (?, ?, ?, ?, ?, ?)
-	`, deviceID, mode.StartTime, mode.EndTime, mode.Mode, mode.Temperature, mode.SelectedDays)
-		if err != nil {
-			fmt.Println("ovde jeeeeeeeeeee")
-			fmt.Println(err)
-			return models.AirConditioner{}
+	if len(device.SpecialMode) != 0 {
+		for _, mode := range device.SpecialMode {
+			result, err = tx.Exec(`
+			INSERT INTO specialModes (DeviceId, StartTime, EndTime, Mode, Temperature, SelectedDays)
+			VALUES (?, ?, ?, ?, ?, ?)
+		`, deviceID, mode.StartTime, mode.EndTime, mode.Mode, mode.Temperature, mode.SelectedDays)
+			if err != nil {
+				fmt.Println("ovde jeeeeeeeeeee")
+				fmt.Println(err)
+				return models.AirConditioner{}
+			}
 		}
 	}
 
@@ -177,6 +183,7 @@ func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner
 		fmt.Println(err)
 		return models.AirConditioner{}
 	}
+
 	device.Device.Device.Id = int(deviceID)
 	return device
 }
