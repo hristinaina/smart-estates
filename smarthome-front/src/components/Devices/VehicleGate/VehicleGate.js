@@ -39,9 +39,15 @@ export class VehicleGate extends Component {
     }
 
     handleModeChange = async(mode) => {
-        // TODO: call backend here
         let device = this.state.device;
-        device.Mode = mode;
+        if (device.Mode != mode) {
+            device.Mode = mode;
+            if (mode === 0) {
+                await VehicleGateService.toPrivate(this.id);
+            } else {
+                await VehicleGateService.toPublic(this.id);
+            }
+        }
         await this.setState({device: device})
         
     }
