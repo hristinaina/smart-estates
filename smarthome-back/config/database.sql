@@ -2,72 +2,83 @@ CREATE DATABASE smart_home;
 use smart_home;
 
 CREATE TABLE user (
-                      Id INT PRIMARY KEY,
-                      Email VARCHAR(255) UNIQUE,
-                      Password VARCHAR(255),
-                      Name VARCHAR(255),
-                      Surname VARCHAR(255),
-                      Role INT,
-                      isLogin BOOLEAN DEFAULT false
+    Id INT PRIMARY KEY,
+    Email VARCHAR(255) UNIQUE,
+    Password VARCHAR(255),
+    Name VARCHAR(255),
+    Surname VARCHAR(255),
+    Role INT,
+    isLogin BOOLEAN DEFAULT false
 );
 
 CREATE TABLE realestate (
-                            Id INT PRIMARY KEY,
-                            Name VARCHAR(255),
-                            Type INT,
-                            Address VARCHAR(255),
-                            City VARCHAR(255),
-                            SquareFootage FLOAT(32),
-                            NumberOfFloors INT,
-                            Picture VARCHAR(255),
-                            State INT,
-                            UserId INT,
-                            DiscardReason VARCHAR(255)
+    Id INT PRIMARY KEY,
+    Name VARCHAR(255),
+    Type INT,
+    Address VARCHAR(255),
+    City VARCHAR(255),
+    SquareFootage FLOAT(32),
+    NumberOfFloors INT,
+    Picture VARCHAR(255),
+    State INT,
+    UserId INT,
+    DiscardReason VARCHAR(255)
 );
 
 CREATE TABLE device (
-                        Id INT PRIMARY KEY AUTO_INCREMENT,
-                        Name VARCHAR(255) NOT NULL,
-                        Type INT NOT NULL,
-                        RealEstate INT NOT NULL,
-                        IsOnline BOOLEAN,
-                        StatusTimeStamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    Id INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(255) NOT NULL,
+    Type INT NOT NULL,
+    RealEstate INT NOT NULL,
+    IsOnline BOOLEAN,
+    StatusTimeStamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE consumptionDevice (
-                                   DeviceId INT PRIMARY KEY,
-                                   PowerSupply INT NOT NULL,
-                                   PowerConsumption DOUBLE,
-                                   FOREIGN KEY (DeviceId) REFERENCES device(Id)
+    DeviceId INT PRIMARY KEY,
+    PowerSupply INT NOT NULL,
+    PowerConsumption DOUBLE,
+    FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
 CREATE TABLE airConditioner (
-                                DeviceId INT PRIMARY KEY,
-                                MinTemperature INT NOT NULL,
-                                MaxTemperature INT NOT NULL,
-                                FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
+    DeviceId INT PRIMARY KEY,
+    MinTemperature FLOAT(32) NOT NULL,
+    MaxTemperature FLOAT(32) NOT NULL,
+    Mode VARCHAR(255) NOT NULL,
+    FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
+);
+
+CREATE TABLE specialModes (
+    DeviceId INT PRIMARY KEY,
+    StartTime TIME NOT NULL,
+    EndTime TIME NOT NULL,
+    Mode INT NOT NULL,
+    Temperature FLOAT(32) NOT NULL,
+    SelectedDays VARCHAR(255) NOT NULL,
+    FOREIGN KEY (DeviceId) REFERENCES airConditioner(DeviceId)
 );
 
 CREATE TABLE evCharger (
-                           DeviceId INT PRIMARY KEY,
-                           ChargingPower DOUBLE NOT NULL,
-                           Connections INT NOT NULL,
-                           FOREIGN KEY (DeviceId) REFERENCES device(Id)
+    DeviceId INT PRIMARY KEY,
+    ChargingPower DOUBLE NOT NULL,
+    Connections INT NOT NULL,
+    FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
 CREATE TABLE homeBattery (
-                             DeviceId INT PRIMARY KEY,
-                             Size DOUBLE NOT NULL,
-                             FOREIGN KEY (DeviceId) REFERENCES device(Id)
+    DeviceId INT PRIMARY KEY,
+    Size DOUBLE NOT NULL,
+    FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
 CREATE TABLE solarPanel (
-                            DeviceId INT PRIMARY KEY,
-                            SurfaceArea DOUBLE NOT NULL,
-                            Efficiency DOUBLE NOT NULL,
-                            NumberOfPanels INT NOT NULL,
-                            IsOn BOOLEAN,
-                            FOREIGN KEY (DeviceId) REFERENCES device(Id)
+    DeviceId INT PRIMARY KEY,
+    SurfaceArea DOUBLE NOT NULL,
+    Efficiency DOUBLE NOT NULL,
+    NumberOfPanels INT NOT NULL,
+    IsOn BOOLEAN,
+    FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
 INSERT INTO user (Id, Email, Password, Name, Surname, Role)
@@ -99,9 +110,13 @@ VALUES
     (2, 0, 0),
     (3, 1, 300);
 
-INSERT INTO airConditioner (DeviceId, MinTemperature, MaxTemperature)
+INSERT INTO airConditioner (DeviceId, MinTemperature, MaxTemperature, Mode)
 VALUES
-    (3, 10, 30);
+    (3, 10, 30, 'c,a,f');
+
+INSERT INTO specialModes (DeviceId, StartTime, EndTime, Mode, Temperature, SelectedDays)
+VALUES
+    (3, '08:00:00', '16:00:00', 0, 22, 'Monday,Tuesday,Wednesday');
 
 INSERT INTO evCharger (DeviceId, ChargingPower, Connections)
 VALUES
@@ -114,4 +129,3 @@ VALUES
 INSERT INTO homeBattery (DeviceId, Size)
 VALUES
     (6, 10);
-    

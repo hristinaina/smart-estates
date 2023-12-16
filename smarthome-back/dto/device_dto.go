@@ -13,8 +13,8 @@ type DeviceDTO struct {
 	IsOnline         bool
 	PowerSupply      enumerations.PowerSupplyType
 	PowerConsumption float64
-	MinTemperature   int
-	MaxTemperature   int
+	MinTemperature   float32
+	MaxTemperature   float32
 	ChargingPower    float64
 	Connections      uint
 	Size             float64
