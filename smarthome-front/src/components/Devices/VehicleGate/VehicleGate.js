@@ -8,8 +8,11 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import { TextField } from '@mui/material';
 import { Button } from 'reactstrap';
+import mqtt from 'mqtt';
 
 export class VehicleGate extends Component {
+    connected = false;
+
     constructor(props) {
         super(props);
         this.state = {
@@ -17,6 +20,8 @@ export class VehicleGate extends Component {
             licensePlate: '',
             startDate: '',
             endDate: '',
+            enterLicensePlate: '',
+            enter: false,
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -32,6 +37,28 @@ export class VehicleGate extends Component {
         const user = authService.getCurrentUser();
         this.Name = device.ConsumptionDevice.Device.Name;
         await this.setState({device: device});
+
+        try {        
+            // mqtt connection
+            if (!this.connected) {
+                this.connected = true;
+                this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
+                        clientId: "react-front-nvt-2023-lamp",
+                        clean: false,
+                        keepalive: 60
+                });
+                this.mqttClient.on('connect', () => {
+                    this.mqttClient.subscribe('vg/open/' + this.id);
+                });
+    
+                this.mqttClient.on('message', (topic, message) => {
+                    this.handleMqttMessage(topic, message);
+                });
+            }
+        } catch (error) {
+            console.error(error);
+        }
+        
     }
 
     extractDeviceIdFromUrl() {
@@ -54,7 +81,26 @@ export class VehicleGate extends Component {
             }
         }
         await this.setState({device: device})
-        
+    }
+
+    async handleMqttMessage(topic, message) {
+        const tokens = message.toString().split('+');
+        let device = this.state.device;
+        console.log(message.toString());
+        if (tokens[0] == "open") {
+            device.IsOpen = true;
+            if (tokens[2] == "enter") {
+                await this.setState({device: device, enterLicensePlate: tokens[1], enter: true});
+            }
+            else {
+                await this.setState({device: device, enterLicensePlate: tokens[1], enter: false});
+            }
+
+        }
+        else {
+            device.IsOpen = false;
+            await this.setState({device: device, enterLicensePlate: '', enter: false});
+        }
     }
 
     render() {            
@@ -74,6 +120,7 @@ export class VehicleGate extends Component {
                         <img src='/images/public.png' className={`vg-icon vg-padlock ${this.state.device.Mode === 0 ? 'unlocked': ''}`} onClick={ () => this.handleModeChange(1)}/>
                         <p className="sp-data-text">State</p>
                         <p className="vg-description">{this.state.device.IsOpen === true ? 'Opened' : 'Closed'}</p>
+                        <p className="vg-description">{this.state.enterLicensePlate} {this.state.enter === true ? ' is entering...' : ''}</p>
                         <img src='/images/closed-gate.png' className={`vg-icon ${this.state.device.IsOpen === true ? 'unlocked' : ''}`} />
                         <img src='/images/opened-gate.png' className={`vg-icon ${this.state.device.IsOpen === false ? 'unlocked' : ''}`} />
                         <div id="vg-box">
@@ -87,7 +134,6 @@ export class VehicleGate extends Component {
                             </ListItem>
                         </List>
                         </div>
-                        {/* <img src='/images/plus.png' id='vg-plus'/> */}
                         <span className='vg-description vg-add'>Add License Plate</span>
                     </div>
 
