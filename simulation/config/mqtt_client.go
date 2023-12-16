@@ -10,6 +10,7 @@ const (
 	TopicOnline    = "device/online/" //device/online/{deviceId}
 	TopicPayload   = "device/data/"   //device/data/{deviceId}
 	TopicNewDevice = "device/new/"    //device/data/{deviceId}
+	TopicApproached = "device/approached/"  //vehcile-gate/approached/{deviceId}
 )
 
 func CreateConnection() mqtt.Client {
