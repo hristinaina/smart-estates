@@ -3,6 +3,9 @@ import authService from "../../../services/AuthService";
 import { Navigation } from "../../Navigation/Navigation";
 import VehicleGateService from "../../../services/VehicleGateService";
 import './VehicleGate.css';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
 
 export class VehicleGate extends Component {
     constructor(props) {
@@ -60,17 +63,34 @@ export class VehicleGate extends Component {
                 <span className='estate-title'>{this.Name}</span>
                 <div className="sp-container">
                     <div id="sp-left-card">
-                        <p className="sp-card-title">Vehicle Gate</p>
+                        <p className="sp-card-title">Device Data</p>
                         <p className="sp-data-text">Mode</p>
                         <p className="vg-description">{this.state.device.Mode === 0 ? 'Private' : 'Public'}</p>
-                        <img src='/images/private.png' className={`vg-icon ${this.state.device.Mode === 1 ? 'unlocked': ''}`} onClick={ () => this.handleModeChange(0)}/>
-                        <img src='/images/public.png' className={`vg-icon ${this.state.device.Mode === 0 ? 'unlocked': ''}`} onClick={ () => this.handleModeChange(1)}/>
+                        <img src='/images/private.png' className={`vg-icon vg-padlock ${this.state.device.Mode === 1 ? 'unlocked': ''}`} onClick={ () => this.handleModeChange(0)}/>
+                        <img src='/images/public.png' className={`vg-icon vg-padlock ${this.state.device.Mode === 0 ? 'unlocked': ''}`} onClick={ () => this.handleModeChange(1)}/>
                         <p className="sp-data-text">State</p>
                         <p className="vg-description">{this.state.device.IsOpen === true ? 'Opened' : 'Closed'}</p>
                         <img src='/images/closed-gate.png' className={`vg-icon ${this.state.device.IsOpen === true ? 'unlocked' : ''}`} />
                         <img src='/images/opened-gate.png' className={`vg-icon ${this.state.device.IsOpen === false ? 'unlocked' : ''}`} />
+                        <div id="vg-box">
+                        <p className="sp-data-text">Trusted License Plates</p>
+                        <List id="vg-list">
+                            <ListItem>    
+                                <ListItemText primary="Item 1" />
+                            </ListItem>
+                            <ListItem>
+                                <ListItemText primary="Item 2" />
+                            </ListItem>
+                        </List>
+                        </div>
+                        {/* <img src='/images/plus.png' id='vg-plus'/> */}
+                        <span className='vg-description vg-add'>Add License Plate</span>
+
                     </div>
+      
                 </div>
+
+
             </div>
         )
     }

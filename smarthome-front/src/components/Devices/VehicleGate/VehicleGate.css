@@ -13,7 +13,7 @@
     padding: 0.5em;
 }
 
-.vg-icon:hover {
+.vg-padlock:hover {
     cursor: pointer;
     background-color: rgba(190, 190, 190, 0.5);
     border-radius: 7px;
@@ -21,4 +21,49 @@
 
 .unlocked {
     filter: grayscale(100%);
+}
+
+#vg-box {
+    width: fit-content;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0.15em;
+    padding-left: 1em;
+    padding-right: 1em;
+    background-color: white;
+    border-radius: 8px;
+}
+
+#vg-list {
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    flex-direction: column;
+    height: 100px;
+    overflow-y: auto;
+}
+
+#vg-list::-webkit-scrollbar {
+    width: 12px;
+}
+
+#vg-list::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 6px;
+}
+
+#vg-list::-webkit-scrollbar-track {
+    background-color: #eee;
+    border-radius: 6px;
+}
+
+#vg-plus {
+    height: 1em;
+}
+
+.vg-add:hover {
+    cursor: pointer;
+    color: black;
 }
