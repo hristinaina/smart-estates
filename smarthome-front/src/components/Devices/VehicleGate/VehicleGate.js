@@ -6,13 +6,15 @@ import './VehicleGate.css';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
+import { TextField } from '@mui/material';
+import { Button } from 'reactstrap';
 
 export class VehicleGate extends Component {
     constructor(props) {
         super(props);
         this.state = {
             device: {},
-            email: '',
+            licensePlate: '',
             startDate: '',
             endDate: '',
         };
@@ -55,7 +57,9 @@ export class VehicleGate extends Component {
         
     }
 
-    render() {
+    render() {            
+        const { licensePlate, startDate, endDate} = this.state;
+
         return (
             <div>
                 <Navigation />
@@ -76,21 +80,39 @@ export class VehicleGate extends Component {
                         <p className="sp-data-text">Trusted License Plates</p>
                         <List id="vg-list">
                             <ListItem>    
-                                <ListItemText primary="Item 1" />
+                                <ListItemText primary="NS-123-45"/>
                             </ListItem>
                             <ListItem>
-                                <ListItemText primary="Item 2" />
+                                <ListItemText primary="NS-123-56"/>
                             </ListItem>
                         </List>
                         </div>
                         {/* <img src='/images/plus.png' id='vg-plus'/> */}
                         <span className='vg-description vg-add'>Add License Plate</span>
-
                     </div>
-      
+
+                    <div id="sp-right-card">
+                            <p className="sp-card-title">Reports</p>
+                            <form onSubmit={this.handleFormSubmit} className='sp-container'>
+                            <label>
+                                License Plate:
+                                <TextField style={{ backgroundColor: "white" }} type="text" value={licensePlate} onChange={(e) => this.setState({ licensePlate: e.target.value })} />
+                            </label>
+                            <br />
+                            <label>
+                                Start Date:
+                                <TextField style={{ backgroundColor: "white" }} type="date" value={startDate} onChange={(e) => this.setState({ startDate: e.target.value })} />
+                            </label>
+                            <br />
+                            <label>
+                                End Date:
+                                <TextField style={{ backgroundColor: "white" }} type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
+                            </label>
+                            <br />
+                            <Button id='sp-data-button'>Confirm</Button>
+                        </form>
+                    </div>
                 </div>
-
-
             </div>
         )
     }
