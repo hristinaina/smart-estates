@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import './Dialog.css';
 
-const Dialog = ({ title, message, onConfirm, onCancel, isDiscard}) => {
+const Dialog = ({ title, message, onConfirm, onCancel, isDiscard, inputPlaceholder}) => {
     const [reason, setReason] = useState('');
 
     const handleConfirm = () => {
@@ -18,7 +18,7 @@ const Dialog = ({ title, message, onConfirm, onCancel, isDiscard}) => {
                         id="reason" 
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
-                        placeholder="Write a reason here..."></textarea>
+                        placeholder={inputPlaceholder}></textarea>
                 )}
                 <button onClick={onCancel}>CANCEL</button>
                 <button onClick={handleConfirm}>CONFIRM</button>

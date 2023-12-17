@@ -68,7 +68,7 @@ class VehicleGateService {
         return responseData;
     }
 
-    async GetLicensePlates(id) {
+    async getLicensePlates(id) {
         try {
             const url = `http://localhost:8081/api/vehicle-gate/license-plate/${id}`;
             const response = await fetch(url);
@@ -81,7 +81,7 @@ class VehicleGateService {
         }
     }
 
-    async AddLicensePlate(id, licensePlate) {
+    async addLicensePlate(id, licensePlate) {
         const url = `http://localhost:8081/api/vehicle-gate/license-plate`
 
         const requestOptions = {

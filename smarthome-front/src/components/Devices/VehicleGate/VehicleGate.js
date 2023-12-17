@@ -134,7 +134,7 @@ export class VehicleGate extends Component {
             this.handleClick();
             return;
         }
-        // await VehicleGateService.AddLicensePlate(this.state.device.ConsumptionDevice.Device.Id, licensePlate);
+        await VehicleGateService.addLicensePlate(this.state.device.ConsumptionDevice.Device.Id, licensePlate);
         let device = this.state.device;
         let licensePlates = device.LicensePlates;
         licensePlates.push(licensePlate);
@@ -230,6 +230,7 @@ export class VehicleGate extends Component {
                     onConfirm={this.handleAddLicensePlate}
                     onCancel={this.handleCancel}
                     isDiscard={true}
+                    inputPlaceholder="Write license plate number here..."
                 />
                 )}
                 <Snackbar

@@ -161,6 +161,7 @@ export class RealEstates extends Component {
                     onConfirm={this.handleConfirmApprove}
                     onCancel={this.handleCancel}
                     isDiscard={false}
+                    inputPlaceholder="Write reason here..."
                 />
                 )}
 
@@ -171,6 +172,7 @@ export class RealEstates extends Component {
                     onConfirm={this.handleConfirmDiscard}
                     onCancel={this.handleCancel}
                     isDiscard={true}
+                    inputPlaceholder="Write reason here..."
                 />
                 )}
             </div>
