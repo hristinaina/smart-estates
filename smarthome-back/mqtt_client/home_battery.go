@@ -2,77 +2,57 @@ package mqtt_client
 
 import (
 	"fmt"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"math/rand"
-	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices"
 	"strconv"
+	"strings"
 	"time"
 )
 
-func (mc *MQTTClient) StartConsumptionThread() {
-	// Periodically check devices consumption
-	go func() {
-		ticker := time.NewTicker(60 * time.Second)
-		defer ticker.Stop()
+func (mc *MQTTClient) HandleConsumption(client mqtt.Client, msg mqtt.Message) {
+	// Retrieve the last part of the split string, which is the device ID
+	parts := strings.Split(msg.Topic(), "/")
+	deviceId, err := strconv.Atoi(parts[len(parts)-1])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-		for {
-			select {
-			case <-ticker.C:
-				// This block will be executed every time the ticker ticks
-				fmt.Println("checking device consumption...")
-				mc.handleConsumption()
-			}
-		}
-	}()
-}
+	// Unmarshal the JSON string into the struct
+	valueStr := string(msg.Payload())
+	consumptionValue, err := strconv.ParseFloat(valueStr, 64)
+	if err != nil {
+		fmt.Println("Error converting string to float:", err)
+		return
+	}
 
-func (mc *MQTTClient) handleConsumption() {
-	realEstates, err := mc.realEstateRepository.GetAll()
+	realEstate, err := mc.realEstateRepository.Get(deviceId)
 	if err != nil {
 		return
 	}
-	for _, value := range realEstates {
-		fmt.Println("rs id:", value.Id)
 
-		devices, err := mc.deviceRepository.GetConsumptionDevicesByEstateId(value.Id)
-		if err != nil {
-			return
+	batteries, err := mc.homeBatteryRepository.GetAllByEstateId(realEstate.Id)
+	if err != nil {
+		return
+	}
+	fmt.Println("deviceID: ", deviceId, " realEstateID: ", realEstate.Id)
+	for _, hb := range batteries {
+		fmt.Println("\tbattery id", hb.Device.Id)
+		if hb.CurrentValue-consumptionValue >= 0 { //end
+			hb.CurrentValue = hb.CurrentValue - consumptionValue
+			consumptionValue = 0
+			//todo save battery to db and info to influx
+		} else { //continue
+			consumed := hb.CurrentValue
+			consumptionValue = consumptionValue - hb.CurrentValue
+			hb.CurrentValue = 0
+			fmt.Println(consumed)
+			//todo save battery to db and info(consumed) to influx
 		}
-		totalConsumption := 0.0
-		for _, device := range devices {
-			fmt.Println("\tdevice id", device.Device.Id)
-			if device.Device.IsOnline && device.PowerSupply == enumerations.Home {
-				rand.Seed(time.Now().UnixNano())
-				scalingFactor := 0.8 + rand.Float64()*0.2                                      // get a number between 0.9 and 1.1
-				totalConsumption = totalConsumption + device.PowerConsumption*scalingFactor/60 // divide by 60 to get consumption for previous minute
-			}
-		}
-		fmt.Println(totalConsumption)
-		//todo save total consumption to influxdb (for 4.9)
-
-		batteries, err := mc.homeBatteryRepository.GetAllByEstateId(value.Id)
-		if err != nil {
-			return
-		}
-		for _, hb := range batteries {
-			fmt.Println("\tbattery id", hb.Device.Id)
-			if hb.CurrentValue-totalConsumption >= 0 {
-				hb.CurrentValue = hb.CurrentValue - totalConsumption
-				totalConsumption = 0
-				//todo save battery to db and info to influx
-			} else {
-				consumed := hb.CurrentValue
-				totalConsumption = totalConsumption - hb.CurrentValue
-				hb.CurrentValue = 0
-				fmt.Println(consumed)
-				//todo save battery to db and info(consumed) to influx
-			}
-		}
-		if totalConsumption != 0 {
-			//todo electrodistribution (influxdb)
-		}
-
+	}
+	if consumptionValue != 0 {
+		//todo electrodistribution (influxdb)
 	}
 
 }

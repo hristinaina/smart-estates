@@ -388,12 +388,12 @@ export class NewDevice extends Component {
                         )}
                         {this.state.showBatterySize && (
                             <div>
-                                <p className="new-real-estate-label">Battery size (kWh):</p>
+                                <p className="new-real-estate-label">Battery capacity (kWh):</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"
                                     name="battery-size"
-                                    placeholder="Enter the battery size (in kWh)"
+                                    placeholder="Enter the battery capacity (in kWh)"
                                     value={this.state.batterySize}
                                     onChange={this.handleBatterySize}
                                 />

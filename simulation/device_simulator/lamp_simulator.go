@@ -3,6 +3,7 @@ package device_simulator
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"simulation/config"
 	"simulation/models"
 	"strconv"
@@ -17,25 +18,60 @@ const (
 )
 
 type LampSimulator struct {
-	switchOn bool
-	client   mqtt.Client
-	device   models.Device
+	switchOn    bool
+	client      mqtt.Client
+	device      models.Device
+	consumption float64
 }
 
 func NewLampSimulator(client mqtt.Client, device models.Device) *LampSimulator {
 	//todo da se proslijedi samo deviceId (umjesto device) i posalje upit ka beku za dobavljane svih podataka za lampu
 	// (jer device ima samo opste podatke)
 	return &LampSimulator{
-		client:   client,
-		device:   device,
-		switchOn: false,
+		client:      client,
+		device:      device,
+		switchOn:    false,
+		consumption: 0.6,
 	}
 }
 
 func (ls *LampSimulator) ConnectLamp() {
 	go SendHeartBeat(ls.client, ls.device.ID, ls.device.Name)
 	go ls.GenerateLampData()
+	go ls.SendConsumption()
 	config.SubscribeToTopic(ls.client, topicSwitch+strconv.Itoa(ls.device.ID), ls.HandleSwitchChange)
+}
+
+// SendConsumprion Periodically send consumption
+
+func (ls *LampSimulator) SendConsumption() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			rand.Seed(time.Now().UnixNano())
+			scalingFactor := 1.0
+			if ls.switchOn {
+				scalingFactor = 0.8 + rand.Float64()*0.2 // get a number between 0.8 and 1.0
+			} else {
+				scalingFactor = 0.15 + rand.Float64()*0.2 // get a number between 0.15 and 0.35
+			}
+			fmt.Println(scalingFactor)
+			fmt.Println(ls.consumption)
+			consumed := ls.consumption * scalingFactor / 60 / 2 // divide by 60 and 2 to get consumption for previous 30s
+			fmt.Println(consumed)
+			err := config.PublishToTopic(ls.client, config.TopicConsumption+strconv.Itoa(ls.device.ID), strconv.FormatFloat(consumed,
+				'f', -1, 64))
+			if err != nil {
+				fmt.Printf("Error publishing message with the device: %s \n", ls.device.Name)
+			} else {
+				fmt.Printf("%s: Lamp with id=%d, Name=%s, consumed=%fkWh for previous 30s\n", time.Now().Format("15:04:05"),
+					ls.device.ID, ls.device.Name, consumed)
+			}
+		}
+	}
 }
 
 // GenerateLampData Simulate sending periodic Lamp data

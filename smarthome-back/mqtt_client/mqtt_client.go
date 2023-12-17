@@ -3,10 +3,11 @@ package mqtt_client
 import (
 	"database/sql"
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"os"
 	"smarthome-back/repositories"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 /*
@@ -21,6 +22,7 @@ const (
 	TopicAmbientSensor = "device/ambient/sensor"
 	TopicSPSwitch      = "sp/switch/"
 	TopicSPData        = "sp/data/"
+	TopicConsumption   = "device/consumption/"
 )
 
 type MQTTClient struct {
@@ -57,9 +59,9 @@ func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicAmbientSensor, mc.ReceiveValue)
 	mc.SubscribeToTopic(TopicSPSwitch+"+", mc.HandleSPSwitch)
 	mc.SubscribeToTopic(TopicSPData+"+", mc.HandleSPData)
+	mc.SubscribeToTopic(TopicConsumption+"+", mc.HandleConsumption)
 	//todo subscribe here to other topics. Create your callback functions in other file
 
-	mc.StartConsumptionThread()
 	mc.StartDeviceStatusThread()
 }
 
