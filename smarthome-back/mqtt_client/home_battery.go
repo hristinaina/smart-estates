@@ -27,16 +27,16 @@ func (mc *MQTTClient) HandleConsumption(client mqtt.Client, msg mqtt.Message) {
 		return
 	}
 
-	realEstate, err := mc.realEstateRepository.Get(deviceId)
+	device, err := mc.deviceRepository.Get(deviceId)
 	if err != nil {
 		return
 	}
 
-	batteries, err := mc.homeBatteryRepository.GetAllByEstateId(realEstate.Id)
+	batteries, err := mc.homeBatteryRepository.GetAllByEstateId(device.RealEstate)
 	if err != nil {
 		return
 	}
-	fmt.Println("deviceID: ", deviceId, " realEstateID: ", realEstate.Id)
+	fmt.Println("deviceID: ", deviceId, " realEstateID: ", device.RealEstate)
 	for _, hb := range batteries {
 		fmt.Println("\tbattery id", hb.Device.Id)
 		if hb.CurrentValue-consumptionValue >= 0 { //end

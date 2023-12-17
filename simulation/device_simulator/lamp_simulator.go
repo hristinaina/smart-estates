@@ -58,10 +58,7 @@ func (ls *LampSimulator) SendConsumption() {
 			} else {
 				scalingFactor = 0.15 + rand.Float64()*0.2 // get a number between 0.15 and 0.35
 			}
-			fmt.Println(scalingFactor)
-			fmt.Println(ls.consumption)
 			consumed := ls.consumption * scalingFactor / 60 / 2 // divide by 60 and 2 to get consumption for previous 30s
-			fmt.Println(consumed)
 			err := config.PublishToTopic(ls.client, config.TopicConsumption+strconv.Itoa(ls.device.ID), strconv.FormatFloat(consumed,
 				'f', -1, 64))
 			if err != nil {
