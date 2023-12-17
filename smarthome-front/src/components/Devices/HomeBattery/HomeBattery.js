@@ -2,10 +2,6 @@
 import { Component } from 'react';
 import '../Devices.css';
 import { Navigation } from '../../Navigation/Navigation';
-import mqtt from 'mqtt';
-import Switch from '@mui/material/Switch';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 import authService from '../../../services/AuthService';
 import DeviceService from '../../../services/DeviceService';
 import 'chart.js/auto';
@@ -30,7 +26,6 @@ export class HomeBattery extends Component {
             showSnackbar: false,
             open: false,
         };
-        this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
         this.Name = "";
     }
@@ -41,18 +36,43 @@ export class HomeBattery extends Component {
 
         const device = await DeviceService.getHB(this.id);
         console.log(device);
+        const updatedData =
+        {
+            ...device,
+            CurrentValue: device.CurrentValue.toFixed(3),
+        }
 
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
         const historyData = await DeviceService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
-    
+
         this.setState({
-            device: device,
+            device: updatedData,
             data: historyData,
             email: user.Email,
             startDate: "2023-12-12",
             endDate: "2023-12-23",
         });
+
+        // Set up interval to fetch device data every minute
+        this.apiRequestInterval = setInterval(() => {
+            this.fetchDeviceData();
+        }, 60000); // 60000 milliseconds = 1 minute
+    }
+
+    async fetchDeviceData() {
+        const device = await DeviceService.getHB(this.id);
+        const updatedData = {
+            ...device,
+            CurrentValue: device.CurrentValue.toFixed(3),
+        };
+        this.setState({
+            device: updatedData,
+        });
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.apiRequestInterval);
     }
 
     handleFormSubmit = async (e) => {
@@ -102,11 +122,11 @@ export class HomeBattery extends Component {
                         <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.Size} InputProps={{
                             readOnly: true,
                         }} />
-                    
-                        <p className='sp-data-text'>Occupied capacity (kWh): </p>
+                        <p className='sp-data-text'>Occupied size (kWh): </p>
                         <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.CurrentValue} InputProps={{
                             readOnly: true,
                         }} />
+                        {this.renderBatteryIcon(device.CurrentValue, device.Size)}
                     </div>
                     <div id='sp-right-card'>
                         <p className='sp-card-title'>Switch History</p>
@@ -141,4 +161,44 @@ export class HomeBattery extends Component {
             </div>
         )
     }
+
+
+    renderBatteryIcon(occupiedCapacity, maxCapacity) {
+        // Calculate the percentage of occupied capacity
+        const percentageOccupied = ((occupiedCapacity / maxCapacity) * 100).toFixed(0);
+
+        // Set a minimum width for the filled battery part
+        const minWidth = 1;
+
+        // Calculate the width of the filled battery part based on the percentage
+        const filledWidth = Math.max(minWidth, percentageOccupied);
+
+        // Styles for the battery icon and the filled part
+        const batteryStyle = {
+            width: '100px', // Adjust the size of the battery icon
+            height: '50px',
+            background: '#ddd',
+            position: 'relative',
+            borderRadius: '5px',
+            display: 'inline-block'
+        };
+
+        const filledStyle = {
+            height: '100%',
+            width: `${filledWidth}%`,
+            background: 'green', // Adjust the color of the filled part
+            position: 'absolute',
+            borderRadius: '5px',
+        };
+
+        return (
+        <div style={{marginTop: "50px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{fontSize: "20px", display: "inline", marginRight: "10px"}}>{percentageOccupied}%</div>
+            <div style={batteryStyle}>
+                <div style={filledStyle}></div>
+            </div>
+        </div>
+        );
+    }
 }
+
