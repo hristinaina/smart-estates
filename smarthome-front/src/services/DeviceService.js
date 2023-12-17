@@ -115,6 +115,23 @@ async getSPLastValue(deviceId) {
         throw error;
       }
   }
+
+  async getHB(id) {
+    try {
+        const response = await fetch('http://localhost:8081/api/hb/' + id, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        throw error;
+      }
+  }
 }
 
 export default new DeviceService();

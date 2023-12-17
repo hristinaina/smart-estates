@@ -12,6 +12,7 @@ type HomeBatteryRepository interface {
 	Add(estate dto.DeviceDTO) models.HomeBattery
 	GetAllByEstateId(id int) ([]models.HomeBattery, error)
 	Update(device models.HomeBattery) bool
+	Get(id int) models.HomeBattery
 }
 
 type HomeBatteryRepositoryImpl struct {
@@ -125,4 +126,50 @@ func (res *HomeBatteryRepositoryImpl) Update(device models.HomeBattery) bool {
 		return false
 	}
 	return true
+}
+
+func (res *HomeBatteryRepositoryImpl) Get(id int) models.HomeBattery {
+	query := `
+		SELECT
+			Device.Id,
+			Device.Name,
+			Device.Type,
+			Device.RealEstate,
+			Device.IsOnline,
+			Device.StatusTimeStamp,
+			HomeBattery.Size,
+			HomeBattery.CurrentValue
+		FROM
+			HomeBattery
+		JOIN Device ON HomeBattery.DeviceId = Device.Id
+		WHERE
+			Device.Id = ?
+	`
+
+	// Execute the query
+	row := res.db.QueryRow(query, id)
+
+	var hb models.HomeBattery
+	var device models.Device
+
+	err := row.Scan(
+		&device.Id,
+		&device.Name,
+		&device.Type,
+		&device.RealEstate,
+		&device.IsOnline,
+		&device.StatusTimeStamp,
+		&hb.Size,
+		&hb.CurrentValue,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			fmt.Println("No solar panel found with the specified ID")
+		} else {
+			fmt.Println("Error retrieving solar panel:", err)
+		}
+		return models.HomeBattery{}
+	}
+	hb.Device = device
+	return hb
 }
