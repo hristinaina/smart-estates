@@ -19,6 +19,7 @@ type VehicleGateRepository interface {
 	Delete(id int) (bool, error)
 	GetLicensePlates(id int) ([]string, error)
 	AddLicensePlate(id int, licensePlate string) (string, error)
+	GetAllLicensePlates() ([]string, error)
 }
 
 type VehicleGateRepositoryImpl struct {
@@ -167,7 +168,7 @@ func (repo *VehicleGateRepositoryImpl) GetLicensePlates(id int) ([]string, error
 	defer rows.Close()
 
 	licensePlates, err := repo.scanLicensePlateRows(rows)
-	return licensePlates, err
+	return licensePlates, nil
 }
 
 func (repo *VehicleGateRepositoryImpl) AddLicensePlate(id int, licensePlate string) (string, error) {
@@ -176,14 +177,26 @@ func (repo *VehicleGateRepositoryImpl) AddLicensePlate(id int, licensePlate stri
 	if repositories.CheckIfError(err) {
 		return "", err
 	}
-	return licensePlate, err
+	return licensePlate, nil
+}
+
+func (repo *VehicleGateRepositoryImpl) GetAllLicensePlates() ([]string, error) {
+	query := `SELECT DISTINCT licensePlate.PlateNumber FROM licensePlate`
+
+	rows, err := repo.db.Query(query)
+	if repositories.IsError(err) {
+		return make([]string, 0), err
+	}
+	defer rows.Close()
+
+	licensePlates, err := repo.scanLicensePlateRows(rows)
+	return licensePlates, nil
 }
 
 func (repo *VehicleGateRepositoryImpl) scanLicensePlateRows(rows *sql.Rows) ([]string, error) {
 	licensePlates := make([]string, 0)
 	for rows.Next() {
 		var (
-			//id           int
 			licensePlate string
 		)
 		if err := rows.Scan(&licensePlate); err != nil {

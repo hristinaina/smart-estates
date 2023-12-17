@@ -1,4 +1,4 @@
-import { Component } from "react";
+import React, { Component } from "react";
 import authService from "../../../services/AuthService";
 import { Navigation } from "../../Navigation/Navigation";
 import VehicleGateService from "../../../services/VehicleGateService";
@@ -9,6 +9,11 @@ import ListItemText from '@mui/material/ListItemText';
 import { TextField } from '@mui/material';
 import { Button } from 'reactstrap';
 import mqtt from 'mqtt';
+import Dialog from "../../Dialog/Dialog";
+import { Snackbar } from "@mui/material";
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+
 
 export class VehicleGate extends Component {
     connected = false;
@@ -16,13 +21,17 @@ export class VehicleGate extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            device: {},
+            device: {LicensePlates: []},
             licensePlate: '',
             startDate: '',
             endDate: '',
             enterLicensePlate: '',
             enter: false,
             exit: false,
+            showAddLicensePlateDialog: false,
+            snackbarMessage: '',
+            showSnackbar: false,
+            open: false,
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -34,6 +43,7 @@ export class VehicleGate extends Component {
         if (!valid) window.location.assign("/");
 
         const device = await VehicleGateService.get(this.id);
+        console.log(device);
 
         const user = authService.getCurrentUser();
         this.Name = device.ConsumptionDevice.Device.Name;
@@ -104,6 +114,59 @@ export class VehicleGate extends Component {
         }
     }
 
+    openAddLicensePlateDialog = async () => {
+        await this.setState({showAddLicensePlateDialog: true})
+    }
+
+    handleCancel = async () => {
+        await this.setState({showAddLicensePlateDialog: false})
+    }
+
+    handleAddLicensePlate = async(licensePlate) => {
+        licensePlate = licensePlate.trim();
+        const pattern = /^[A-Z]{2}-\d{3}-\d{2}$/;
+        if (licensePlate == "") {
+            await this.setState({snackbarMessage: "Can't add empty license plate"});
+            this.handleClick();
+            return;
+        } else if (!pattern.test(licensePlate)) {
+            await this.setState({snackbarMessage: "Please check inputted license plate"});
+            this.handleClick();
+            return;
+        }
+        // await VehicleGateService.AddLicensePlate(this.state.device.ConsumptionDevice.Device.Id, licensePlate);
+        let device = this.state.device;
+        let licensePlates = device.LicensePlates;
+        licensePlates.push(licensePlate);
+        device.LicensePlates = licensePlates;
+        await this.setState({device: device, showAddLicensePlateDialog: false, snackbarMessage: "Trusted license plate successfully added!"});
+        this.handleClick();
+    }
+
+    // snackbar
+    handleClick = () => {
+        this.setState({open: true});
+    };
+
+    handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+          return;
+        }
+        this.setState({open: false});
+      };
+
+    action = (
+        <React.Fragment>
+            <IconButton
+            size="small"
+            aria-label="close"
+            color="inherit"
+            onClick={this.handleClose}>
+            <CloseIcon fontSize="small" />
+            </IconButton>
+        </React.Fragment>
+        );
+
     render() {            
         const { licensePlate, startDate, endDate} = this.state;
 
@@ -126,17 +189,16 @@ export class VehicleGate extends Component {
                         <img src='/images/closed-gate.png' className={`vg-icon ${this.state.device.IsOpen === true ? 'unlocked' : ''}`} />
                         <img src='/images/opened-gate.png' className={`vg-icon ${this.state.device.IsOpen === false ? 'unlocked' : ''}`} />
                         <div id="vg-box">
-                        <p className="sp-data-text">Trusted License Plates</p>
-                        <List id="vg-list">
-                            <ListItem>    
-                                <ListItemText primary="NS-123-45"/>
-                            </ListItem>
-                            <ListItem>
-                                <ListItemText primary="NS-123-56"/>
-                            </ListItem>
-                        </List>
+                            <p className="sp-data-text">Trusted License Plates</p>
+                            <List id="vg-list">
+                                {this.state.device.LicensePlates.map((licensePlate, index) => (
+                                    <ListItem key={index}>
+                                        <ListItemText primary={licensePlate} />
+                                    </ListItem>
+                                ))}
+                            </List>
                         </div>
-                        <span className='vg-description vg-add'>Add License Plate</span>
+                        <span className='vg-description vg-add'><p onClick={this.openAddLicensePlateDialog}>Add License Plate</p></span>
                     </div>
 
                     <div id="sp-right-card">
@@ -161,6 +223,22 @@ export class VehicleGate extends Component {
                         </form>
                     </div>
                 </div>
+                {this.state.showAddLicensePlateDialog && (
+                <Dialog
+                    title="Add Trusted License Plate"
+                    message="Note that this vehicle will be able to enter property even when the mode is set to private."
+                    onConfirm={this.handleAddLicensePlate}
+                    onCancel={this.handleCancel}
+                    isDiscard={true}
+                />
+                )}
+                <Snackbar
+                    open={this.state.open}
+                    autoHideDuration={3000}
+                    onClose={this.handleClose}
+                    message={this.state.snackbarMessage}
+                    action={this.action}
+                />
             </div>
         )
     }

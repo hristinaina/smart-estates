@@ -67,6 +67,39 @@ class VehicleGateService {
         const responseData = await response.json();
         return responseData;
     }
+
+    async GetLicensePlates(id) {
+        try {
+            const url = `http://localhost:8081/api/vehicle-gate/license-plate/${id}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data;
+        }
+        catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async AddLicensePlate(id, licensePlate) {
+        const url = `http://localhost:8081/api/vehicle-gate/license-plate`
+
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({"DeviceId": id, "LicensePlate": licensePlate}),
+          };
+
+        const response = await fetch(url, requestOptions);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const responseData = await response.json();
+        return responseData;
+    }
 }
 
 export default new VehicleGateService();

@@ -107,6 +107,8 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		vehicleGateRoutes.PUT("/public/:id", vehicleGateController.ToPublic)
 		vehicleGateRoutes.POST("/", vehicleGateController.Add)
 		vehicleGateRoutes.DELETE("/:id", vehicleGateController.Delete)
+		vehicleGateRoutes.GET("/license-plate/:id", vehicleGateController.GetLicensePlates)
 		vehicleGateRoutes.POST("/license-plate", vehicleGateController.AddLicensePlate)
+		vehicleGateRoutes.GET("/license-plate", vehicleGateController.GetAllLicensePlates)
 	}
 }

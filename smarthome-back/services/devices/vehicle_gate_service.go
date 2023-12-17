@@ -19,7 +19,9 @@ type VehicleGateService interface {
 	ToPublic(id int) (models.VehicleGate, error)
 	Add(dto dto.DeviceDTO) (models.VehicleGate, error)
 	Delete(id int) (bool, error)
+	GetLicensePlates(id int) ([]string, error)
 	AddLicensePlate(deviceId int, licensePlate string) (string, error)
+	GetAllLicensePlates() ([]string, error)
 }
 
 type VehicleGateServiceImpl struct {
@@ -145,6 +147,14 @@ func (service *VehicleGateServiceImpl) Delete(id int) (bool, error) {
 	return service.repository.Delete(id)
 }
 
+func (service *VehicleGateServiceImpl) GetLicensePlates(id int) ([]string, error) {
+	return service.repository.GetLicensePlates(id)
+}
+
 func (service *VehicleGateServiceImpl) AddLicensePlate(deviceId int, licensePlate string) (string, error) {
 	return service.repository.AddLicensePlate(deviceId, licensePlate)
+}
+
+func (service *VehicleGateServiceImpl) GetAllLicensePlates() ([]string, error) {
+	return service.repository.GetAllLicensePlates()
 }

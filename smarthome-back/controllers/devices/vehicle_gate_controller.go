@@ -34,8 +34,7 @@ func (controller VehicleGateController) Get(c *gin.Context) {
 
 func (controller VehicleGateController) GetAll(c *gin.Context) {
 	gates, err := controller.service.GetAll()
-	if err != nil {
-		c.JSON(400, gin.H{"error": err})
+	if controllers.CheckIfError(err, c) {
 		return
 	}
 	c.JSON(200, gates)
@@ -47,8 +46,7 @@ func (controller VehicleGateController) Open(c *gin.Context) {
 		return
 	}
 	gate, err := controller.service.Open(id)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err})
+	if controllers.CheckIfError(err, c) {
 		return
 	}
 	c.JSON(200, gate)
@@ -60,8 +58,7 @@ func (controller VehicleGateController) Close(c *gin.Context) {
 		return
 	}
 	gate, err := controller.service.Close(id)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err})
+	if controllers.CheckIfError(err, c) {
 		return
 	}
 	c.JSON(200, gate)
@@ -73,8 +70,7 @@ func (controller VehicleGateController) ToPrivate(c *gin.Context) {
 		return
 	}
 	gate, err := controller.service.ToPrivate(id)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err})
+	if controllers.CheckIfError(err, c) {
 		return
 	}
 	c.JSON(200, gate)
@@ -86,8 +82,7 @@ func (controller VehicleGateController) ToPublic(c *gin.Context) {
 		return
 	}
 	gate, err := controller.service.ToPublic(id)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err})
+	if controllers.CheckIfError(err, c) {
 		return
 	}
 	c.JSON(200, gate)
@@ -102,8 +97,7 @@ func (controller VehicleGateController) Add(c *gin.Context) {
 	}
 
 	gate, err := controller.service.Add(dto)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	if controllers.CheckIfError(err, c) {
 		return
 	}
 
@@ -123,6 +117,18 @@ func (controller VehicleGateController) Delete(c *gin.Context) {
 	c.JSON(204, isDeleted)
 }
 
+func (controller VehicleGateController) GetLicensePlates(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+	licensePlates, err := controller.service.GetLicensePlates(id)
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+	c.JSON(200, licensePlates)
+}
+
 func (controller VehicleGateController) AddLicensePlate(c *gin.Context) {
 	var dto dtos.LicensePlate
 
@@ -132,9 +138,16 @@ func (controller VehicleGateController) AddLicensePlate(c *gin.Context) {
 	}
 
 	licensePlate, err := controller.service.AddLicensePlate(dto.DeviceId, dto.LicensePlate)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	if controllers.CheckIfError(err, c) {
 		return
 	}
 	c.JSON(200, licensePlate)
+}
+
+func (controller VehicleGateController) GetAllLicensePlates(c *gin.Context) {
+	licensePlates, err := controller.service.GetAllLicensePlates()
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+	c.JSON(200, licensePlates)
 }
