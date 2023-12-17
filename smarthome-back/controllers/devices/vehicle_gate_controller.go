@@ -6,6 +6,7 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"smarthome-back/controllers"
 	dto2 "smarthome-back/dto"
+	"smarthome-back/dtos"
 	services "smarthome-back/services/devices"
 	"strconv"
 )
@@ -97,11 +98,13 @@ func (controller VehicleGateController) Add(c *gin.Context) {
 
 	if err := c.BindJSON(&dto); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
+		return
 	}
 
 	gate, err := controller.service.Add(dto)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(200, gate)
@@ -118,4 +121,20 @@ func (controller VehicleGateController) Delete(c *gin.Context) {
 		return
 	}
 	c.JSON(204, isDeleted)
+}
+
+func (controller VehicleGateController) AddLicensePlate(c *gin.Context) {
+	var dto dtos.LicensePlate
+
+	if err := c.BindJSON(&dto); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	licensePlate, err := controller.service.AddLicensePlate(dto.DeviceId, dto.LicensePlate)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, licensePlate)
 }

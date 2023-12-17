@@ -45,7 +45,7 @@ func (sim *VehicleGateSimulator) GenerateVehicleData() {
 		case <- ticker.C:
 			rand.Seed(time.Now().UnixNano())
 			randomNumber := rand.Float64()
-			if randomNumber <= 0.1 {
+			if randomNumber <= 0.2 {
 				sim.HandleCarApproached()
 			}
 		}

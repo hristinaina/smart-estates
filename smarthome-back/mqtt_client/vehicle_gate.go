@@ -11,10 +11,6 @@ import (
 	"time"
 )
 
-// TODO: how to save vehicles that have entered (to simulate exit)?
-// send it to simulation and in simulation save and simulate exit
-// TODO: if gate was already opened, no checking, just send who has entered (also implement manual opening gate on frontend)
-
 func (mc *MQTTClient) HandleVehicleApproached(_ mqtt.Client, msg mqtt.Message) {
 	parts := strings.Split(msg.Topic(), "/")
 
@@ -58,10 +54,8 @@ func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePla
 			if repositories.CheckIfError(err) {
 				return
 			}
-			fmt.Printf("Published that someone has entered and that gate %s is open.\n",
-				gate.ConsumptionDevice.Device.Name)
 			select {
-			case <-time.After(5 * time.Second):
+			case <-time.After(6 * time.Second):
 				_, err = mc.vehicleGateRepository.UpdateIsOpen(gate.ConsumptionDevice.Device.Id, false)
 				if repositories.CheckIfError(err) {
 					return
@@ -70,12 +64,13 @@ func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePla
 				if repositories.CheckIfError(err) {
 					return
 				}
-				fmt.Println("Car has entered. Gate is closing...")
 			}
-			// TODO: publish simulaciji da je vozilo uslo a u simulaciji sacekati rendom vrijeme i onda objaviti napustanje
 		}
 	} else {
-		// TODO: publish that someone has entered and don't close gate after that
+		err := mc.Publish(TopicVGOpenClose+strconv.Itoa(gate.ConsumptionDevice.Device.Id), "open+"+licensePlate+"+"+action)
+		if repositories.CheckIfError(err) {
+			return
+		}
 	}
 }
 

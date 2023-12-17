@@ -20,7 +20,7 @@ type LampService interface {
 	SetLightning(id int, level int) (models.Lamp, error)
 	Add(dto dto.DeviceDTO) (models.Lamp, error)
 	Delete(id int) (bool, error)
-	GetGraphData(id int, from, to string) ([]dtos.GraphData, error)
+	GetGraphData(id int, from, to string) ([]dtos.LampCountGraphData, error)
 }
 
 type LampServiceImpl struct {
@@ -155,7 +155,7 @@ func (ls *LampServiceImpl) Delete(id int) (bool, error) {
 	return true, nil
 }
 
-func (ls *LampServiceImpl) GetGraphData(id int, from, to string) ([]dtos.GraphData, error) {
+func (ls *LampServiceImpl) GetGraphData(id int, from, to string) ([]dtos.LampCountGraphData, error) {
 	values := make(map[float64]int)
 	results := ls.repository.GetLampData(id, from, to)
 
@@ -171,14 +171,14 @@ func (ls *LampServiceImpl) GetGraphData(id int, from, to string) ([]dtos.GraphDa
 			}
 		}
 	}
-	var graphData []dtos.GraphData
+	var graphData []dtos.LampCountGraphData
 	var keys []float64
 	for k := range values {
 		keys = append(keys, k)
 	}
 	sort.Float64s(keys)
 	for _, k := range keys {
-		g := dtos.GraphData{
+		g := dtos.LampCountGraphData{
 			Count: values[k],
 			Value: k,
 		}

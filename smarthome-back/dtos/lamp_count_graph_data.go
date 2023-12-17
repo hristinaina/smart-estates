@@ -1,6 +1,6 @@
 package dtos
 
-type GraphData struct {
+type LampCountGraphData struct {
 	Count int
 	Value float64
 }

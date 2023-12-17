@@ -18,6 +18,7 @@ type VehicleGateRepository interface {
 	UpdateMode(id int, mode enumerations.VehicleGateMode) (bool, error)
 	Delete(id int) (bool, error)
 	GetLicensePlates(id int) ([]string, error)
+	AddLicensePlate(id int, licensePlate string) (string, error)
 }
 
 type VehicleGateRepositoryImpl struct {
@@ -32,7 +33,7 @@ func NewVehicleGateRepository(db *sql.DB, influx influxdb2.Client) VehicleGateRe
 func (repo *VehicleGateRepositoryImpl) Get(id int) (models.VehicleGate, error) {
 	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, v.IsOpen, v.Mode
-			  FROM vehiclegate v 
+			  FROM vehicleGate v 
     		  JOIN ConsumptionDevice ON v.DeviceId = ConsumptionDevice.DeviceId
    			  JOIN Device ON ConsumptionDevice.DeviceId = Device.Id
    			  WHERE Device.Id = ? `
@@ -167,6 +168,15 @@ func (repo *VehicleGateRepositoryImpl) GetLicensePlates(id int) ([]string, error
 
 	licensePlates, err := repo.scanLicensePlateRows(rows)
 	return licensePlates, err
+}
+
+func (repo *VehicleGateRepositoryImpl) AddLicensePlate(id int, licensePlate string) (string, error) {
+	query := `INSERT INTO licensePlate (DeviceId, PlateNumber) VALUES (?, ?)`
+	_, err := repo.db.Exec(query, id, licensePlate)
+	if repositories.CheckIfError(err) {
+		return "", err
+	}
+	return licensePlate, err
 }
 
 func (repo *VehicleGateRepositoryImpl) scanLicensePlateRows(rows *sql.Rows) ([]string, error) {
