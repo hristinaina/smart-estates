@@ -43,7 +43,6 @@ export class VehicleGate extends Component {
         if (!valid) window.location.assign("/");
 
         const device = await VehicleGateService.get(this.id);
-        console.log(device);
 
         const user = authService.getCurrentUser();
         this.Name = device.ConsumptionDevice.Device.Name;
@@ -98,9 +97,10 @@ export class VehicleGate extends Component {
         const tokens = message.toString().split('+');
         let device = this.state.device;
         console.log(message.toString());
-        if (tokens[0] == "open") {
+        console.log(tokens);
+        if (tokens[0] === "open") {
             device.IsOpen = true;
-            if (tokens[2] == "enter") {
+            if (tokens[2] === "enter") {
                 await this.setState({device: device, enterLicensePlate: tokens[1], enter: true, exit: false});
             }
             else {
@@ -108,9 +108,12 @@ export class VehicleGate extends Component {
             }
 
         }
-        else {
+        else if (tokens[0] === "close") {
             device.IsOpen = false;
             await this.setState({device: device, enterLicensePlate: '', enter: false, exit: false});
+        } 
+        else {
+            await this.setState({enterLicensePlate: '', enter: false, exit: false});
         }
     }
 
