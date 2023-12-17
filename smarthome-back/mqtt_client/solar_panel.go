@@ -82,6 +82,12 @@ func (mc *MQTTClient) handleProduction(device models.SolarPanel, value float64) 
 func (mc *MQTTClient) calculateProductionForBatteries(batteries []models.HomeBattery, deviceId int, valuePerBattery float64, isSurplus bool) float64 {
 	surplus := 0.0
 	for _, hb := range batteries {
+		if !hb.Device.IsOnline {
+			if !isSurplus {
+				surplus = surplus + valuePerBattery
+			}
+			continue
+		}
 		if hb.CurrentValue+valuePerBattery <= hb.Size {
 			hb.CurrentValue = hb.CurrentValue + valuePerBattery
 			saveSPDataToInfluxDb(mc.influxDb, deviceId, strconv.Itoa(hb.Device.Id), valuePerBattery)

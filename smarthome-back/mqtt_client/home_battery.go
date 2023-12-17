@@ -58,6 +58,12 @@ func (mc *MQTTClient) handleConsumption(device models.Device, consumptionValue f
 func (mc *MQTTClient) calculateConsumptionForBatteries(batteries []models.HomeBattery, realEstateId int, deviceId int, consumptionValue float64, isSurplus bool) float64 {
 	surplus := 0.0
 	for _, hb := range batteries {
+		if !hb.Device.IsOnline {
+			if !isSurplus {
+				surplus = surplus + consumptionValue
+			}
+			continue
+		}
 		if hb.CurrentValue-consumptionValue >= 0 { //end
 			//everything that was supposed to be taken from battery was successfully taken
 			hb.CurrentValue = hb.CurrentValue - consumptionValue
