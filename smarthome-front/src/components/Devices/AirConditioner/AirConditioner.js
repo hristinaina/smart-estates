@@ -118,25 +118,59 @@ export class AirConditioner extends Component {
     }
 
     handleSwitchToggle = (item) => {
+        let i = 0
         const { mode } = this.state;
+
+        const canTurnOn = this.canTurnOn(item.name, item.temp)
     
         // turn off if it's on
         const updatedMode = mode.map((m) => {
-            if (m.name === item.name) {
+            if (m.name === item.name && canTurnOn) {
                 return {
                     ...m,
                     switchOn: !m.switchOn,
                 };
-            } else {
-                // turn off others
-                if(m.switchOn) {
+            } else { 
+                // ako je bio upaljen, posalji da se gasi            
+                if(m.switchOn && i===0) {
                     console.log("uslo")
                     this.setState({ previousMode: m.name }, () => {
                         console.log(this.state.previousMode);
-                        // Ovde možete obaviti dalje radnje nakon što je previousMode postavljen
-                    });
+                        console.log(item.name)
+                        // todo posalji simulaciji
+                        if(canTurnOn || this.state.previousMode === item.name) {
+                            // console.log("ovo je prvo")
+                            // console.log(item.name)
+                            // console.log(item.temp)
+                            // console.log(m.name)
+                            // console.log(!item.switchOn)
+                            ++i
+                        // this.sendDataToSimulation(item.name, item.temp, this.state.previousMode, item.switchOn)
+                                    }
+                                }
+                                );
                 }
-                
+                else {
+                    if(canTurnOn && i===0) {
+                        // ovo znaci da nista pre toga nije bilo ukljuceno/iskljuceno
+                    console.log("ovo je drugo")
+                    this.setState({ previousMode: '' }, () => {
+                        // todo posalji simulaciji
+                       });
+                        console.log(this.state.previousMode);
+                        console.log(item.name)
+                       if(canTurnOn || this.state.previousMode === item.name) {
+                        // console.log(item.name)
+                        // console.log(item.temp)
+                        // console.log('')
+                        // console.log(!item.switchOn)
+                        i++
+                    // this.sendDataToSimulation(item.name, item.temp, this.state.previousMode, item.switchOn)
+                                }
+                    }                   
+                }
+
+                // turn off others
                 return {
                     ...m,
                     switchOn: false,
@@ -145,11 +179,46 @@ export class AirConditioner extends Component {
         });
     
         this.setState({ mode: updatedMode });
-    
-        // console.log(this.state.previousMode)
-        // console.log(this.state.mode)
-        // todo posalji simulaciji
     };
+
+    sendDataToSimulation = (mode, temp, previous, isSwitchOn) => {
+        const topic = "ac/switch/" + this.id;
+
+        var message = {
+            "Mode": mode,
+            "Switch": isSwitchOn,
+            "Temp": temp,
+            "Previous": previous,
+            "UserEmail": authService.getCurrentUser().Email,
+        }
+        this.mqttClient.publish(topic, JSON.stringify(message));
+
+        // this.setState({ snackbarMessage: "Successfully changed switch state!" });
+        // this.handleClick();
+    }
+
+    canTurnOn = (mode, temp) => {
+        const { device, currentTemp } = this.state
+        // da li je uneta temperatura u rasponu device.min i device.max
+        if(device.MinTemperature > temp || temp > device.MaxTemperature) {
+            this.setState({ snackbarMessage: "Temperature out of the range" });
+            this.handleClick();
+            return false
+        } 
+        // ako je grejanje ukljuceno da li je veca od trenutne
+        else if(mode === "Heating" && temp <= currentTemp) {
+            this.setState({ snackbarMessage: "Invalid heating temperature" });
+            this.handleClick();
+            return false
+        }
+        // ako je hladjenje ukljuceno da li je manja od trenutne
+        else if(mode === "Cooling" && temp >= currentTemp) {
+            this.setState({ snackbarMessage: "Invalid cooling temperature" });
+            this.handleClick();
+            return false
+        }
+        return true
+    } 
     
 
     handleTemperatureChange = (item, event) => {
@@ -215,15 +284,21 @@ export class AirConditioner extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
+                <img src='/images/arrow.png' alt='arrow' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
                 <span className='estate-title'>{this.Name}</span>
                 <div className='sp-container'>
                     <div id="ac-left-card">
                         <p className='sp-card-title'>Supported Modes</p>
                         <div style={{marginBottom: "25px"}}>
+                            <div>
+                                <span className='ac-current-temp'>Min temp:  </span>
+                                <span><b>{device.MinTemperature}</b></span>
+                                <span style={{marginLeft: "50px"}}></span>
+                                <span className='ac-current-temp'>Max temp:  </span>
+                                <span><b>{device.MaxTemperature}</b></span>
+                            </div>
                             <span className='ac-current-temp'>Current temp:  </span>
-                            {/* <p><b>{device.Value}</b></p> */}
-                            <span><b>{ currentTemp }</b></span>
+                            <span><b>{ currentTemp }</b></span>                         
                         </div>                                                 
                         {mode.map((item, index) => {
                         return (
@@ -234,22 +309,22 @@ export class AirConditioner extends Component {
                                 onChange={() => this.handleSwitchToggle(item)}
                             />
                             <Typography style={{ fontSize: '1.1em' }}>On</Typography>
-                            <span style={{ flex: 1 }}>{item.name}</span>
-                            {item !== 'Ventilation' && (
+                            <span style={{ flex: 1 }}>{item.name}</span>                            
                                 <FormControl style={{ width: '80px' }}>
+                                {item.name !== 'Ventilation' && (
                                     <Input
                                         type="number"
                                         value={item.temp}
                                         onChange={(event) => this.handleTemperatureChange(item, event)}
                                         inputProps={{
-                                            min: device.MinTemperature, // Postavite minimalnu vrednost prema potrebi
-                                            max: device.MaxTemperature, // Postavite maksimalnu vrednost prema potrebi
+                                            min: device.MinTemperature, 
+                                            max: device.MaxTemperature,
                                         }}
                                     />
-                                </FormControl>
-                            )}
+                                    )}
+                                </FormControl>                          
                         </div>
-                    )
+                        )
                     })}
 
                     </div>
