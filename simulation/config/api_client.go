@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -79,6 +80,33 @@ func GetSP(id int) (models.SolarPanel, error) {
 	err = json.Unmarshal(body, &device)
 	if err != nil {
 		return models.SolarPanel{}, fmt.Errorf("error unmarshalling JSON: %v", err)
+	}
+
+	return device, nil
+}
+
+func GetAC(id int) (models.AirConditioner, error) {
+	fmt.Println(id)
+	url := api + "/ac/" + strconv.Itoa(id)
+
+	response, err := http.Get(url)
+	if err != nil {
+		fmt.Println(err)
+		return models.AirConditioner{}, fmt.Errorf("error making GET request: %v", err)
+	}
+	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println(err)
+		return models.AirConditioner{}, fmt.Errorf("error reading response body: %v", err)
+	}
+
+	var device models.AirConditioner
+	err = json.Unmarshal(body, &device)
+	if err != nil {
+		fmt.Println(err)
+		return models.AirConditioner{}, fmt.Errorf("error unmarshalling JSON: %v", err)
 	}
 
 	return device, nil

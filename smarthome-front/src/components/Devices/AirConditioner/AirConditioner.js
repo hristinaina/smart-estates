@@ -1,13 +1,10 @@
 import React, { Component } from 'react';
-import {Line} from 'react-chartjs-2';
-import 'chartjs-adapter-date-fns'
 import '../Devices.css';
-import 'chart.js/auto';
+import'./AirConditioner.css'
 import { Navigation } from '../../Navigation/Navigation';
 import authService from '../../../services/AuthService'
-import AmbientSensorService from '../../../services/AmbientSensorService';
+import mqtt from 'mqtt';
 import { Autocomplete, TextField, Button, Box, Grid, IconButton, Snackbar, Stack, Typography, Switch, Input, FormControl } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
 import DeviceService from '../../../services/DeviceService';
 
 
@@ -27,6 +24,8 @@ export class AirConditioner extends Component {
             snackbarMessage: '',
             showSnackbar: false,
             open: false,
+            temp: 20,
+            currentTemp: 20.0
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -60,36 +59,37 @@ export class AirConditioner extends Component {
         //     endDate: "2023-12-23",
         // });
 
-    //     try {
-    //         if (!this.connected) {
-    //             this.connected = true;
-    //             // this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
-    //             //     clientId: "react-front-nvt-2023-sp",
-    //             //     clean: false,
-    //             //     keepalive: 60
-    //             // });
+        try {
+            if (!this.connected) {
+                this.connected = true;
+                this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
+                    clientId: "react-front-nvt-2023-ac",
+                    clean: false,
+                    keepalive: 60
+                });
 
-    //             // Subscribe to the MQTT topic
-    //             this.mqttClient.on('connect', () => {
-    //                 this.mqttClient.subscribe('sp/data/' + this.id);
-    //             });
+                // Subscribe to the MQTT topic
+                this.mqttClient.on('connect', () => {
+                    this.mqttClient.subscribe('ac/temp');
+                    // this.mqttClient.subscribe('ac/data/' + this.id);
+                });
 
-    //             // Handle incoming MQTT messages
-    //             this.mqttClient.on('message', (topic, message) => {
-    //                 this.handleMqttMessage(topic, message);
-    //             });
-    //         }
-    //     } catch (error) {
-    //         console.log("Error trying to connect to broker");
-    //         console.log(error);
-    //     }
-    // }
+                // Handle incoming MQTT messages
+                this.mqttClient.on('message', (topic, message) => {
+                    this.handleMqttMessage(topic, message);
+                });
+            }
+        } catch (error) {
+            console.log("Error trying to connect to broker");
+            console.log(error);
+        }
+    }
 
-    // componentWillUnmount() {
-    //     // Disconnect MQTT client on component unmount
-    //     if (this.mqttClient) {
-    //         this.mqttClient.end();
-    //     }
+    componentWillUnmount() {
+        // Disconnect MQTT client on component unmount
+        if (this.mqttClient) {
+            this.mqttClient.end();
+        }
     }
 
     handleSwitchToggle = () => {
@@ -110,28 +110,21 @@ export class AirConditioner extends Component {
 
     // Handle incoming MQTT messages
     handleMqttMessage(topic, message) {
-        const { device } = this.state;
-        const newValue = message.toString();
-        const updatedData =
-        {
-            ...device,
-            Value: newValue,
-        }
         this.setState({
-            device: updatedData,
+            currentTemp: JSON.parse(message.toString()).temp
         });
     }
 
-    handleFormSubmit = async (e) => {
-        e.preventDefault();
+    // handleFormSubmit = async (e) => {
+    //     e.preventDefault();
 
-        const { email, startDate, endDate } = this.state;
-        console.log(email, startDate, endDate);
-        // const historyData = await DeviceService.getSPGraphData(this.id, email, startDate, endDate);
-        // this.setState({
-        //     data: historyData,
-        // });
-    };
+    //     const { email, startDate, endDate } = this.state;
+    //     console.log(email, startDate, endDate);
+    //     // const historyData = await DeviceService.getSPGraphData(this.id, email, startDate, endDate);
+    //     // this.setState({
+    //     //     data: historyData,
+    //     // });
+    // };
 
     extractDeviceIdFromUrl() {
         const parts = window.location.href.split('/');
@@ -155,7 +148,7 @@ export class AirConditioner extends Component {
     };
 
     render() {
-        const { device, mode, switchOn, data, email, startDate, endDate } = this.state;
+        const { device, mode, switchOn, data, email, startDate, endDate, temp, currentTemp} = this.state;
 
         return (
             <div>
@@ -163,44 +156,34 @@ export class AirConditioner extends Component {
                 <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
                 <span className='estate-title'>{this.Name}</span>
                 <div className='sp-container'>
-                    <div id="sp-left-card">
+                    <div id="ac-left-card">
                         <p className='sp-card-title'>Supported Modes</p>
-                        {/* <p className='sp-data-text'>Number of panels:</p> */}
-                        {/* <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.NumberOfPanels} InputProps={{
-                            readOnly: true,
-                        }} />
-                        <p className='sp-data-text'>Surface area per panel (m<sup>2</sup>):</p>
-                        <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.SurfaceArea} InputProps={{
-                            readOnly: true,
-                        }} />
-                        <p className='sp-data-text'>Efficiency per panel (%):</p>
-                        <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.Efficiency} InputProps={{
-                            readOnly: true,
-                        }} /> */}
-                        {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
-                        {/* <p className='sp-data-text'>Status: </p> */}
-                        {/* <Stack direction="row" className="status-alingment" spacing={1} alignItems="center"> */}
+                        <div style={{marginBottom: "25px"}}>
+                            <span className='ac-current-temp'>Current temp:  </span>
+                            {/* <p><b>{device.Value}</b></p> */}
+                            <span><b>{ currentTemp }</b></span>
+                        </div>                                                 
                         {mode.map((item) => (
-                            <div key={item}>
-                                <Typography style={{ display: "inline", fontSize: "1.1em" }}>Off</Typography>
-                                <Switch
-                                    checked={switchOn}
-                                    onChange={this.handleSwitchToggle}
-                                />
-                                <Typography style={{ display: "inline", fontSize: "1.1em" }}>On</Typography>
-                                <span>{item}</span>
+                        <div key={item} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography style={{ fontSize: '1.1em' }}>Off</Typography>
+                            <Switch
+                                checked={switchOn}
+                                onChange={this.handleSwitchToggle}
+                            />
+                            <Typography style={{ fontSize: '1.1em' }}>On</Typography>
+                            <span style={{ flex: 1 }}>{item}</span>
+                            {item !== 'Ventilation' && (
                                 <FormControl style={{ width: '80px' }}>
                                     <Input
                                         type="number"
-                                        // value={temperature}
+                                        value={temp}
                                         onChange={this.handleTemperatureChange}
                                     />
                                 </FormControl>
-                            </div>
-                        ))}
-                        {/* </Stack> */}
-                        <p className='sp-data-text'>Produced electricity in previous minute (kW/m<sup>2</sup>): </p>
-                        <p><b>{device.Value}</b></p>
+                            )}
+                        </div>
+                    ))}
+
                     </div>
                     <div id='sp-right-card'>
                         <p className='sp-card-title'>Switch History</p>

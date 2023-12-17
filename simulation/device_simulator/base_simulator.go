@@ -53,8 +53,8 @@ func StartSimulation(client mqtt.Client, d models.Device) {
 		ambient_sensor.ConnectAmbientSensor()
 	case 1:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
-		lamp := NewLampSimulator(client, d)
-		lamp.ConnectLamp()
+		air_conditioner := NewAirConditionerSimulator(client, d)
+		air_conditioner.ConnectAirConditioner()
 	case 6:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		sp := NewSolarPanelSimulator(client, d)

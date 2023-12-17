@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"database/sql"
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"net/http"
 	"smarthome-back/services"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AirConditionerController struct {
@@ -24,5 +26,7 @@ func (uc AirConditionerController) Get(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Device not found"})
 		return
 	}
+	fmt.Println("KLIMA")
+	fmt.Println(device)
 	c.JSON(http.StatusOK, device)
 }

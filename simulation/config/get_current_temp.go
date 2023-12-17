@@ -18,7 +18,6 @@ func GetTemp() (models.OpenMeteoTempResponse, error) {
 	params.Set("houtly", "temperature_2m,relative_humidity_2m")
 	params.Set("timezone", "Europe/Berlin")
 	fullURL := fmt.Sprintf("%s?%s", apiUrl, params.Encode())
-	fmt.Println(fullURL)
 
 	response, err := http.Get(fullURL)
 	if err != nil {
