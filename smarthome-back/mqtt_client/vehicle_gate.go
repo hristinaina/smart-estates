@@ -13,7 +13,7 @@ import (
 
 // TODO: how to save vehicles that have entered (to simulate exit)?
 // send it to simulation and in simulation save and simulate exit
-// TODO: if gate was already opened, no checking, just send who has entered
+// TODO: if gate was already opened, no checking, just send who has entered (also implement manual opening gate on frontend)
 
 func (mc *MQTTClient) HandleVehicleApproached(_ mqtt.Client, msg mqtt.Message) {
 	parts := strings.Split(msg.Topic(), "/")
@@ -30,26 +30,34 @@ func (mc *MQTTClient) HandleVehicleApproached(_ mqtt.Client, msg mqtt.Message) {
 		return
 	}
 
-	licensePlate := string(msg.Payload())
+	payload := string(msg.Payload())
+	payloadTokens := strings.Split(payload, "+")
+	licensePlate := payloadTokens[0]
+	fmt.Printf("Payload: %s", payload)
+	action := payloadTokens[1]
 
 	fmt.Printf("Car with license plate: %s, approached to gate: %s with id: %d\n", licensePlate,
 		gate.ConsumptionDevice.Device.Name, gate.ConsumptionDevice.Device.Id)
 
-	mc.CheckApproachedVehicle(gate, licensePlate)
+	if action == "enter" {
+		mc.CheckApproachedVehicle(gate, licensePlate, "enter")
+	} else {
+		fmt.Printf("%s is leaving...", licensePlate)
+		mc.CheckApproachedVehicle(gate, licensePlate, "exit")
+	}
 }
 
-func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePlate string) {
+func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePlate string, action string) {
 	if !gate.IsOpen {
-		if (gate.Mode == enumerations.Public) || (contains(gate.LicensePlates, licensePlate)) {
+		if (gate.Mode == enumerations.Public) || (contains(gate.LicensePlates, licensePlate)) || (action == "exit") {
 			_, err := mc.vehicleGateRepository.UpdateIsOpen(gate.ConsumptionDevice.Device.Id, true)
 			if repositories.CheckIfError(err) {
 				return
 			}
-			err = mc.Publish(TopicVGOpenClose+strconv.Itoa(gate.ConsumptionDevice.Device.Id), "open+"+licensePlate+"+enter")
+			err = mc.Publish(TopicVGOpenClose+strconv.Itoa(gate.ConsumptionDevice.Device.Id), "open+"+licensePlate+"+"+action)
 			if repositories.CheckIfError(err) {
 				return
 			}
-			// TODO: add somewhere who is inside (publish that someone has entered)
 			fmt.Printf("Published that someone has entered and that gate %s is open.\n",
 				gate.ConsumptionDevice.Device.Name)
 			select {
@@ -64,9 +72,16 @@ func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePla
 				}
 				fmt.Println("Car has entered. Gate is closing...")
 			}
+			// TODO: publish simulaciji da je vozilo uslo a u simulaciji sacekati rendom vrijeme i onda objaviti napustanje
 		}
 	} else {
-		// TODO: publish that someone has entered
+		// TODO: publish that someone has entered and don't close gate after that
+	}
+}
+
+func (mc *MQTTClient) Exit(gate models.VehicleGate, licensePlate string) {
+	if !gate.IsOpen {
+
 	}
 }
 

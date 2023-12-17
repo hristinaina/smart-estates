@@ -22,6 +22,7 @@ export class VehicleGate extends Component {
             endDate: '',
             enterLicensePlate: '',
             enter: false,
+            exit: false,
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -90,16 +91,16 @@ export class VehicleGate extends Component {
         if (tokens[0] == "open") {
             device.IsOpen = true;
             if (tokens[2] == "enter") {
-                await this.setState({device: device, enterLicensePlate: tokens[1], enter: true});
+                await this.setState({device: device, enterLicensePlate: tokens[1], enter: true, exit: false});
             }
             else {
-                await this.setState({device: device, enterLicensePlate: tokens[1], enter: false});
+                await this.setState({device: device, enterLicensePlate: tokens[1], enter: false, exit: true});
             }
 
         }
         else {
             device.IsOpen = false;
-            await this.setState({device: device, enterLicensePlate: '', enter: false});
+            await this.setState({device: device, enterLicensePlate: '', enter: false, exit: false});
         }
     }
 
@@ -120,7 +121,8 @@ export class VehicleGate extends Component {
                         <img src='/images/public.png' className={`vg-icon vg-padlock ${this.state.device.Mode === 0 ? 'unlocked': ''}`} onClick={ () => this.handleModeChange(1)}/>
                         <p className="sp-data-text">State</p>
                         <p className="vg-description">{this.state.device.IsOpen === true ? 'Opened' : 'Closed'}</p>
-                        <p className="vg-description">{this.state.enterLicensePlate} {this.state.enter === true ? ' is entering...' : ''}</p>
+                        <p className="vg-description">{this.state.exit === false ? this.state.enterLicensePlate : ''} {this.state.enter === true ? ' is entering...' : ''}</p>
+                        <p className="vg-description">{this.state.enter === false ? this.state.enterLicensePlate : ''} {this.state.exit === true ? ' is exiting...' : ''}</p>
                         <img src='/images/closed-gate.png' className={`vg-icon ${this.state.device.IsOpen === true ? 'unlocked' : ''}`} />
                         <img src='/images/opened-gate.png' className={`vg-icon ${this.state.device.IsOpen === false ? 'unlocked' : ''}`} />
                         <div id="vg-box">
