@@ -24,8 +24,27 @@ export class AirConditioner extends Component {
             snackbarMessage: '',
             showSnackbar: false,
             open: false,
-            temp: 20,
-            currentTemp: 20.0
+            // temp: 20,
+            currentTemp: 20.0,
+
+            // Heating: {
+            //     switch: false,
+            //     temp: 20.0
+            // }, 
+            // Cooling: {
+            //     switch: false,
+            //     temp: 20.0
+            // },
+            // Automatic: {
+            //     switch: false,
+            //     temp: 20.0
+            // },
+            // Ventilation: {
+            //     switch: false,
+            //     temp: 20.0
+            // },
+
+            previousMode: ''
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -37,7 +56,13 @@ export class AirConditioner extends Component {
         if (!valid) window.location.assign("/");
 
         const device = await DeviceService.getDeviceById(this.id, 'http://localhost:8081/api/ac/');
-        this.setState({mode: device.Mode.split(',')})
+        const updatedMode = device.Mode.split(',').map((m) => ({
+            name: m,
+            switchOn: false,
+            temp: 20.0
+        }));
+        this.setState({mode: updatedMode})
+        console.log(this.state.mode)
         this.setState({device: device})
     
         const updatedData =
@@ -92,21 +117,44 @@ export class AirConditioner extends Component {
         }
     }
 
-    handleSwitchToggle = () => {
-        // const topic = "sp/switch/" + this.id;
-
-        // this.setState((prevState) => ({
-        //     switchOn: !prevState.switchOn,
-        // }));
-        // var message = {
-        //     "IsOn": (!this.state.switchOn),
-        //     "UserEmail": authService.getCurrentUser().Email,
-        // }
-        // this.mqttClient.publish(topic, JSON.stringify(message));
-
-        // this.setState({ snackbarMessage: "Successfully changed switch state!" });
-        // this.handleClick();
+    handleSwitchToggle = (item) => {
+        const { mode } = this.state;
+    
+        // turn off if it's on
+        const updatedMode = mode.map((m) => {
+            if (m.name === item.name) {
+                return {
+                    ...m,
+                    switchOn: !m.switchOn,
+                };
+            } else {
+                // turn off others
+                if(m.switchOn) {
+                    console.log("uslo")
+                    this.setState({ previousMode: m.name }, () => {
+                        console.log(this.state.previousMode);
+                        // Ovde možete obaviti dalje radnje nakon što je previousMode postavljen
+                    });
+                }
+                
+                return {
+                    ...m,
+                    switchOn: false,
+                };
+            }
+        });
+    
+        this.setState({ mode: updatedMode });
+    
+        // console.log(this.state.previousMode)
+        // console.log(this.state.mode)
+        // todo posalji simulaciji
     };
+    
+
+    handleTemperatureChange = () => {
+        
+    }
 
     // Handle incoming MQTT messages
     handleMqttMessage(topic, message) {
@@ -115,16 +163,16 @@ export class AirConditioner extends Component {
         });
     }
 
-    // handleFormSubmit = async (e) => {
-    //     e.preventDefault();
+    handleFormSubmit = async (e) => {
+        // e.preventDefault();
 
-    //     const { email, startDate, endDate } = this.state;
-    //     console.log(email, startDate, endDate);
-    //     // const historyData = await DeviceService.getSPGraphData(this.id, email, startDate, endDate);
-    //     // this.setState({
-    //     //     data: historyData,
-    //     // });
-    // };
+        // const { email, startDate, endDate } = this.state;
+        // console.log(email, startDate, endDate);
+        // const historyData = await DeviceService.getSPGraphData(this.id, email, startDate, endDate);
+        // this.setState({
+        //     data: historyData,
+        // });
+    };
 
     extractDeviceIdFromUrl() {
         const parts = window.location.href.split('/');
@@ -163,26 +211,28 @@ export class AirConditioner extends Component {
                             {/* <p><b>{device.Value}</b></p> */}
                             <span><b>{ currentTemp }</b></span>
                         </div>                                                 
-                        {mode.map((item) => (
-                        <div key={item} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        {mode.map((item, index) => {
+                        return (
+                        <div key={`${item.name}-${index}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography style={{ fontSize: '1.1em' }}>Off</Typography>
                             <Switch
-                                checked={switchOn}
-                                onChange={this.handleSwitchToggle}
+                                checked={item.switchOn}
+                                onChange={() => this.handleSwitchToggle(item)}
                             />
                             <Typography style={{ fontSize: '1.1em' }}>On</Typography>
-                            <span style={{ flex: 1 }}>{item}</span>
+                            <span style={{ flex: 1 }}>{item.name}</span>
                             {item !== 'Ventilation' && (
                                 <FormControl style={{ width: '80px' }}>
                                     <Input
                                         type="number"
-                                        value={temp}
+                                        value={item.temp}
                                         onChange={this.handleTemperatureChange}
                                     />
                                 </FormControl>
                             )}
                         </div>
-                    ))}
+                    )
+                    })}
 
                     </div>
                     <div id='sp-right-card'>

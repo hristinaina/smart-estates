@@ -86,7 +86,6 @@ func GetSP(id int) (models.SolarPanel, error) {
 }
 
 func GetAC(id int) (models.AirConditioner, error) {
-	fmt.Println(id)
 	url := api + "/ac/" + strconv.Itoa(id)
 
 	response, err := http.Get(url)
