@@ -4,12 +4,13 @@ import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	models "smarthome-back/models/devices"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func (mc *MQTTClient) HandleConsumption(client mqtt.Client, msg mqtt.Message) {
+func (mc *MQTTClient) HandleHBData(client mqtt.Client, msg mqtt.Message) {
 	// Retrieve the last part of the split string, which is the device ID
 	parts := strings.Split(msg.Topic(), "/")
 	deviceId, err := strconv.Atoi(parts[len(parts)-1])
@@ -29,33 +30,63 @@ func (mc *MQTTClient) HandleConsumption(client mqtt.Client, msg mqtt.Message) {
 	if err != nil {
 		return
 	}
+	mc.handleConsumption(device, consumptionValue)
+	fmt.Printf("Device: name=%s, id=%d, consumption value %f \n", device.Name, device.Id, consumptionValue)
+}
+
+func (mc *MQTTClient) handleConsumption(device models.Device, consumptionValue float64) {
 	batteries, err := mc.homeBatteryRepository.GetAllByEstateId(device.RealEstate)
 	if err != nil {
 		return
 	}
-	fmt.Println("deviceID: ", deviceId, " realEstateID: ", device.RealEstate)
+	surplus := 0.0
+	if len(batteries) != 0 {
+		valuePerBattery := consumptionValue / float64(len(batteries))
+		// value is divided between batteries and each battery takes the same value
+		surplus = mc.calculateConsumptionForBatteries(batteries, device.RealEstate, device.Id, valuePerBattery, false)
+		if surplus != 0.0 {
+			// surplus=what was left (if one of the batteries was full) is sent to batteries again (not divided)
+			surplus = mc.calculateConsumptionForBatteries(batteries, device.RealEstate, device.Id, surplus, true)
+		}
+	} else if len(batteries) == 0 {
+		saveConsumptionToInfluxDb(mc.influxDb, device.RealEstate, device.Id, "electrical_distribution", consumptionValue)
+	} else if surplus != 0.0 {
+		saveConsumptionToInfluxDb(mc.influxDb, device.RealEstate, device.Id, "electrical_distribution", surplus)
+	}
+}
+
+func (mc *MQTTClient) calculateConsumptionForBatteries(batteries []models.HomeBattery, realEstateId int, deviceId int, consumptionValue float64, isSurplus bool) float64 {
+	surplus := 0.0
 	for _, hb := range batteries {
-		fmt.Println("\tbattery id", hb.Device.Id)
 		if hb.CurrentValue-consumptionValue >= 0 { //end
+			//everything that was supposed to be taken from battery was successfully taken
 			hb.CurrentValue = hb.CurrentValue - consumptionValue
-			saveConsumptionToInfluxDb(mc.influxDb, device.RealEstate, device.Id, strconv.Itoa(hb.Device.Id), consumptionValue)
+			saveConsumptionToInfluxDb(mc.influxDb, realEstateId, deviceId, strconv.Itoa(hb.Device.Id), consumptionValue)
 			mc.homeBatteryRepository.Update(hb)
 			SaveHBDataToInfluxDb(mc.influxDb, hb.Device.Id, hb.CurrentValue)
-			consumptionValue = 0
-			break
+			if isSurplus {
+				consumptionValue = 0
+				break
+			}
 		} else { //continue
+			//not everything that was supposed to be taken from the battery was taken
 			consumed := hb.CurrentValue
-			consumptionValue = consumptionValue - hb.CurrentValue
 			hb.CurrentValue = 0
-			saveConsumptionToInfluxDb(mc.influxDb, device.RealEstate, device.Id, strconv.Itoa(hb.Device.Id), consumed)
+			if isSurplus {
+				consumptionValue = consumptionValue - hb.CurrentValue
+			} else {
+				surplus = surplus + consumptionValue - consumed
+			}
+			saveConsumptionToInfluxDb(mc.influxDb, realEstateId, deviceId, strconv.Itoa(hb.Device.Id), consumed)
 			mc.homeBatteryRepository.Update(hb)
 			SaveHBDataToInfluxDb(mc.influxDb, hb.Device.Id, hb.CurrentValue)
 		}
 	}
-	if consumptionValue != 0 {
-		saveConsumptionToInfluxDb(mc.influxDb, device.RealEstate, device.Id, "electrical_distribution", consumptionValue)
+	if isSurplus {
+		return consumptionValue
+	} else {
+		return surplus
 	}
-
 }
 
 func saveConsumptionToInfluxDb(client influxdb2.Client, estateId, deviceId int, batteryId string, electricity float64) {

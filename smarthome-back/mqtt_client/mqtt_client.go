@@ -59,7 +59,7 @@ func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicAmbientSensor, mc.ReceiveValue)
 	mc.SubscribeToTopic(TopicSPSwitch+"+", mc.HandleSPSwitch)
 	mc.SubscribeToTopic(TopicSPData+"+", mc.HandleSPData)
-	mc.SubscribeToTopic(TopicConsumption+"+", mc.HandleConsumption)
+	mc.SubscribeToTopic(TopicConsumption+"+", mc.HandleHBData)
 	//todo subscribe here to other topics. Create your callback functions in other file
 
 	mc.StartDeviceStatusThread()

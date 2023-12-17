@@ -51,13 +51,13 @@ func (mc *MQTTClient) HandleSPData(client mqtt.Client, msg mqtt.Message) {
 		return
 	}
 	device := mc.solarPanelRepository.Get(deviceId)
-	mc.handleValue(device, value)
+	mc.handleProduction(device, value)
 	//mc.solarPanelRepository.UpdateSP(device)
 	//mc.deviceRepository.Update(device.Device)
 	fmt.Printf("Solar panel: name=%s, id=%d, generated value %f \n", device.Device.Name, device.Device.Id, value)
 }
 
-func (mc *MQTTClient) handleValue(device models.SolarPanel, value float64) {
+func (mc *MQTTClient) handleProduction(device models.SolarPanel, value float64) {
 	batteries, err := mc.homeBatteryRepository.GetAllByEstateId(device.Device.RealEstate)
 	if err != nil {
 		return
@@ -66,10 +66,10 @@ func (mc *MQTTClient) handleValue(device models.SolarPanel, value float64) {
 	if len(batteries) != 0 {
 		valuePerBattery := value / float64(len(batteries))
 		// value is divided between batteries and each battery takes the same value
-		surplus = mc.calculateValueForBatteries(batteries, device.Device.Id, valuePerBattery, false)
+		surplus = mc.calculateProductionForBatteries(batteries, device.Device.Id, valuePerBattery, false)
 		if surplus != 0.0 {
 			// surplus=what was left (if one of the batteries was full) is sent to batteries again (not divided)
-			surplus = mc.calculateValueForBatteries(batteries, device.Device.Id, surplus, true)
+			surplus = mc.calculateProductionForBatteries(batteries, device.Device.Id, surplus, true)
 		}
 	} else if len(batteries) == 0 {
 		saveSPDataToInfluxDb(mc.influxDb, device.Device.Id, "electrical_distribution", value)
@@ -79,7 +79,7 @@ func (mc *MQTTClient) handleValue(device models.SolarPanel, value float64) {
 
 }
 
-func (mc *MQTTClient) calculateValueForBatteries(batteries []models.HomeBattery, deviceId int, valuePerBattery float64, isSurplus bool) float64 {
+func (mc *MQTTClient) calculateProductionForBatteries(batteries []models.HomeBattery, deviceId int, valuePerBattery float64, isSurplus bool) float64 {
 	surplus := 0.0
 	for _, hb := range batteries {
 		if hb.CurrentValue+valuePerBattery <= hb.Size {
