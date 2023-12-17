@@ -24,7 +24,7 @@ export class AirConditioner extends Component {
             snackbarMessage: '',
             showSnackbar: false,
             open: false,
-            // temp: 20,
+            temp: 20.0,
             currentTemp: 20.0,
 
             // Heating: {
@@ -152,8 +152,22 @@ export class AirConditioner extends Component {
     };
     
 
-    handleTemperatureChange = () => {
-        
+    handleTemperatureChange = (item, event) => {
+        const { mode } = this.state;
+        // console.log(event.target.value)
+        // event.target.value = event.target.value == '' ? this.state.device.MinTemperature : event.target.value
+
+        const currentIndex = mode.findIndex((m) => m.name === item.name);
+
+        if (currentIndex !== -1) {
+            const updatedMode = [...mode];
+            updatedMode[currentIndex] = {
+                ...updatedMode[currentIndex],
+                temp: parseFloat(event.target.value),
+            };
+
+            this.setState({ mode: updatedMode });
+        }
     }
 
     // Handle incoming MQTT messages
@@ -226,7 +240,11 @@ export class AirConditioner extends Component {
                                     <Input
                                         type="number"
                                         value={item.temp}
-                                        onChange={this.handleTemperatureChange}
+                                        onChange={(event) => this.handleTemperatureChange(item, event)}
+                                        inputProps={{
+                                            min: device.MinTemperature, // Postavite minimalnu vrednost prema potrebi
+                                            max: device.MaxTemperature, // Postavite maksimalnu vrednost prema potrebi
+                                        }}
                                     />
                                 </FormControl>
                             )}
