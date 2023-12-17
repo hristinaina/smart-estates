@@ -4,7 +4,6 @@ import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	models "smarthome-back/models/devices"
 	"strconv"
 	"strings"
 	"time"
@@ -41,35 +40,30 @@ func (mc *MQTTClient) HandleConsumption(client mqtt.Client, msg mqtt.Message) {
 		fmt.Println("\tbattery id", hb.Device.Id)
 		if hb.CurrentValue-consumptionValue >= 0 { //end
 			hb.CurrentValue = hb.CurrentValue - consumptionValue
+			saveConsumptionToInfluxDb(mc.influxDb, device.RealEstate, device.Id, strconv.Itoa(hb.Device.Id), consumptionValue)
 			consumptionValue = 0
-			//todo save battery to db and info to influx
+			//todo save battery to db
 		} else { //continue
 			consumed := hb.CurrentValue
 			consumptionValue = consumptionValue - hb.CurrentValue
 			hb.CurrentValue = 0
-			fmt.Println(consumed)
-			//todo save battery to db and info(consumed) to influx
+			saveConsumptionToInfluxDb(mc.influxDb, device.RealEstate, device.Id, strconv.Itoa(hb.Device.Id), consumed)
+			//todo save battery to db.
 		}
 	}
 	if consumptionValue != 0 {
-		//todo electrodistribution (influxdb)
+		saveConsumptionToInfluxDb(mc.influxDb, device.RealEstate, device.Id, "electrical_distribution", consumptionValue)
 	}
 
 }
 
-func saveConsumptionToInfluxDb(client influxdb2.Client, device models.SolarPanel, email string) {
+func saveConsumptionToInfluxDb(client influxdb2.Client, estateId, deviceId int, batteryId string, electricity float64) {
 	Org := "Smart Home"
 	Bucket := "bucket"
 	writeAPI := client.WriteAPI(Org, Bucket)
-	p := influxdb2.NewPoint("solar_panel", //table
-		map[string]string{"device_id": strconv.Itoa(device.Device.Id), "user_id": email}, //tag
-		map[string]interface{}{"isOn": func() int {
-			if device.IsOn {
-				return 1
-			} else {
-				return 0
-			}
-		}()}, //field
+	p := influxdb2.NewPoint("consumption", //table
+		map[string]string{"device_id": strconv.Itoa(deviceId), "estate_id": strconv.Itoa(estateId), "battery_id": batteryId}, //tag
+		map[string]interface{}{"electricity": strconv.FormatFloat(electricity, 'f', -1, 64)},                                 //field
 		time.Now())
 
 	// Write the point to InfluxDB
@@ -77,5 +71,5 @@ func saveConsumptionToInfluxDb(client influxdb2.Client, device models.SolarPanel
 
 	// Close the write API to flush the buffer and release resources
 	writeAPI.Flush()
-	fmt.Println("Saved sp switch change to influxdb")
+	fmt.Println("Saved consumption to influxdb")
 }
