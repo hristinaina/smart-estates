@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"smarthome-back/dto"
 	models "smarthome-back/models/devices"
@@ -10,6 +11,7 @@ import (
 type HomeBatteryRepository interface {
 	Add(estate dto.DeviceDTO) models.HomeBattery
 	GetAllByEstateId(id int) ([]models.HomeBattery, error)
+	Update(device models.HomeBattery) bool
 }
 
 type HomeBatteryRepositoryImpl struct {
@@ -113,4 +115,14 @@ func (s *HomeBatteryRepositoryImpl) Add(dto dto.DeviceDTO) models.HomeBattery {
 	}
 	device.Device.Id = int(deviceID)
 	return device
+}
+
+func (res *HomeBatteryRepositoryImpl) Update(device models.HomeBattery) bool {
+	query := "UPDATE homeBattery SET currentValue = ? WHERE deviceId = ?"
+	_, err := res.db.Exec(query, device.CurrentValue, device.Device.Id)
+	if err != nil {
+		fmt.Println("Failed to update device:", err)
+		return false
+	}
+	return true
 }

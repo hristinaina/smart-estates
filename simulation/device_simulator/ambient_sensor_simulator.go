@@ -42,6 +42,7 @@ func (as *AmbientSensorSimulator) ConnectAmbientSensor() {
 	config.SubscribeToTopic(as.client, topicSwitch+strconv.Itoa(as.device.ID), as.HandleSwitchChange)
 }
 
+// todo get real device and it's consumption (only if its powering is netwok, if it is not then end the function)
 func (as *AmbientSensorSimulator) SendConsumption() {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()

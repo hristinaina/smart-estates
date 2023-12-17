@@ -50,12 +50,68 @@ func (mc *MQTTClient) HandleSPData(client mqtt.Client, msg mqtt.Message) {
 		fmt.Println("Error converting string to float:", err)
 		return
 	}
-	//todo update device last value
 	device := mc.solarPanelRepository.Get(deviceId)
+	mc.handleValue(device, value)
 	//mc.solarPanelRepository.UpdateSP(device)
 	//mc.deviceRepository.Update(device.Device)
-	saveSPDataToInfluxDb(mc.influxDb, device, value)
 	fmt.Printf("Solar panel: name=%s, id=%d, generated value %f \n", device.Device.Name, device.Device.Id, value)
+}
+
+func (mc *MQTTClient) handleValue(device models.SolarPanel, value float64) {
+	batteries, err := mc.homeBatteryRepository.GetAllByEstateId(device.Device.RealEstate)
+	if err != nil {
+		return
+	}
+	surplus := 0.0
+	if len(batteries) != 0 {
+		valuePerBattery := value / float64(len(batteries))
+		// value is divided between batteries and each battery takes the same value
+		surplus = mc.calculateValueForBatteries(batteries, device.Device.Id, valuePerBattery, false)
+		if surplus != 0.0 {
+			// surplus=what was left (if one of the batteries was full) is sent to batteries again (not divided)
+			surplus = mc.calculateValueForBatteries(batteries, device.Device.Id, surplus, true)
+		}
+	} else if len(batteries) == 0 {
+		saveSPDataToInfluxDb(mc.influxDb, device.Device.Id, "electrical_distribution", value)
+	} else if surplus != 0.0 {
+		saveSPDataToInfluxDb(mc.influxDb, device.Device.Id, "electrical_distribution", surplus)
+	}
+
+}
+
+func (mc *MQTTClient) calculateValueForBatteries(batteries []models.HomeBattery, deviceId int, valuePerBattery float64, isSurplus bool) float64 {
+	surplus := 0.0
+	for _, hb := range batteries {
+		if hb.CurrentValue+valuePerBattery <= hb.Size {
+			hb.CurrentValue = hb.CurrentValue + valuePerBattery
+			saveSPDataToInfluxDb(mc.influxDb, deviceId, strconv.Itoa(hb.Device.Id), valuePerBattery)
+			SaveHBDataToInfluxDb(mc.influxDb, hb.Device.Id, hb.CurrentValue)
+			mc.homeBatteryRepository.Update(hb)
+			//everything that was supposed to go into the battery went into it
+			if isSurplus {
+				valuePerBattery = 0.0
+				break
+			}
+		} else {
+			//not everything that was supposed to go into the battery went into it
+			produced := hb.CurrentValue + valuePerBattery - hb.Size
+			hb.CurrentValue = hb.Size
+			fmt.Println(produced)
+			if isSurplus {
+				valuePerBattery = valuePerBattery - produced
+			} else {
+				surplus = surplus + valuePerBattery - produced
+			}
+			saveSPDataToInfluxDb(mc.influxDb, deviceId, strconv.Itoa(hb.Device.Id), produced)
+			SaveHBDataToInfluxDb(mc.influxDb, hb.Device.Id, hb.CurrentValue)
+			mc.homeBatteryRepository.Update(hb)
+		}
+	}
+	if isSurplus {
+		return valuePerBattery
+	} else {
+		return surplus
+	}
 }
 
 func saveSPSwitchChangeToInfluxDb(client influxdb2.Client, device models.SolarPanel, email string) {
@@ -73,21 +129,19 @@ func saveSPSwitchChangeToInfluxDb(client influxdb2.Client, device models.SolarPa
 		}()}, //field
 		time.Now())
 
-	// Write the point to InfluxDB
 	writeAPI.WritePoint(p)
 
-	// Close the write API to flush the buffer and release resources
 	writeAPI.Flush()
 	fmt.Println("Saved sp switch change to influxdb")
 }
 
-func saveSPDataToInfluxDb(client influxdb2.Client, device models.SolarPanel, value float64) {
+func saveSPDataToInfluxDb(client influxdb2.Client, deviceId int, batteryId string, value float64) {
 	Org := "Smart Home"
 	Bucket := "bucket"
 	writeAPI := client.WriteAPI(Org, Bucket)
 	p := influxdb2.NewPoint("solar_panel", //table
-		map[string]string{"device_id": strconv.Itoa(device.Device.Id)}, //tag
-		map[string]interface{}{"electricity": value},                   //field
+		map[string]string{"device_id": strconv.Itoa(deviceId), "battery_id": batteryId}, //tag
+		map[string]interface{}{"electricity": value},                                    //field
 		time.Now())
 
 	// Write the point to InfluxDB

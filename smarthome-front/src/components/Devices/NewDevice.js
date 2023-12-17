@@ -48,7 +48,7 @@ export class NewDevice extends Component {
         { value: 4, label: 'Vehicle gate' },
         { value: 5, label: 'Sprinkler' },
         { value: 6, label: 'Solar panel system' },
-        { value: 7, label: 'Battery storage' },
+        { value: 7, label: 'Home battery' },
         { value: 8, label: 'Electric vehicle charger' },
     ];
 

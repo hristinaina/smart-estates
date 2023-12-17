@@ -96,9 +96,10 @@ func (s *SolarPanelServiceImpl) GetValueFromLastMinute(id int) (interface{}, err
 	// Create InfluxDB query API
 	queryAPI := s.influxDb.QueryAPI(influxOrg)
 	// Define your InfluxDB query with conditions
-	query := fmt.Sprintf(`from(bucket:"%s")|> range(start: -1m30s) 
+	query := fmt.Sprintf(`from(bucket:"%s")|> range(start: -1m10s) 
 			|> filter(fn: (r) => r["_measurement"] == "solar_panel"
-			and r["_field"] == "electricity" and r["device_id"] == "%d")`, influxBucket, id)
+			and r["_field"] == "electricity" and r["device_id"] == "%d")
+			|> yield(name: "sum")`, influxBucket, id)
 
 	result, err := queryAPI.Query(context.Background(), query)
 	if err != nil {
@@ -106,11 +107,11 @@ func (s *SolarPanelServiceImpl) GetValueFromLastMinute(id int) (interface{}, err
 		return 0.0, err
 	}
 
-	var value interface{}
+	var value float64
 	// Iterate over query results
 	for result.Next() {
 		if result.Record().Value() != nil {
-			value = result.Record().Value()
+			value = value + result.Record().ValueByKey("_value").(float64)
 		}
 	}
 

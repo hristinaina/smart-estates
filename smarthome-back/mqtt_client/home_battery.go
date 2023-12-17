@@ -17,7 +17,6 @@ func (mc *MQTTClient) HandleConsumption(client mqtt.Client, msg mqtt.Message) {
 		fmt.Println(err)
 		return
 	}
-
 	// Unmarshal the JSON string into the struct
 	valueStr := string(msg.Payload())
 	consumptionValue, err := strconv.ParseFloat(valueStr, 64)
@@ -30,7 +29,6 @@ func (mc *MQTTClient) HandleConsumption(client mqtt.Client, msg mqtt.Message) {
 	if err != nil {
 		return
 	}
-
 	batteries, err := mc.homeBatteryRepository.GetAllByEstateId(device.RealEstate)
 	if err != nil {
 		return
@@ -41,14 +39,17 @@ func (mc *MQTTClient) HandleConsumption(client mqtt.Client, msg mqtt.Message) {
 		if hb.CurrentValue-consumptionValue >= 0 { //end
 			hb.CurrentValue = hb.CurrentValue - consumptionValue
 			saveConsumptionToInfluxDb(mc.influxDb, device.RealEstate, device.Id, strconv.Itoa(hb.Device.Id), consumptionValue)
+			mc.homeBatteryRepository.Update(hb)
+			SaveHBDataToInfluxDb(mc.influxDb, hb.Device.Id, hb.CurrentValue)
 			consumptionValue = 0
-			//todo save battery to db
+			break
 		} else { //continue
 			consumed := hb.CurrentValue
 			consumptionValue = consumptionValue - hb.CurrentValue
 			hb.CurrentValue = 0
 			saveConsumptionToInfluxDb(mc.influxDb, device.RealEstate, device.Id, strconv.Itoa(hb.Device.Id), consumed)
-			//todo save battery to db.
+			mc.homeBatteryRepository.Update(hb)
+			SaveHBDataToInfluxDb(mc.influxDb, hb.Device.Id, hb.CurrentValue)
 		}
 	}
 	if consumptionValue != 0 {
@@ -62,8 +63,25 @@ func saveConsumptionToInfluxDb(client influxdb2.Client, estateId, deviceId int, 
 	Bucket := "bucket"
 	writeAPI := client.WriteAPI(Org, Bucket)
 	p := influxdb2.NewPoint("consumption", //table
-		map[string]string{"device_id": strconv.Itoa(deviceId), "estate_id": strconv.Itoa(estateId), "battery_id": batteryId}, //tag
-		map[string]interface{}{"electricity": strconv.FormatFloat(electricity, 'f', -1, 64)},                                 //field
+		map[string]string{"device_id": strconv.Itoa(deviceId), "estate_id": strconv.Itoa(estateId), "battery_id": batteryId},
+		map[string]interface{}{"electricity": electricity},
+		time.Now())
+
+	// Write the point to InfluxDB
+	writeAPI.WritePoint(p)
+
+	// Close the write API to flush the buffer and release resources
+	writeAPI.Flush()
+	fmt.Println("Saved consumption to influxdb")
+}
+
+func SaveHBDataToInfluxDb(client influxdb2.Client, batteryId int, currentValue float64) {
+	Org := "Smart Home"
+	Bucket := "bucket"
+	writeAPI := client.WriteAPI(Org, Bucket)
+	p := influxdb2.NewPoint("home_battery", //table
+		map[string]string{"device_id": strconv.Itoa(batteryId)},
+		map[string]interface{}{"value": strconv.FormatFloat(currentValue, 'f', -1, 64)},
 		time.Now())
 
 	// Write the point to InfluxDB
