@@ -4,10 +4,13 @@ import (
 	"database/sql"
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
 	"smarthome-back/dto"
+	"smarthome-back/dtos"
 	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices/outside"
 	repositories "smarthome-back/repositories/devices"
+	"sort"
 )
 
 type VehicleGateService interface {
@@ -22,6 +25,7 @@ type VehicleGateService interface {
 	GetLicensePlates(id int) ([]string, error)
 	AddLicensePlate(deviceId int, licensePlate string) (string, error)
 	GetAllLicensePlates() ([]string, error)
+	GetLicensePlatesCount(id int, from string, filter ...string) []dtos.VehicleGateCountData
 }
 
 type VehicleGateServiceImpl struct {
@@ -131,7 +135,7 @@ func (service *VehicleGateServiceImpl) Add(dto dto.DeviceDTO) (models.VehicleGat
 	}
 
 	result, err = tx.Exec(`
-							INSERT INTO vehiclegate(DeviceId, IsOpen, Mode)
+							INSERT INTO vehicleGate(DeviceId, IsOpen, Mode)
 							VALUES (?, ?, ?)`, deviceID, device.IsOpen, device.Mode)
 	if err != nil {
 		return models.VehicleGate{}, err
@@ -157,4 +161,61 @@ func (service *VehicleGateServiceImpl) AddLicensePlate(deviceId int, licensePlat
 
 func (service *VehicleGateServiceImpl) GetAllLicensePlates() ([]string, error) {
 	return service.repository.GetAllLicensePlates()
+}
+
+func (service *VehicleGateServiceImpl) GetLicensePlatesCount(id int, from string, filter ...string) []dtos.VehicleGateCountData {
+	values := make(map[string]int)
+	var result *api.QueryTableResult
+	if len(filter) == 1 {
+		result = service.repository.GetFromInfluxDb(id, from, filter[0])
+	} else {
+		result = service.repository.GetFromInfluxDb(id, from, filter[0], filter[1])
+	}
+
+	fmt.Println("Resultsssss")
+	fmt.Println(result)
+
+	for result.Next() {
+		if result.Record().Value() != nil {
+			key := result.Record().Value().(string)
+			if service.isPresentInMap(values, key) {
+				currentCount := service.getValueFromMap(values, key)
+				currentCount++
+				values[key] = currentCount
+			} else {
+				values[key] = 1
+			}
+		}
+	}
+
+	var graphData []dtos.VehicleGateCountData
+	var keys []string
+	for k := range values {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		g := dtos.VehicleGateCountData{
+			Count: values[k],
+			Value: k,
+		}
+		graphData = append(graphData, g)
+	}
+
+	return graphData
+}
+
+func (service *VehicleGateServiceImpl) isPresentInMap(mapValues map[string]int, key string) bool {
+	if _, ok := mapValues[key]; ok {
+		return true
+	}
+	return false
+}
+
+func (service *VehicleGateServiceImpl) getValueFromMap(mapValues map[string]int, key string) int {
+	if value, ok := mapValues[key]; ok {
+		return value
+	}
+	// TODO: think about returning -1
+	return -1
 }

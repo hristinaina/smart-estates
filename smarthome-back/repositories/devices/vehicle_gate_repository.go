@@ -1,14 +1,19 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
+	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"log"
 	"smarthome-back/enumerations"
 	models2 "smarthome-back/models/devices"
 	models "smarthome-back/models/devices/outside"
 	"smarthome-back/repositories"
+	"strconv"
+	"time"
 )
 
 type VehicleGateRepository interface {
@@ -20,6 +25,8 @@ type VehicleGateRepository interface {
 	GetLicensePlates(id int) ([]string, error)
 	AddLicensePlate(id int, licensePlate string) (string, error)
 	GetAllLicensePlates() ([]string, error)
+	PostNewVehicleGateValue(gate models.VehicleGate, action string, success bool, licensePlate string)
+	GetFromInfluxDb(id int, from string, filter ...string) *api.QueryTableResult
 }
 
 type VehicleGateRepositoryImpl struct {
@@ -191,6 +198,58 @@ func (repo *VehicleGateRepositoryImpl) GetAllLicensePlates() ([]string, error) {
 
 	licensePlates, err := repo.scanLicensePlateRows(rows)
 	return licensePlates, nil
+}
+
+func (repo *VehicleGateRepositoryImpl) PostNewVehicleGateValue(gate models.VehicleGate, action string, success bool,
+	licensePlate string) {
+	client := repo.influx
+	writeAPI := client.WriteAPIBlocking("Smart Home", "bucket")
+	tags := map[string]string{
+		"Id":      strconv.Itoa(gate.ConsumptionDevice.Device.Id),
+		"Action":  action,
+		"Success": strconv.FormatBool(success),
+	}
+	fields := map[string]interface{}{
+		"LicensePlate": licensePlate,
+	}
+	point := write.NewPoint("gates", tags, fields, time.Now())
+
+	if err := writeAPI.WritePoint(context.Background(), point); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (repo *VehicleGateRepositoryImpl) GetFromInfluxDb(id int, from string, filter ...string) *api.QueryTableResult {
+	client := repo.influx
+	queryAPI := client.QueryAPI("Smart Home")
+	query := ""
+	queryId := strconv.Itoa(id)
+	if len(filter) == 1 {
+		query = fmt.Sprintf(`from(bucket: "bucket")
+            |> range(start: %s, stop: %s)
+            |> filter(fn: (r) => r._measurement == "gates" and r.Id == "%s")`, from, filter[0], queryId)
+	} else {
+		query = fmt.Sprintf(`from(bucket: "bucket")
+            |> range(start: %s, stop: %s)
+            |> filter(fn: (r) => r._measurement == "gates" and r.Id == "%s" and r._field == "LicensePlate"
+			and r._value == "NS-123-45")`,
+			from, filter[0], queryId)
+	}
+
+	results, err := queryAPI.Query(context.Background(), query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//fmt.Println("Printing influxDB data...")
+	//for results.Next() {
+	//	fmt.Println("------------------------")
+	//	fmt.Println(results.Record())
+	//}
+	//if err := results.Err(); err != nil {
+	//	log.Fatal(err)
+	//}
+
+	return results
 }
 
 func (repo *VehicleGateRepositoryImpl) scanLicensePlateRows(rows *sql.Rows) ([]string, error) {

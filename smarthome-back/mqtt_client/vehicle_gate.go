@@ -43,6 +43,7 @@ func (mc *MQTTClient) HandleVehicleApproached(_ mqtt.Client, msg mqtt.Message) {
 	}
 }
 
+// TODO: maybe create enum for action
 func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePlate string, action string) {
 	if !gate.IsOpen {
 		if (gate.Mode == enumerations.Public) || (contains(gate.LicensePlates, licensePlate)) || (action == "exit") {
@@ -64,20 +65,20 @@ func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePla
 				if repositories.CheckIfError(err) {
 					return
 				}
+				mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, true, licensePlate)
 			}
+		} else {
+			mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, false, licensePlate)
 		}
 	} else {
 		err := mc.Publish(TopicVGOpenClose+strconv.Itoa(gate.ConsumptionDevice.Device.Id), "open+"+licensePlate+"+"+action)
 		if repositories.CheckIfError(err) {
 			return
 		}
+		mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, true, licensePlate)
 	}
-}
 
-func (mc *MQTTClient) Exit(gate models.VehicleGate, licensePlate string) {
-	if !gate.IsOpen {
-
-	}
+	//mc.vehicleGateRepository.GetFromInfluxDb("-30m")
 }
 
 func contains(list []string, target string) bool {

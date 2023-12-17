@@ -162,8 +162,8 @@ func (ls *LampServiceImpl) GetGraphData(id int, from, to string) ([]dtos.LampCou
 	for results.Next() {
 		if results.Record().Value() != nil {
 			key := results.Record().Value().(float64)
-			if isPresentInMap(values, key) {
-				currentCount := getValueFromMap(values, key)
+			if ls.isPresentInMap(values, key) {
+				currentCount := ls.getValueFromMap(values, key)
 				currentCount++
 				values[key] = currentCount
 			} else {
@@ -187,17 +187,17 @@ func (ls *LampServiceImpl) GetGraphData(id int, from, to string) ([]dtos.LampCou
 	return graphData, nil
 }
 
-func isPresentInMap(mapValues map[float64]int, key float64) bool {
+func (ls *LampServiceImpl) isPresentInMap(mapValues map[float64]int, key float64) bool {
 	if _, ok := mapValues[key]; ok {
 		return true
 	}
 	return false
 }
 
-func getValueFromMap(mapValues map[float64]int, key float64) int {
+func (ls *LampServiceImpl) getValueFromMap(mapValues map[float64]int, key float64) int {
 	if value, ok := mapValues[key]; ok {
 		return value
 	}
-	// TODO: think about this
+	// TODO: think about returning -1
 	return -1
 }

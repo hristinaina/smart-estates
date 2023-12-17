@@ -151,3 +151,16 @@ func (controller VehicleGateController) GetAllLicensePlates(c *gin.Context) {
 	}
 	c.JSON(200, licensePlates)
 }
+
+func (controller VehicleGateController) GetLicencePlatesCount(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+	from := c.Param("from")
+	to := c.Param("to")
+	licensePlate := c.Param("license-plate")
+
+	result := controller.service.GetLicensePlatesCount(id, from, to, licensePlate)
+	c.JSON(200, result)
+}
