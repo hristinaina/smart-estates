@@ -74,7 +74,7 @@ type ACHistoryData struct {
 	Mode   string
 }
 
-func QueryDeviceData(client influxdb2.Client, deviceId string) map[time.Time]ACHistoryData {
+func QueryDeviceData(client influxdb2.Client, deviceId string) map[string]ACHistoryData {
 	Org := "Smart Home"
 	Bucket := "bucket"
 	queryAPI := client.QueryAPI(Org)
@@ -92,14 +92,17 @@ func QueryDeviceData(client influxdb2.Client, deviceId string) map[time.Time]ACH
 		return nil
 	}
 
-	var resultPoints map[time.Time]ACHistoryData
-	resultPoints = make(map[time.Time]ACHistoryData)
+	var resultPoints map[string]ACHistoryData
+	resultPoints = make(map[string]ACHistoryData)
+	localLocation, err := time.LoadLocation("Local")
 
 	if err == nil {
 		// Iterate over query response
 		for result.Next() {
+			localTime := result.Record().Time().In(localLocation)
+			time := localTime.Format("2006-01-02 15:04:05 MST")
 
-			val, _ := resultPoints[result.Record().Time()]
+			val, _ := resultPoints[time]
 			// fmt.Println(val)
 
 			switch field := result.Record().Field(); field {
@@ -114,7 +117,7 @@ func QueryDeviceData(client influxdb2.Client, deviceId string) map[time.Time]ACH
 				fmt.Printf("unrecognized field %s.\n", field)
 			}
 
-			resultPoints[result.Record().Time()] = val
+			resultPoints[time] = val
 
 		}
 		// check for an error

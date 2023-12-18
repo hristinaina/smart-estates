@@ -6,6 +6,7 @@ import authService from '../../../services/AuthService'
 import mqtt from 'mqtt';
 import { TextField, Button, Snackbar, Typography, Switch, Input, FormControl } from '@mui/material';
 import DeviceService from '../../../services/DeviceService';
+import LogTable from './LogTable';
 
 
 export class AirConditioner extends Component {
@@ -17,7 +18,7 @@ export class AirConditioner extends Component {
             device: {},
             mode: [],
             switchOn: false,
-            data: [],
+            logData: [],
             email: '',
             startDate: '',
             endDate: '',
@@ -43,24 +44,16 @@ export class AirConditioner extends Component {
             temp: 20.0
         }));
         this.setState({mode: updatedMode})
-        // console.log(this.state.mode)
         this.setState({device: device})
-    
-        // console.log(device);
 
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
-        const historyData = await DeviceService.getACHistoryData(this.id, user.Email, "2023-12-12", "2023-12-23");
-        console.log("history")
-        console.log(historyData)
-        // this.setState({
-        //     device: updatedData,
-        //     switchOn: device.IsOn,
-        //     data: historyData,
-        //     email: user.Email,
-        //     startDate: "2023-12-12",
-        //     endDate: "2023-12-23",
-        // });
+        // todo promeni da se salju drugi podaci
+        const logData = await DeviceService.getACHistoryData(this.id, user.Email, "2023-12-12", "2023-12-23");
+        
+        const data = this.setAction(logData.result)
+        console.log(data)
+        this.setState({ logData: data });
 
         try {
             if (!this.connected) {
@@ -95,6 +88,17 @@ export class AirConditioner extends Component {
         }
     }
 
+    setAction = (data) => {
+        for (const key in data) {
+            if (data[key].Action === 0) {
+                data[key].Action = "Turn off";
+            } else if (data[key].Action === 1) {
+                data[key].Action = "Turn on";
+            }
+        }
+        return data
+    }
+
     handleSwitchToggle = (item) => {
         let i = 0
         const { mode } = this.state;
@@ -116,8 +120,6 @@ export class AirConditioner extends Component {
                         this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn)
                         ++i                   
                     }
-                    
-
                 if (m.name === item.name) {
                     return {
                         ...m,
@@ -125,9 +127,6 @@ export class AirConditioner extends Component {
                     };
                 } 
                 else { 
-                    
-                    
-    
                     // turn off others
                     return {
                         ...m,
@@ -221,9 +220,9 @@ export class AirConditioner extends Component {
 
         // const { email, startDate, endDate } = this.state;
         // console.log(email, startDate, endDate);
-        // const historyData = await DeviceService.getSPGraphData(this.id, email, startDate, endDate);
+        // const logData = await DeviceService.getSPGraphData(this.id, email, startDate, endDate);
         // this.setState({
-        //     data: historyData,
+        //     data: logData,
         // });
     };
 
@@ -249,7 +248,7 @@ export class AirConditioner extends Component {
     };
 
     render() {
-        const { device, mode, email, startDate, endDate, currentTemp} = this.state;
+        const { device, logData, mode, email, startDate, endDate, currentTemp} = this.state;
 
         return (
             <div>
@@ -316,9 +315,9 @@ export class AirConditioner extends Component {
                                 <TextField style={{ backgroundColor: "white" }} type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
                             </label>
                             <br />
-                            <Button type="submit" id='sp-data-button'>Fetch Data</Button>
+                            <Button type="submit" id='sp-data-button'>Filter Data</Button>
                         </form>
-                        {/* <SPGraph data={data} /> */}
+                        <LogTable logData={logData} />
                     </div>
                 </div>
                 <Snackbar
