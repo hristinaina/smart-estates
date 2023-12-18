@@ -4,7 +4,7 @@ import'./AirConditioner.css'
 import { Navigation } from '../../Navigation/Navigation';
 import authService from '../../../services/AuthService'
 import mqtt from 'mqtt';
-import { Autocomplete, TextField, Button, Box, Grid, IconButton, Snackbar, Stack, Typography, Switch, Input, FormControl } from '@mui/material';
+import { TextField, Button, Snackbar, Typography, Switch, Input, FormControl } from '@mui/material';
 import DeviceService from '../../../services/DeviceService';
 
 
@@ -25,26 +25,7 @@ export class AirConditioner extends Component {
             showSnackbar: false,
             open: false,
             temp: 20.0,
-            currentTemp: 20.0,
-
-            // Heating: {
-            //     switch: false,
-            //     temp: 20.0
-            // }, 
-            // Cooling: {
-            //     switch: false,
-            //     temp: 20.0
-            // },
-            // Automatic: {
-            //     switch: false,
-            //     temp: 20.0
-            // },
-            // Ventilation: {
-            //     switch: false,
-            //     temp: 20.0
-            // },
-
-            previousMode: ''
+            currentTemp: 20.0
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -65,14 +46,9 @@ export class AirConditioner extends Component {
         console.log(this.state.mode)
         this.setState({device: device})
     
-        const updatedData =
-        {
-            ...device,
-            Value: "Loading...",
-        }
         console.log(device);
 
-        const user = authService.getCurrentUser();
+        // const user = authService.getCurrentUser();
         // this.Name = device.Device.Name;
         // const historyData = await DeviceService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
         // this.setState({
@@ -124,61 +100,51 @@ export class AirConditioner extends Component {
         const canTurnOn = this.canTurnOn(item.name, item.temp)
     
         // turn off if it's on
-        const updatedMode = mode.map((m) => {
-            if (m.name === item.name && canTurnOn) {
-                return {
-                    ...m,
-                    switchOn: !m.switchOn,
-                };
-            } else { 
-                // ako je bio upaljen, posalji da se gasi            
-                if(m.switchOn && i===0) {
-                    console.log("uslo")
-                    this.setState({ previousMode: m.name }, () => {
-                        console.log(this.state.previousMode);
-                        console.log(item.name)
-                        // todo posalji simulaciji
-                        if(canTurnOn || this.state.previousMode === item.name) {
-                            // console.log("ovo je prvo")
-                            // console.log(item.name)
-                            // console.log(item.temp)
-                            // console.log(m.name)
-                            // console.log(!item.switchOn)
+        if(canTurnOn)
+        {
+            const updatedMode = mode.map((m) => {
+                if (m.name === item.name) {
+                    return {
+                        ...m,
+                        switchOn: !m.switchOn,
+                    };
+                } 
+                else { 
+                    // ako je bio upaljen, posalji da se gasi            
+                    if(m.switchOn && i===0) {     
+                        if(canTurnOn) {
+                            console.log("ovo je prvo")
+                            console.log(item.name)
+                            console.log(item.temp)
+                            console.log(m.name)
+                            console.log(!item.switchOn)
+                            this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn)
                             ++i
-                        // this.sendDataToSimulation(item.name, item.temp, this.state.previousMode, item.switchOn)
-                                    }
-                                }
-                                );
-                }
-                else {
-                    if(canTurnOn && i===0) {
+                        }
+                    }
+                    else {
                         // ovo znaci da nista pre toga nije bilo ukljuceno/iskljuceno
-                    console.log("ovo je drugo")
-                    this.setState({ previousMode: '' }, () => {
-                        // todo posalji simulaciji
-                       });
-                        console.log(this.state.previousMode);
-                        console.log(item.name)
-                       if(canTurnOn || this.state.previousMode === item.name) {
-                        // console.log(item.name)
-                        // console.log(item.temp)
-                        // console.log('')
-                        // console.log(!item.switchOn)
-                        i++
-                    // this.sendDataToSimulation(item.name, item.temp, this.state.previousMode, item.switchOn)
-                                }
-                    }                   
-                }
-
-                // turn off others
-                return {
-                    ...m,
-                    switchOn: false,
-                };
-            }
-        });
+                        if(i===0) {
+                            console.log("ovo je drugo")
+                            console.log(item.name)
+                            console.log(item.temp)
+                            console.log('')
+                            console.log(!item.switchOn)
+                            this.sendDataToSimulation(item.name, item.temp, '', !item.switchOn)
+                            i++
+                        }                   
+                    }
     
-        this.setState({ mode: updatedMode });
+                    // turn off others
+                    return {
+                        ...m,
+                        switchOn: false,
+                    };
+                }
+            });
+        
+            this.setState({ mode: updatedMode });
+        }
     };
 
     sendDataToSimulation = (mode, temp, previous, isSwitchOn) => {
@@ -192,9 +158,6 @@ export class AirConditioner extends Component {
             "UserEmail": authService.getCurrentUser().Email,
         }
         this.mqttClient.publish(topic, JSON.stringify(message));
-
-        // this.setState({ snackbarMessage: "Successfully changed switch state!" });
-        // this.handleClick();
     }
 
     canTurnOn = (mode, temp) => {
@@ -279,7 +242,7 @@ export class AirConditioner extends Component {
     };
 
     render() {
-        const { device, mode, switchOn, data, email, startDate, endDate, temp, currentTemp} = this.state;
+        const { device, mode, email, startDate, endDate, currentTemp} = this.state;
 
         return (
             <div>

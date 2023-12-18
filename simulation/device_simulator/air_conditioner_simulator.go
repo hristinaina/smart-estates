@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"simulation/config"
 	"simulation/models"
+	"strconv"
+	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -46,7 +48,7 @@ func NewAirConditionerSimulator(client mqtt.Client, device models.Device) *AirCo
 func (ac *AirConditionerSimulator) ConnectAirConditioner() {
 	go SendHeartBeat(ac.client, ac.device.Device.Device.ID, ac.device.Device.Device.Name)
 	go ac.GenerateAirConditionerData()
-	// config.SubscribeToTopic(ac.client, topicSPSwitch+strconv.Itoa(ac.device.Device.ID), ac.HandleSwitchChange)
+	config.SubscribeToTopic(ac.client, topicACSwitch+strconv.Itoa(ac.device.Device.Device.ID), ac.HandleSwitchChange)
 }
 
 func (ac *AirConditionerSimulator) GenerateAirConditionerData() {
@@ -59,7 +61,7 @@ func (ac *AirConditionerSimulator) GenerateAirConditionerData() {
 			temp := ac.SendCurrentTemp()
 			// 		if ac.off_on.Heating {
 			// 			fmt.Println("usao sam")
-			// 			openMeteoResponse, err := config.GetTemp() //todo get real lat and long
+			// 			openMeteoResponse, err := config.GetTemp()
 			// 			if err != nil {
 			// 				fmt.Printf("Error: %v \n", err.Error())
 			// 			} else {
@@ -108,19 +110,20 @@ func (ac *AirConditionerSimulator) SendCurrentTemp() float64 {
 }
 
 func (ac *AirConditionerSimulator) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
-	// parts := strings.Split(msg.Topic(), "/")
-	// deviceId, err := strconv.Atoi(parts[len(parts)-1])
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// var sp modeac.AirConditioner
-	// // Unmarshal the JSON string into the struct
-	// err = json.Unmarshal([]byte(msg.Payload()), &sp)
-	// if err != nil {
-	// 	fmt.Println("Error unmarshaling JSON:", err)
-	// 	return
-	// }
-	// fmt.Println(sp)
+	parts := strings.Split(msg.Topic(), "/")
+	_, err := strconv.Atoi(parts[len(parts)-1])
+	if err != nil {
+		fmt.Println(err)
+	}
+	var air_conditioner models.ReceiveValue
+	// Unmarshal the JSON string into the struct
+	err = json.Unmarshal([]byte(msg.Payload()), &air_conditioner)
+	if err != nil {
+		fmt.Println("Error unmarshaling JSON:", err)
+		return
+	}
+	fmt.Println("PRIOMIO SAM PORUKU")
+	fmt.Println(air_conditioner)
 	// ac.device.IsOn = sp.IsOn == true
-	// fmt.Printf("Solar panel id=%d, switch status: %t\n", deviceId, sp.IsOn)
+	// fmt.Printf("Solar panel id=%d, switch status:\n", deviceId)
 }
