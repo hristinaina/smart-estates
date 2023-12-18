@@ -204,10 +204,7 @@ export class AirConditioner extends Component {
 
     // Handle incoming MQTT messages
     handleMqttMessage(topic, message) {
-        // console.log(message)
         const result = JSON.parse(message.toString())
-        console.log(result.id)
-        console.log(this.id)
         if (result.id === this.id)
             this.setState({
                 currentTemp: result.temp

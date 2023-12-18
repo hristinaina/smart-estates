@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"simulation/config"
 	"simulation/models"
-	"strconv"
-	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -35,7 +33,7 @@ func NewAmbientSensorSimulator(client mqtt.Client, device models.Device) *Ambien
 func (as *AmbientSensorSimulator) ConnectAmbientSensor() {
 	go SendHeartBeat(as.client, as.device.ID, as.device.Name)
 	go as.GenerateAmbientSensorData()
-	config.SubscribeToTopic(as.client, topicSwitch+strconv.Itoa(as.device.ID), as.HandleSwitchChange)
+	// config.SubscribeToTopic(as.client, topicSwitch+strconv.Itoa(as.device.ID), as.HandleSwitchChange)
 }
 
 // za back
@@ -75,13 +73,13 @@ func (as *AmbientSensorSimulator) GenerateAmbientSensorData() {
 }
 
 // za front
-func (as *AmbientSensorSimulator) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
-	parts := strings.Split(msg.Topic(), "/")
-	deviceId, err := strconv.Atoi(parts[len(parts)-1])
-	if err != nil {
-		fmt.Println(err)
-	}
-	status := string(msg.Payload())
-	as.switchOn = status == "true"
-	fmt.Printf("AmbientSensor id=%d, switch status: %s\n", deviceId, status)
-}
+// func (as *AmbientSensorSimulator) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
+// 	parts := strings.Split(msg.Topic(), "/")
+// 	deviceId, err := strconv.Atoi(parts[len(parts)-1])
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	status := string(msg.Payload())
+// 	as.switchOn = status == "true"
+// 	fmt.Printf("AmbientSensor id=%d, switch status: %s\n", deviceId, status)
+// }

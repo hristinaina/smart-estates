@@ -15,6 +15,7 @@ import (
 const (
 	topicACSwitch = "ac/switch/"
 	topicTemp     = "ac/temp"
+	topicAction   = "ac/action/"
 )
 
 type AirConditionerSimulator struct {
@@ -54,9 +55,8 @@ func (ac *AirConditionerSimulator) GenerateAirConditionerData() {
 	for {
 		select {
 		case <-ticker.C:
-			fmt.Println(ac.off_on)
+			// todo proveravaj da li ima nesto zakazano
 			if ac.off_on.Switch {
-				fmt.Println("uslooo")
 				switch ac.off_on.Mode {
 				case "Heating":
 					if temp < float64(ac.off_on.Temp) {
@@ -144,6 +144,25 @@ func (ac *AirConditionerSimulator) HandleSwitchChange(client mqtt.Client, msg mq
 	ac.off_on = air_conditioner
 
 	// todo send values to back
-	// ac.device.IsOn = sp.IsOn == true
-	// fmt.Printf("Solar panel id=%d, switch status:\n", deviceId)
+	ac.SendActionToBack(air_conditioner)
+}
+
+func (ac *AirConditionerSimulator) SendActionToBack(air_conditioner models.ReceiveValue) {
+	fmt.Println("SALJEM")
+	fmt.Println(air_conditioner.Mode)
+	fmt.Println(air_conditioner.Temp)
+	fmt.Println(air_conditioner.Previous)
+	// send on back
+	// data := map[string]interface{}{
+	// 	"mode":     mode,
+	// 	"temp":     temp,
+	// 	"previous": previous,
+	// 	"user":     user,
+	// }
+	jsonString, err := json.Marshal(air_conditioner)
+	if err != nil {
+		fmt.Println("greska")
+	}
+	config.PublishToTopic(ac.client, topicAction+strconv.Itoa(ac.device.Device.Device.ID), string(jsonString))
+
 }

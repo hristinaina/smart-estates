@@ -23,6 +23,8 @@ const (
 	TopicAmbientSensor = "device/ambient/sensor"
 	TopicSPSwitch      = "sp/switch/"
 	TopicSPData        = "sp/data/"
+	TopicACAction      = "ac/action/"
+	TopicACSwitch      = "ac/switch/"
 )
 
 type MQTTClient struct {
@@ -51,10 +53,10 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 
 func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicOnline+"+", mc.HandleHeartBeat)
-	mc.SubscribeToTopic("lamp/switch/"+"+", mc.HandleSwitchChange)
 	mc.SubscribeToTopic(TopicAmbientSensor, mc.ReceiveValue)
 	mc.SubscribeToTopic(TopicSPSwitch+"+", mc.HandleSPSwitch)
 	mc.SubscribeToTopic(TopicSPData+"+", mc.HandleSPData)
+	mc.SubscribeToTopic(TopicACSwitch+"+", mc.HandleActionChange)
 	//todo subscribe here to other topics. Create your callback functions in other file
 
 	// Periodically check if the device is still online

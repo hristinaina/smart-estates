@@ -29,15 +29,6 @@ const (
 	Home
 )
 
-// todo obrisi ovo
-type TurnMode struct {
-	DeviceId    int
-	Heating     bool // if true => heating is on
-	Cooling     bool
-	Automatic   bool
-	Ventilation bool
-}
-
 type ReceiveValue struct {
 	Mode      string
 	Switch    bool

@@ -5,14 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
-var switchOn = false
+// var switchOn = false
 
 type AmbientSensor struct {
 	Humidity    float64   `json:"humidity"`
@@ -61,16 +60,16 @@ func saveValueToInfluxDb(client influxdb2.Client, deviceId int, temperature, hum
 	fmt.Println("Ambient sensor influxdb")
 }
 
-func (mc *MQTTClient) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
-	parts := strings.Split(msg.Topic(), "/")
-	deviceId, err := strconv.Atoi(parts[len(parts)-1])
-	if err != nil {
-		fmt.Println(err)
-	}
-	status := string(msg.Payload())
-	switchOn = status == "true"
-	fmt.Printf("AmbientSensor id=%d, switch status: %s\n", deviceId, status)
-}
+// func (mc *MQTTClient) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
+// 	parts := strings.Split(msg.Topic(), "/")
+// 	deviceId, err := strconv.Atoi(parts[len(parts)-1])
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	status := string(msg.Payload())
+// 	switchOn = status == "true"
+// 	fmt.Printf("AmbientSensor id=%d, switch status: %s\n", deviceId, status)
+// }
 
 func processingQuery(influxdb influxdb2.Client, query string) map[time.Time]AmbientSensor {
 	Org := "Smart Home"
