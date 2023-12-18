@@ -43,14 +43,16 @@ export class AirConditioner extends Component {
             temp: 20.0
         }));
         this.setState({mode: updatedMode})
-        console.log(this.state.mode)
+        // console.log(this.state.mode)
         this.setState({device: device})
     
-        console.log(device);
+        // console.log(device);
 
-        // const user = authService.getCurrentUser();
-        // this.Name = device.Device.Name;
-        // const historyData = await DeviceService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
+        const user = authService.getCurrentUser();
+        this.Name = device.Device.Name;
+        const historyData = await DeviceService.getACHistoryData(this.id, user.Email, "2023-12-12", "2023-12-23");
+        console.log("history")
+        console.log(historyData)
         // this.setState({
         //     device: updatedData,
         //     switchOn: device.IsOn,
@@ -103,6 +105,19 @@ export class AirConditioner extends Component {
         if(canTurnOn)
         {
             const updatedMode = mode.map((m) => {
+                // console.log(m.switchOn)     
+                // ako je bio upaljen, posalji da se gasi       
+                    if(m.switchOn && item.name != m.name) {     
+                        console.log("ovo je prvo")
+                        console.log(item.name)
+                        console.log(item.temp)
+                        console.log(m.name)
+                        console.log(!item.switchOn)
+                        this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn)
+                        ++i                   
+                    }
+                    
+
                 if (m.name === item.name) {
                     return {
                         ...m,
@@ -110,30 +125,8 @@ export class AirConditioner extends Component {
                     };
                 } 
                 else { 
-                    // ako je bio upaljen, posalji da se gasi            
-                    if(m.switchOn && i===0) {     
-                        if(canTurnOn) {
-                            console.log("ovo je prvo")
-                            console.log(item.name)
-                            console.log(item.temp)
-                            console.log(m.name)
-                            console.log(!item.switchOn)
-                            this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn)
-                            ++i
-                        }
-                    }
-                    else {
-                        // ovo znaci da nista pre toga nije bilo ukljuceno/iskljuceno
-                        if(i===0) {
-                            console.log("ovo je drugo")
-                            console.log(item.name)
-                            console.log(item.temp)
-                            console.log('')
-                            console.log(!item.switchOn)
-                            this.sendDataToSimulation(item.name, item.temp, '', !item.switchOn)
-                            i++
-                        }                   
-                    }
+                    
+                    
     
                     // turn off others
                     return {
@@ -142,8 +135,20 @@ export class AirConditioner extends Component {
                     };
                 }
             });
-        
+
+            
+            // ovo znaci da nista pre toga nije bilo ukljuceno/iskljuceno
+            if(i===0) {
+                console.log("ovo je drugo")
+                // console.log(item.name)
+                // console.log(item.temp)
+                // console.log('')
+                // console.log(!item.switchOn)
+                this.sendDataToSimulation(item.name, item.temp, '', !item.switchOn)
+            }                   
+            
             this.setState({ mode: updatedMode });
+            console.log(updatedMode)
         }
     };
 

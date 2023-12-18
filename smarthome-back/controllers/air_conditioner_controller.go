@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
+	"smarthome-back/mqtt_client"
 	"smarthome-back/services"
 	"strconv"
 
@@ -12,10 +12,11 @@ import (
 
 type AirConditionerController struct {
 	service services.AirConditionerService
+	mqtt    *mqtt_client.MQTTClient
 }
 
-func NewAirConditionerController(db *sql.DB) AirConditionerController {
-	return AirConditionerController{service: services.NewAirConditionerService(db)}
+func NewAirConditionerController(db *sql.DB, mqtt *mqtt_client.MQTTClient) AirConditionerController {
+	return AirConditionerController{service: services.NewAirConditionerService(db), mqtt: mqtt}
 }
 
 func (uc AirConditionerController) Get(c *gin.Context) {
@@ -26,7 +27,10 @@ func (uc AirConditionerController) Get(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Device not found"})
 		return
 	}
-	fmt.Println("KLIMA")
-	fmt.Println(device)
 	c.JSON(http.StatusOK, device)
+}
+
+func (ac AirConditionerController) GetHistoryData(c *gin.Context) {
+	results := mqtt_client.QueryDeviceData(ac.mqtt.GetInflux(), c.Param("id"))
+	c.JSON(http.StatusOK, gin.H{"result": results})
 }

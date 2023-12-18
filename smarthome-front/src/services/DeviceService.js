@@ -80,8 +80,31 @@ class DeviceService {
       console.error('Error fetching data:', error);
       throw error;
     }
-}
+  }
 
+  async getACHistoryData(deviceId, email, startDate, endDate) {
+    const gdata = {
+      "DeviceId": deviceId,
+      "UserEmail": email,
+      "StartDate": startDate,
+      "EndDate": endDate
+    }
+    try {
+      const response = await fetch('http://localhost:8081/api/ac/history/'+deviceId, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(gdata),
+        credentials: 'include',
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    }
+  }
 
   async getDeviceById(id, path) {
     try {

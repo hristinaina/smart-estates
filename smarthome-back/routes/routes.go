@@ -2,10 +2,11 @@ package routes
 
 import (
 	"database/sql"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"smarthome-back/controllers"
 	"smarthome-back/middleware"
 	"smarthome-back/mqtt_client"
+
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 
 	"github.com/gin-gonic/gin"
 )
@@ -57,8 +58,9 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	}
 	airConditionerRoutes := r.Group("/api/ac")
 	{
-		airConditionerController := controllers.NewAirConditionerController(db)
+		airConditionerController := controllers.NewAirConditionerController(db, mqtt)
 		airConditionerRoutes.GET("/:id", airConditionerController.Get)
+		airConditionerRoutes.PUT("history/:id", airConditionerController.GetHistoryData)
 	}
 	solarPanelRoutes := r.Group("/api/sp")
 	{

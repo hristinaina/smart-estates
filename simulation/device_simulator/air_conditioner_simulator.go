@@ -144,25 +144,25 @@ func (ac *AirConditionerSimulator) HandleSwitchChange(client mqtt.Client, msg mq
 	ac.off_on = air_conditioner
 
 	// todo send values to back
-	ac.SendActionToBack(air_conditioner)
+	// ac.SendActionToBack(air_conditioner)
 }
 
-func (ac *AirConditionerSimulator) SendActionToBack(air_conditioner models.ReceiveValue) {
-	fmt.Println("SALJEM")
-	fmt.Println(air_conditioner.Mode)
-	fmt.Println(air_conditioner.Temp)
-	fmt.Println(air_conditioner.Previous)
-	// send on back
-	// data := map[string]interface{}{
-	// 	"mode":     mode,
-	// 	"temp":     temp,
-	// 	"previous": previous,
-	// 	"user":     user,
-	// }
-	jsonString, err := json.Marshal(air_conditioner)
-	if err != nil {
-		fmt.Println("greska")
-	}
-	config.PublishToTopic(ac.client, topicAction+strconv.Itoa(ac.device.Device.Device.ID), string(jsonString))
+// func (ac *AirConditionerSimulator) SendActionToBack(air_conditioner models.ReceiveValue) {
+// 	fmt.Println("SALJEM")
+// 	fmt.Println(air_conditioner.Mode)
+// 	fmt.Println(air_conditioner.Temp)
+// 	fmt.Println(air_conditioner.Previous)
+// 	// send on back
+// 	// data := map[string]interface{}{
+// 	// 	"mode":     mode,
+// 	// 	"temp":     temp,
+// 	// 	"previous": previous,
+// 	// 	"user":     user,
+// 	// }
+// 	jsonString, err := json.Marshal(air_conditioner)
+// 	if err != nil {
+// 		fmt.Println("greska")
+// 	}
+// 	config.PublishToTopic(ac.client, topicAction+strconv.Itoa(ac.device.Device.Device.ID), string(jsonString))
 
-}
+// }
