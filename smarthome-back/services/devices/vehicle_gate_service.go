@@ -6,7 +6,7 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"smarthome-back/dto"
-	"smarthome-back/dtos"
+	"smarthome-back/dtos/vehicle_gate_graph_data"
 	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices/outside"
 	repositories "smarthome-back/repositories/devices"
@@ -25,7 +25,7 @@ type VehicleGateService interface {
 	GetLicensePlates(id int) ([]string, error)
 	AddLicensePlate(deviceId int, licensePlate string) (string, error)
 	GetAllLicensePlates() ([]string, error)
-	GetLicensePlatesCount(id int, from string, filter ...string) []dtos.VehicleGateCountData
+	GetLicensePlatesCount(id int, from string, filter ...string) []vehicle_gate_graph_data.VehicleEntriesCount
 }
 
 type VehicleGateServiceImpl struct {
@@ -163,7 +163,7 @@ func (service *VehicleGateServiceImpl) GetAllLicensePlates() ([]string, error) {
 	return service.repository.GetAllLicensePlates()
 }
 
-func (service *VehicleGateServiceImpl) GetLicensePlatesCount(id int, from string, filter ...string) []dtos.VehicleGateCountData {
+func (service *VehicleGateServiceImpl) GetLicensePlatesCount(id int, from string, filter ...string) []vehicle_gate_graph_data.VehicleEntriesCount {
 	values := make(map[string]int)
 	var result *api.QueryTableResult
 	if len(filter) == 1 {
@@ -188,16 +188,16 @@ func (service *VehicleGateServiceImpl) GetLicensePlatesCount(id int, from string
 		}
 	}
 
-	var graphData []dtos.VehicleGateCountData
+	var graphData []vehicle_gate_graph_data.VehicleEntriesCount
 	var keys []string
 	for k := range values {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		g := dtos.VehicleGateCountData{
-			Count: values[k],
-			Value: k,
+		g := vehicle_gate_graph_data.VehicleEntriesCount{
+			Count:        values[k],
+			LicensePlate: k,
 		}
 		graphData = append(graphData, g)
 	}

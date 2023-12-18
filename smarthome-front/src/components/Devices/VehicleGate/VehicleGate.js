@@ -86,10 +86,28 @@ export class VehicleGate extends Component {
                     this.handleMqttMessage(topic, message);
                 });
             }
+
+            // web socket connection
+            let socket = new WebSocket("ws://localhost:8082/vehicle-gate")
+            console.log("Attempting Websocket Connection")
+
+            socket.onopen = () => {
+                console.log("Successfully Connected")
+                socket.send(this.id)
+            }
+
+            socket.onclose = (event) => {
+                console.log("Socket Closed Connection: ", event)
+            }
+
+            socket.onmessage = (msg) => {
+                console.log("STIGLA PORUKA");
+                console.log(msg.data);
+            }
         } catch (error) {
             console.error(error);
         }
-        
+    
     }
 
     extractDeviceIdFromUrl() {
@@ -198,6 +216,8 @@ export class VehicleGate extends Component {
         let endDate = this.formatDate(this.state.endDate);
         if (startDate == -1 || endDate == -1) {
             console.log("Dates not good");
+            await this.setState({snackbarMessage: "Please check out input data."});
+            this.handleClick();
             return;
         }
         let data = await VehicleGateService.getCountGraphData(this.id.toString(), startDate, endDate, this.state.licensePlate);

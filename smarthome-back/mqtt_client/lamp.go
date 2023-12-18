@@ -69,7 +69,7 @@ func (mc *MQTTClient) PostNewLampValue(lamp models.Lamp, percentage float32) {
 		"DeviceName": lamp.ConsumptionDevice.Device.Name,
 	}
 	fields := map[string]interface{}{
-		"Value": percentage,
+		"LicensePlate": percentage,
 	}
 	// measurement == table in relation db
 	point := write.NewPoint("lamps", tags, fields, time.Now())

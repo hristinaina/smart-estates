@@ -24,7 +24,7 @@ func SendAmbientValues(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	fmt.Println("Client Successfully Connected...")
+	fmt.Println("Client Successfully Connected... 1")
 
 	// _, p, err := ws.ReadMessage()
 	// if err != nil {
@@ -75,7 +75,41 @@ func SendAmbientValues(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func SendNewGraphData(w http.ResponseWriter, r *http.Request) {
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println(err)
+	}
+
+	fmt.Println("Client Successfully Connected for new vehicle gate graph data...")
+
+	for {
+		newValue := mqtt_client.GetNewGate()
+
+		fmt.Println("NEW VALUEEEEEEEEEEEEEEEEEEEEE")
+		fmt.Println(newValue)
+
+		jsonData, err := json.Marshal(newValue)
+		if err != nil {
+			fmt.Println("Error encoding JSON:", err)
+			return
+		}
+
+		// fmt.Println(jsonData)
+
+		if err := ws.WriteMessage(websocket.TextMessage, jsonData); err != nil {
+			fmt.Println("GRESKA PRILIKOM SLANJA PORUKE")
+			log.Println(err)
+			return
+		}
+	}
+
+}
+
 func SetupWebSocketRoutes() {
 	// http.HandleFunc("/ws", HandleWebSocket)
 	http.HandleFunc("/ambient", SendAmbientValues)
+	http.HandleFunc("/vehicle-gate", SendNewGraphData)
 }

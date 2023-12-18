@@ -11,6 +11,17 @@ import (
 	"time"
 )
 
+type VehicleGate struct {
+	VehicleGateId int    `json:"vehicle_gate_id"`
+	LicensePlate  string `json:"license_plate"`
+	Action        string `json:"action"`
+	Success       bool   `json:"success"`
+}
+
+var (
+	gateUpdateChan = make(chan VehicleGate)
+)
+
 func (mc *MQTTClient) HandleVehicleApproached(_ mqtt.Client, msg mqtt.Message) {
 	parts := strings.Split(msg.Topic(), "/")
 
@@ -37,8 +48,9 @@ func (mc *MQTTClient) HandleVehicleApproached(_ mqtt.Client, msg mqtt.Message) {
 
 	if action == "enter" {
 		mc.CheckApproachedVehicle(gate, licensePlate, "enter")
+
 	} else {
-		fmt.Printf("%s is leaving...", licensePlate)
+		fmt.Printf("%s is leaving... %d\n", licensePlate, gate.ConsumptionDevice.Device.Id)
 		mc.CheckApproachedVehicle(gate, licensePlate, "exit")
 	}
 }
@@ -66,9 +78,12 @@ func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePla
 					return
 				}
 				mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, true, licensePlate)
+				setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, true)
 			}
 		} else {
 			mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, false, licensePlate)
+			setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, false)
+
 		}
 	} else {
 		err := mc.Publish(TopicVGOpenClose+strconv.Itoa(gate.ConsumptionDevice.Device.Id), "open+"+licensePlate+"+"+action)
@@ -82,7 +97,8 @@ func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePla
 				return
 			}
 			mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, true, licensePlate)
-			mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, true, licensePlate)
+			setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, true)
+
 		}
 	}
 
@@ -96,4 +112,17 @@ func contains(list []string, target string) bool {
 		}
 	}
 	return false
+}
+
+func setData(id int, licensePlate, action string, success bool) {
+	gateUpdateChan <- VehicleGate{
+		VehicleGateId: id,
+		LicensePlate:  licensePlate,
+		Action:        action,
+		Success:       success,
+	}
+}
+
+func GetNewGate() VehicleGate {
+	return <-gateUpdateChan
 }
