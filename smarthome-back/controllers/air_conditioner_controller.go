@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
+	"smarthome-back/dto"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/services"
 	"strconv"
@@ -31,6 +32,12 @@ func (uc AirConditionerController) Get(c *gin.Context) {
 }
 
 func (ac AirConditionerController) GetHistoryData(c *gin.Context) {
-	results := mqtt_client.QueryDeviceData(ac.mqtt.GetInflux(), c.Param("id"))
+	var data dto.ActionGraphRequest
+	// convert json object to model device
+	if err := c.BindJSON(&data); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid JSON"})
+		return
+	}
+	results := mqtt_client.QueryDeviceData(ac.mqtt.GetInflux(), data)
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }

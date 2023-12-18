@@ -22,6 +22,7 @@ export class AirConditioner extends Component {
             email: '',
             startDate: '',
             endDate: '',
+            pickedValue: '',
             snackbarMessage: '',
             showSnackbar: false,
             open: false,
@@ -48,12 +49,16 @@ export class AirConditioner extends Component {
 
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
-        // todo promeni da se salju drugi podaci
-        const logData = await DeviceService.getACHistoryData(this.id, user.Email, "2023-12-12", "2023-12-23");
-        
+        const logData = await DeviceService.getACHistoryData(this.id, 'none', "", "");      
+        console.log(logData.result)
         const data = this.setAction(logData.result)
-        console.log(data)
-        this.setState({ logData: data });
+        this.setState({ 
+            logData: data,
+            email: user.Email,
+            pickedValue: "none",
+            startDate: "",
+            endDate: "",
+        });
 
         try {
             if (!this.connected) {
@@ -112,11 +117,11 @@ export class AirConditioner extends Component {
                 // console.log(m.switchOn)     
                 // ako je bio upaljen, posalji da se gasi       
                     if(m.switchOn && item.name != m.name) {     
-                        console.log("ovo je prvo")
-                        console.log(item.name)
-                        console.log(item.temp)
-                        console.log(m.name)
-                        console.log(!item.switchOn)
+                        // console.log("ovo je prvo")
+                        // console.log(item.name)
+                        // console.log(item.temp)
+                        // console.log(m.name)
+                        // console.log(!item.switchOn)
                         this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn)
                         ++i                   
                     }
@@ -133,9 +138,7 @@ export class AirConditioner extends Component {
                         switchOn: false,
                     };
                 }
-            });
-
-            
+            });       
             // ovo znaci da nista pre toga nije bilo ukljuceno/iskljuceno
             if(i===0) {
                 console.log("ovo je drugo")
@@ -187,7 +190,6 @@ export class AirConditioner extends Component {
         return true
     } 
     
-
     handleTemperatureChange = (item, event) => {
         const { mode } = this.state;
         // console.log(event.target.value)
@@ -216,14 +218,21 @@ export class AirConditioner extends Component {
     }
 
     handleFormSubmit = async (e) => {
-        // e.preventDefault();
+        e.preventDefault();
 
-        // const { email, startDate, endDate } = this.state;
-        // console.log(email, startDate, endDate);
-        // const logData = await DeviceService.getSPGraphData(this.id, email, startDate, endDate);
-        // this.setState({
-        //     data: logData,
-        // });
+        const { email, startDate, endDate, pickedValue } = this.state;
+        console.log(email, startDate, endDate);
+        if(new Date(startDate) > new Date(endDate)) {
+            this.setState({ snackbarMessage: "Start date must be before end date" });
+            this.handleClick();
+            return 
+        }
+        const logData = await DeviceService.getACHistoryData(this.id, pickedValue, startDate, endDate);
+        console.log(logData.result)
+        const data = this.setAction(logData.result)
+        this.setState({
+            logData: data,
+        });
     };
 
     extractDeviceIdFromUrl() {
@@ -248,7 +257,7 @@ export class AirConditioner extends Component {
     };
 
     render() {
-        const { device, logData, mode, email, startDate, endDate, currentTemp} = this.state;
+        const { device, logData, mode, email, startDate, endDate, currentTemp, pickedValue } = this.state;
 
         return (
             <div>
@@ -302,20 +311,25 @@ export class AirConditioner extends Component {
                         <form onSubmit={this.handleFormSubmit} className='sp-container'>
                             <label>
                                 Email:
-                                <TextField style={{ backgroundColor: "white" }} type="text" value={email} onChange={(e) => this.setState({ email: e.target.value })} />
+                                <select style={{width: "200px", cursor: "pointer"}}
+                                    className="new-real-estate-select"
+                                    value={pickedValue}
+                                    onChange={(e) => this.setState({ pickedValue: e.target.value })}>
+                                    <option value={email}>{ email }</option>
+                                    <option value="auto">auto</option>
+                                    <option value="none">none</option>
+                                </select>
                             </label>
-                            <br />
                             <label>
                                 Start Date:
                                 <TextField style={{ backgroundColor: "white" }} type="date" value={startDate} onChange={(e) => this.setState({ startDate: e.target.value })} />
                             </label>
-                            <br />
                             <label>
                                 End Date:
                                 <TextField style={{ backgroundColor: "white" }} type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
                             </label>
                             <br />
-                            <Button type="submit" id='sp-data-button'>Filter Data</Button>
+                            <Button type="submit" id='sp-data-button'>Filter</Button>
                         </form>
                         <LogTable logData={logData} />
                     </div>

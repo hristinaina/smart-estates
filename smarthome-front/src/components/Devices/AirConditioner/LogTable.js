@@ -4,6 +4,7 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import { TablePagination } from '@mui/material';
 
 class LogTable extends React.Component {
   constructor(props) {
@@ -12,6 +13,8 @@ class LogTable extends React.Component {
     this.state = {
       sortOrder: 'asc', 
       sortBy: 'User',
+      page: 0,
+      rowsPerPage: 5, 
     };
   }
 
@@ -82,45 +85,75 @@ class LogTable extends React.Component {
   //   }
   // }
 
+  handleChangePage = (event, newPage) => {
+    console.log(newPage)
+    this.setState({ page: newPage })
+    // setPage(newPage);
+  };
+
+  handleChangeRowsPerPage = (event) => {
+    console.log(event.target.value)
+    this.setState({ rowsPerPage: event.target.value})
+    // setRowsPerPage(parseInt(event.target.value, 10));
+    this.setState({ page: 0 })
+    // setPage(0);
+  };
+
   render() {
-    const { sortOrder, sortBy } = this.state;
+    const { sortOrder, sortBy, rowsPerPage, page } = this.state;
     const sortedData = this.getSortedData();
 
+    const startIndex = page * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, sortedData.length);
+    const slicedData = sortedData.slice(startIndex, endIndex);
+
     return (
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell style={{ cursor: "pointer" }} onClick={() => this.handleSort('User')}>
-              User {sortBy === 'User' && sortOrder === 'asc' && '↑'}
-              {sortBy === 'User' && sortOrder === 'desc' && '↓'}
-            </TableCell>
-            <TableCell style={{ cursor: "pointer" }} onClick={() => this.handleSort('Action')}>
-              Action {sortBy === 'Action' && sortOrder === 'asc' && '↑'}
-              {sortBy === 'Action' && sortOrder === 'desc' && '↓'}
-            </TableCell>
-            <TableCell style={{ cursor: "pointer" }} onClick={() => this.handleSort('Mode')}>
-              Mode {sortBy === 'Mode' && sortOrder === 'asc' && '↑'}
-              {sortBy === 'Mode' && sortOrder === 'desc' && '↓'}
+      <div>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell style={{ cursor: "pointer" }} onClick={() => this.handleSort('User')}>
+                User {sortBy === 'User' && sortOrder === 'asc' && '↑'}
+                {sortBy === 'User' && sortOrder === 'desc' && '↓'}
               </TableCell>
-            <TableCell style={{ cursor: "pointer" }} onClick={() => this.handleSort('Date')}>
-              Date {sortBy === 'Date' && sortOrder === 'asc' && '↑'}
-              {sortBy === 'Date' && sortOrder === 'desc' && '↓'}
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {sortedData.map((entry) => {
-            return (
-              <TableRow key={entry["timestamp"]}>
-                <TableCell>{entry.User}</TableCell>
-                <TableCell>{entry.Action}</TableCell>
-                <TableCell>{entry.Mode}</TableCell>
-                <TableCell>{entry["timestamp"]}</TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+              <TableCell style={{ cursor: "pointer" }} onClick={() => this.handleSort('Action')}>
+                Action {sortBy === 'Action' && sortOrder === 'asc' && '↑'}
+                {sortBy === 'Action' && sortOrder === 'desc' && '↓'}
+              </TableCell>
+              <TableCell style={{ cursor: "pointer" }} onClick={() => this.handleSort('Mode')}>
+                Mode {sortBy === 'Mode' && sortOrder === 'asc' && '↑'}
+                {sortBy === 'Mode' && sortOrder === 'desc' && '↓'}
+                </TableCell>
+              <TableCell style={{ cursor: "pointer" }} onClick={() => this.handleSort('Date')}>
+                Date {sortBy === 'Date' && sortOrder === 'asc' && '↑'}
+                {sortBy === 'Date' && sortOrder === 'desc' && '↓'}
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {slicedData.map((entry) => {
+              return (
+                <TableRow key={entry["timestamp"]}>
+                  <TableCell>{entry.User}</TableCell>
+                  <TableCell>{entry.Action}</TableCell>
+                  <TableCell>{entry.Mode}</TableCell>
+                  <TableCell>{entry["timestamp"]}</TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+
+        <TablePagination
+        rowsPerPageOptions={[5, 10, 25, 50]}  // Prilagodite opcije prema vašim potrebama
+        component="div"
+        count={sortedData.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={this.handleChangePage}
+        onRowsPerPageChange={this.handleChangeRowsPerPage}
+        />
+      </div>
     );
   }
 }

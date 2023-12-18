@@ -83,19 +83,19 @@ class DeviceService {
   }
 
   async getACHistoryData(deviceId, email, startDate, endDate) {
-    const gdata = {
+    const hdata = {
       "DeviceId": deviceId,
       "UserEmail": email,
       "StartDate": startDate,
       "EndDate": endDate
     }
     try {
-      const response = await fetch('http://localhost:8081/api/ac/history/'+deviceId, {
+      const response = await fetch('http://localhost:8081/api/ac/history', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(gdata),
+        body: JSON.stringify(hdata),
         credentials: 'include',
       });
       const data = await response.json();

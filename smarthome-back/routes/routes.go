@@ -60,7 +60,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	{
 		airConditionerController := controllers.NewAirConditionerController(db, mqtt)
 		airConditionerRoutes.GET("/:id", airConditionerController.Get)
-		airConditionerRoutes.PUT("history/:id", airConditionerController.GetHistoryData)
+		airConditionerRoutes.PUT("history", airConditionerController.GetHistoryData)
 	}
 	solarPanelRoutes := r.Group("/api/sp")
 	{
