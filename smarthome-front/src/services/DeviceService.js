@@ -149,6 +149,29 @@ async getSPLastValue(deviceId) {
         throw error;
     }
 } 
+
+async getGraphDataForDropdownSelect(estateId, time) {
+  try {
+      const response = await fetch('http://localhost:8081/api/hb/selected-time/' + estateId, {
+          method: 'POST',
+          credentials: 'include',
+          body: JSON.stringify({ time })
+      })
+      // console.log(response)
+      
+      if (response.ok) {
+          const data = await response.json();
+          // console.log(data)
+          return { result: data };
+      } else {
+          const data = await response.json();
+          return { result: false, error: data.error };
+      }
+  } catch (error) {
+      console.error('Greška :', error);
+      return { result: false, error: 'Network error' };
+  }
+}
 }
 
 export default new DeviceService();

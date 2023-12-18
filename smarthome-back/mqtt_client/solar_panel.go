@@ -102,7 +102,6 @@ func (mc *MQTTClient) calculateProductionForBatteries(batteries []models.HomeBat
 			//not everything that was supposed to go into the battery went into it
 			produced := hb.CurrentValue + valuePerBattery - hb.Size
 			hb.CurrentValue = hb.Size
-			fmt.Println(produced)
 			if isSurplus {
 				valuePerBattery = valuePerBattery - produced
 			} else {

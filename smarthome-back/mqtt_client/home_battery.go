@@ -118,7 +118,7 @@ func SaveHBDataToInfluxDb(client influxdb2.Client, batteryId int, currentValue f
 	writeAPI := client.WriteAPI(Org, Bucket)
 	p := influxdb2.NewPoint("home_battery", //table
 		map[string]string{"device_id": strconv.Itoa(batteryId)},
-		map[string]interface{}{"value": strconv.FormatFloat(currentValue, 'f', -1, 64)},
+		map[string]interface{}{"currentValue": currentValue},
 		time.Now())
 
 	// Write the point to InfluxDB

@@ -128,7 +128,7 @@ export class HomeBattery extends Component {
     };
 
     updateGraph = async (value) => {
-        const result = await AmbientSensorService.getDataForSelectedTime(this.id, value);  //todo implement this
+        const result = await DeviceService.getGraphDataForDropdownSelect(this.rs, value);
         const graphData = this.convertResultToGraphData(result.result.result)
         this.setState({
             data: graphData,
@@ -178,7 +178,7 @@ export class HomeBattery extends Component {
             this.handleClick();
             return;
         }
-        const result = await AmbientSensorService.getDataForSelectedDate(this.id, this.state.startDate, this.state.endDate);  //todo this
+        const result = await DeviceService.getGraphDataForDates(this.id, this.state.startDate, this.state.endDate);  //todo this
         console.log("datum graf ", result.result.result)
         const graphData = this.convertResultToGraphData(result.result.result)
         result.result.result != null ? await HBGraph(graphData) : await HBGraph([])

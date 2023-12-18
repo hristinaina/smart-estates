@@ -35,6 +35,18 @@ func (uc HomeBatteryController) GetConsumptionForLastHour(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 
+func (uc HomeBatteryController) GetConsumptionForSelectedTime(c *gin.Context) {
+	var input TimeInput
+	id, err := strconv.Atoi(c.Param("id"))
+	CheckIfError(err, c)
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+	results := uc.service.GetConsumptionForSelectedTime(input.Time, id)
+	c.JSON(http.StatusOK, gin.H{"result": results})
+}
+
 //
 //func (uc SolarPanelController) GetValueFromLastMinute(c *gin.Context) {
 //	id, err := strconv.Atoi(c.Param("id"))

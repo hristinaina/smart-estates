@@ -74,6 +74,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		HomeBatteryController := controllers.NewHomeBatteryController(db, influxDb)
 		homeBatteryRoutes.GET("/:id", middleware.RequireAuth, HomeBatteryController.Get)
 		homeBatteryRoutes.GET("/last-hour/:id", middleware.RequireAuth, HomeBatteryController.GetConsumptionForLastHour)
+		homeBatteryRoutes.POST("/selected-time/:id", middleware.RequireAuth, HomeBatteryController.GetConsumptionForSelectedTime)
 	}
 	uploadImageRoutes := r.Group("/api/upload")
 	{

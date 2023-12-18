@@ -21,6 +21,7 @@ type HomeBatteryService interface {
 	Get(id int) models.HomeBattery
 	GetConsumptionFromLastMinute(id int) (interface{}, error)
 	GetConsumptionForLastHour(id int) interface{}
+	GetConsumptionForSelectedTime(selectedTime string, estateId int) interface{}
 }
 
 type HomeBatteryServiceImpl struct {
@@ -79,6 +80,15 @@ func (s *HomeBatteryServiceImpl) GetConsumptionFromLastMinute(id int) (interface
 	// Close the result set
 	result.Close()
 	return value, nil
+}
+
+func (s *HomeBatteryServiceImpl) GetConsumptionForSelectedTime(selectedTime string, estateId int) interface{} {
+	query := fmt.Sprintf(`from(bucket:"bucket") 
+	|> range(start: %s, stop: now())
+	|> filter(fn: (r) => r._measurement == "consumption" and r["_field"] == "electricity" and r["estate_id"] == "%d")
+	|> yield(name: "sum")`, selectedTime, estateId)
+
+	return s.processingQuery(query)
 }
 
 func (s *HomeBatteryServiceImpl) GetConsumptionForLastHour(estateId int) interface{} {
