@@ -12,6 +12,7 @@ import (
 	"smarthome-back/dto"
 	"smarthome-back/models/devices"
 	"smarthome-back/repositories"
+	"time"
 )
 
 type HomeBatteryService interface {
@@ -19,6 +20,7 @@ type HomeBatteryService interface {
 	GetAllByEstateId(id int) ([]models.HomeBattery, error)
 	Get(id int) models.HomeBattery
 	GetConsumptionFromLastMinute(id int) (interface{}, error)
+	GetConsumptionForLastHour(id int) interface{}
 }
 
 type HomeBatteryServiceImpl struct {
@@ -77,4 +79,61 @@ func (s *HomeBatteryServiceImpl) GetConsumptionFromLastMinute(id int) (interface
 	// Close the result set
 	result.Close()
 	return value, nil
+}
+
+func (s *HomeBatteryServiceImpl) GetConsumptionForLastHour(estateId int) interface{} {
+	bucket := "bucket"
+
+	query := fmt.Sprintf(`from(bucket:"%s")|> range(start: -1h, stop: now()) 
+			|> filter(fn: (r) => r["_measurement"] == "consumption"
+			and r["_field"] == "electricity" and r["estate_id"] == "%d")
+			|> yield(name: "sum")`, bucket, estateId)
+	return s.processingQuery(query)
+}
+
+func (s *HomeBatteryServiceImpl) processingQuery(query string) map[time.Time]float64 {
+	Org := "Smart Home"
+	queryAPI := s.influxDb.QueryAPI(Org)
+
+	result, err := queryAPI.Query(context.Background(), query)
+	if err != nil {
+		fmt.Println("Error executing InfluxDB query:", err)
+		return nil
+	}
+
+	var tempPoints map[string]float64
+	tempPoints = make(map[string]float64)
+
+	if err == nil {
+		// Iterate over query response
+		for result.Next() {
+			if result.Record().Value() != nil {
+				timeStr := result.Record().Time().Format("2006-01-02 15:04")
+				tempPoints[timeStr] = tempPoints[timeStr] + result.Record().ValueByKey("_value").(float64)
+			}
+		}
+		// check for an error
+		if result.Err() != nil {
+			fmt.Printf("query parsing error: %s\n", result.Err().Error())
+		}
+	} else {
+		panic(err)
+	}
+
+	var resultPoints map[time.Time]float64
+	resultPoints = make(map[time.Time]float64)
+
+	for timeStr, value := range tempPoints {
+		layout := "2006-01-02 15:04"
+
+		parsedTime, err := time.Parse(layout, timeStr)
+		if err != nil {
+			fmt.Printf("Error parsing time '%s': %v\n", timeStr, err)
+			continue
+		}
+
+		resultPoints[parsedTime] = value
+	}
+
+	return resultPoints
 }

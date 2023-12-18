@@ -53,7 +53,8 @@ export class HomeBattery extends Component {
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
 
-        const historyData = await AmbientSensorService.getGraphData(this.id);
+        const historyData = await DeviceService.getHBGraphDataByRS(device.Device.RealEstate);
+        console.log(historyData)
         const graphData = this.convertResultToGraphData(historyData.result);
         this.setState({
             device: updatedData,
@@ -113,9 +114,6 @@ export class HomeBattery extends Component {
 
         const newValue = JSON.parse(message);
         if (newValue.estateId != this.state.device.Device.RealEstate) return;
-        console.log("HEEEEEJ");
-        console.log(newValue);
-        console.log(data);
         const timestamps = data.timestamps.filter((label) => this.isTimestampInLastHour(label)).concat(newValue.timestamp);
         const consumptionData = data.consumptionData.concat(newValue.consumed);
         const updatedChartData = {
@@ -181,7 +179,7 @@ export class HomeBattery extends Component {
 
     convertResultToGraphData(values) {
         const timestamps = Object.keys(values);
-        const consumptionData = timestamps.map((timestamp) => values[timestamp].consumed);
+        const consumptionData = timestamps.map((timestamp) => values[timestamp]);
         const graphData = {
             timestamps: timestamps,
             consumptionData: consumptionData

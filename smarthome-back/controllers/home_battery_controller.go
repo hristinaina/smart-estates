@@ -28,21 +28,13 @@ func (uc HomeBatteryController) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, device)
 }
 
-//
-//func (uc SolarPanelController) GetGraphData(c *gin.Context) {
-//	var data dto.ActionGraphRequest
-//	// convert json object to model device
-//	if err := c.BindJSON(&data); err != nil {
-//		c.JSON(400, gin.H{"error": "Invalid JSON"})
-//		return
-//	}
-//	graphData, err := uc.service.GetGraphData(data)
-//	if err != nil {
-//		c.JSON(http.StatusNotFound, gin.H{"error": "No data found"})
-//		return
-//	}
-//	c.JSON(http.StatusOK, graphData)
-//}
+func (uc HomeBatteryController) GetConsumptionForLastHour(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	CheckIfError(err, c)
+	results := uc.service.GetConsumptionForLastHour(id)
+	c.JSON(http.StatusOK, gin.H{"result": results})
+}
+
 //
 //func (uc SolarPanelController) GetValueFromLastMinute(c *gin.Context) {
 //	id, err := strconv.Atoi(c.Param("id"))
