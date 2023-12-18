@@ -2,13 +2,13 @@ import { Component } from 'react';
 import '../Devices.css';
 import { Navigation } from '../../Navigation/Navigation';
 import authService from '../../../services/AuthService';
-import DeviceService from '../../../services/DeviceService';
 import 'chart.js/auto';
 import SPGraph from '../SolarPanel/SPGraph';
 import HBGraph from './HBGraph';
 import AmbientSensorService from '../../../services/AmbientSensorService';
 import { Autocomplete, TextField, Button, Box, Grid, IconButton, Snackbar } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import HomeBatteryService from '../../../services/HomeBatteryService';
 
 
 export class HomeBattery extends Component {
@@ -43,7 +43,7 @@ export class HomeBattery extends Component {
         const valid = await authService.validateUser();
         if (!valid) window.location.assign("/");
 
-        const device = await DeviceService.getHB(this.id);
+        const device = await HomeBatteryService.getHB(this.id);
         console.log(device);
         const updatedData =
         {
@@ -55,7 +55,7 @@ export class HomeBattery extends Component {
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
 
-        const historyData = await DeviceService.getHBGraphDataByRS(device.Device.RealEstate);
+        const historyData = await HomeBatteryService.getHBGraphDataByRS(device.Device.RealEstate);
         console.log(historyData)
         const graphData = this.convertResultToGraphData(historyData.result);
         this.setState({
@@ -87,7 +87,7 @@ export class HomeBattery extends Component {
     }
 
     async fetchDeviceData() {
-        const device = await DeviceService.getHB(this.id);
+        const device = await HomeBatteryService.getHB(this.id);
         const updatedData = {
             ...device,
             CurrentValue: device.CurrentValue.toFixed(3),
@@ -128,7 +128,7 @@ export class HomeBattery extends Component {
     };
 
     updateGraph = async (value) => {
-        const result = await DeviceService.getGraphDataForDropdownSelect(this.rs, value);
+        const result = await HomeBatteryService.getGraphDataForDropdownSelect(this.rs, value);
         const graphData = this.convertResultToGraphData(result.result.result)
         this.setState({
             data: graphData,
@@ -137,7 +137,7 @@ export class HomeBattery extends Component {
 
     setActiveGraph = async (graphNumber) => {
         if (graphNumber == 1) {
-            const historyData = await DeviceService.getHBGraphDataByRS(this.rs);
+            const historyData = await HomeBatteryService.getHBGraphDataByRS(this.rs);
             const graphData = this.convertResultToGraphData(historyData.result);
             this.setState({
                 data: graphData,
@@ -178,7 +178,7 @@ export class HomeBattery extends Component {
             this.handleClick();
             return;
         }
-        const result = await DeviceService.getGraphDataForDates(this.rs, this.state.startDate, this.state.endDate);
+        const result = await HomeBatteryService.getGraphDataForDates(this.rs, this.state.startDate, this.state.endDate);
         console.log("datum graf ", result.result.result)
         const graphData = this.convertResultToGraphData(result.result.result)
         this.setState({
