@@ -110,8 +110,24 @@ export class VehicleGate extends Component {
             } else {
                 await VehicleGateService.toPublic(this.id);
             }
+            await this.setState({device: device});
         }
-        await this.setState({device: device})
+    }
+
+    openCloseGate = async(action) => {
+        // this condition won't let user to close the gate while some vechile is below it
+        if (this.state.enterLicensePlate === '') {
+            let device = this.state.device;
+            if (device.IsOpen != action) {
+                device.IsOpen = action;
+                if (action === true) {
+                    await VehicleGateService.open(this.id);
+                } else {
+                    await VehicleGateService.close(this.id);
+                }
+                this.setState({device : device});
+            }
+        }
     }
 
     async handleMqttMessage(topic, message) {
@@ -250,8 +266,8 @@ export class VehicleGate extends Component {
                         <p className="vg-description">{this.state.device.IsOpen === true ? 'Opened' : 'Closed'}</p>
                         <p className="vg-description">{this.state.exit === false ? this.state.enterLicensePlate : ''} {this.state.enter === true ? ' is entering...' : ''}</p>
                         <p className="vg-description">{this.state.enter === false ? this.state.enterLicensePlate : ''} {this.state.exit === true ? ' is exiting...' : ''}</p>
-                        <img src='/images/closed-gate.png' className={`vg-icon ${this.state.device.IsOpen === true ? 'unlocked' : ''}`} />
-                        <img src='/images/opened-gate.png' className={`vg-icon ${this.state.device.IsOpen === false ? 'unlocked' : ''}`} />
+                        <img src='/images/closed-gate.png' className={`vg-icon vg-padlock ${this.state.device.IsOpen === true ? 'unlocked' : ''}`} onClick={ () => this.openCloseGate(false)}/>
+                        <img src='/images/opened-gate.png' className={`vg-icon vg-padlock ${this.state.device.IsOpen === false ? 'unlocked' : ''}`} onClick={ () => this.openCloseGate(true)}/>
                         <div id="vg-box">
                             <p className="sp-data-text">Trusted License Plates</p>
                             <List id="vg-list">
