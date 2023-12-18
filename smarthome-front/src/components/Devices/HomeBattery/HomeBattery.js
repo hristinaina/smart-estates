@@ -9,6 +9,7 @@ import AmbientSensorService from '../../../services/AmbientSensorService';
 import { Autocomplete, TextField, Button, Box, Grid, IconButton, Snackbar } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import HomeBatteryService from '../../../services/HomeBatteryService';
+import "./HomeBattery.css"
 
 
 export class HomeBattery extends Component {
@@ -246,23 +247,23 @@ export class HomeBattery extends Component {
                     </div>
                     <div id='sp-right-card'>
                         <p className='sp-card-title'>Estate consumption</p>
-                        <span className='buttons'>
+                        <div id='hb-graph-tools'>
                             <span onClick={() => this.setActiveGraph(1)} className={this.state.activeGraph === 1 ? 'active-button' : 'non-active-button'}>Real Time</span>
                             <span onClick={() => { this.setActiveGraph(2); this.updateGraph(this.state.selectedOption.value) }} className={this.state.activeGraph === 2 ? 'active-button' : 'non-active-button'}>History</span>
-                        </span>
+                        </div>
                         {this.state.activeGraph === 2 &&
                             <div>
                                 <Grid container spacing={2}>
-                                    <Grid item xs={2}></Grid>
                                     <Grid item xs={3}>
                                         <Autocomplete
                                             value={selectedOption}
                                             onChange={this.handleOptionChange}
                                             options={options}
                                             getOptionLabel={(option) => option.label}
-                                            style={{ width: '100%' }}
+                                            style={{ width: '260px', marginLeft: "15px"}}
                                             renderInput={(params) => (
                                                 <TextField
+                                                    style={{ backgroundColor: "white"}}
                                                     {...params}
                                                     label="Select Time Range"
                                                     InputLabelProps={{
@@ -278,9 +279,10 @@ export class HomeBattery extends Component {
                                             )}
                                             disableClearable />
                                     </Grid>
-                                    <Grid item xs={6}>
-                                        <Box display="flex" alignItems="center" justifyContent="flex-end">
+                                    <Grid item xs={6} style={{margin: "0 0 0 auto"}}>
+                                        <Box display="flex" alignItems="center">
                                             <TextField
+                                                style={{ backgroundColor: "white", marginRight: "5px" }}
                                                 label="Start Date"
                                                 type="date"
                                                 value={startDate}
@@ -293,6 +295,7 @@ export class HomeBattery extends Component {
                                                 }}
                                             />
                                             <TextField
+                                                style={{ backgroundColor: "white", marginRight: "7px" }}
                                                 label="End Date"
                                                 type="date"
                                                 value={endDate}
@@ -312,7 +315,7 @@ export class HomeBattery extends Component {
                                 </Grid>
 
                             </div>}
-                        <div className='canvas'>
+                        <div>
                             {this.state.activeGraph === 1 && <HBGraph data={data} />}
                             {this.state.activeGraph === 2 && <HBGraph data={data} />}
                         </div>
