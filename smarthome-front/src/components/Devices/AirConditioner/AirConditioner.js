@@ -204,9 +204,14 @@ export class AirConditioner extends Component {
 
     // Handle incoming MQTT messages
     handleMqttMessage(topic, message) {
-        this.setState({
-            currentTemp: JSON.parse(message.toString()).temp
-        });
+        // console.log(message)
+        const result = JSON.parse(message.toString())
+        console.log(result.id)
+        console.log(this.id)
+        if (result.id === this.id)
+            this.setState({
+                currentTemp: result.temp
+            });
     }
 
     handleFormSubmit = async (e) => {
@@ -316,7 +321,7 @@ export class AirConditioner extends Component {
                 </div>
                 <Snackbar
                     open={this.state.open}
-                    autoHideDuration={3000}
+                    autoHideDuration={2000}
                     onClose={this.handleClose}
                     message={this.state.snackbarMessage}
                     action={this.action}

@@ -20,7 +20,7 @@ const (
 type AirConditionerSimulator struct {
 	client mqtt.Client
 	device models.AirConditioner
-	off_on models.TurnMode
+	off_on models.ReceiveValue
 }
 
 func NewAirConditionerSimulator(client mqtt.Client, device models.Device) *AirConditionerSimulator {
@@ -30,13 +30,7 @@ func NewAirConditionerSimulator(client mqtt.Client, device models.Device) *AirCo
 		return nil
 	}
 
-	off_on := models.TurnMode{
-		DeviceId:    device.ID,
-		Heating:     true,
-		Cooling:     false,
-		Automatic:   false,
-		Ventilation: false,
-	}
+	off_on := models.ReceiveValue{}
 
 	return &AirConditionerSimulator{
 		client: client,
@@ -52,36 +46,71 @@ func (ac *AirConditionerSimulator) ConnectAirConditioner() {
 }
 
 func (ac *AirConditionerSimulator) GenerateAirConditionerData() {
+	temp := 20.0
+
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			temp := ac.SendCurrentTemp()
-			// 		if ac.off_on.Heating {
-			// 			fmt.Println("usao sam")
-			// 			openMeteoResponse, err := config.GetTemp()
-			// 			if err != nil {
-			// 				fmt.Printf("Error: %v \n", err.Error())
-			// 			} else {
-			// 				temp := 0.8*openMeteoResponse.Current.Temperature2m + 15
-			// 				fmt.Println(temp)
+			fmt.Println(ac.off_on)
+			if ac.off_on.Switch {
+				fmt.Println("uslooo")
+				switch ac.off_on.Mode {
+				case "Heating":
+					if temp < float64(ac.off_on.Temp) {
+						if temp+0.5 > float64(ac.off_on.Temp) {
+							temp = float64(ac.off_on.Temp)
+						} else {
+							temp += 0.5
+						}
+					} else {
+						temp = float64(ac.off_on.Temp)
+					}
 
-			// 				data := map[string]interface{}{
-			// 					"id":   ac.device.Device.Device.ID,
-			// 					"temp": temp,
-			// 				}
-			// 				jsonString, err := json.Marshal(data)
-			// 				if err != nil {
-			// 					fmt.Println("greska")
-			// 				}
+				case "Cooling":
+					if temp > float64(ac.off_on.Temp) {
+						if temp-0.5 < float64(ac.off_on.Temp) {
+							temp = float64(ac.off_on.Temp)
+						} else {
+							temp -= 0.5
+						}
+					} else {
+						temp = float64(ac.off_on.Temp)
+					}
+				case "Automatic":
+					if temp > float64(ac.off_on.Temp) {
+						if temp-0.5 < float64(ac.off_on.Temp) {
+							temp = float64(ac.off_on.Temp)
+						} else {
+							temp -= 0.5
+						}
+					} else if temp < float64(ac.off_on.Temp) {
+						if temp+0.5 > float64(ac.off_on.Temp) {
+							temp = float64(ac.off_on.Temp)
+						} else {
+							temp += 0.5
+						}
+					}
+				case "Ventilation":
+					// do not change temperature
+				}
+			} else {
+				temp = ac.SendCurrentTemp()
+			}
+			// send on front
+			data := map[string]interface{}{
+				"id":   ac.device.Device.Device.ID,
+				"temp": temp,
+			}
+			jsonString, err := json.Marshal(data)
+			if err != nil {
+				fmt.Println("greska")
+			}
+			config.PublishToTopic(ac.client, topicTemp, string(jsonString))
 
-			// 				config.PublishToTopic(ac.client, topicTemp, string(jsonString))
 			fmt.Printf("Air Conditioner name=%s, id=%d, generated data: %f\n", ac.device.Device.Device.Name, ac.device.Device.Device.ID, temp)
-			// 			}
-
-			// 		}
 		}
 	}
 }
@@ -93,18 +122,6 @@ func (ac *AirConditionerSimulator) SendCurrentTemp() float64 {
 		return 20.0
 	} else {
 		temp := 0.8*openMeteoResponse.Current.Temperature2m + 15
-		fmt.Println(temp)
-
-		data := map[string]interface{}{
-			"id":   ac.device.Device.Device.ID,
-			"temp": temp,
-		}
-		jsonString, err := json.Marshal(data)
-		if err != nil {
-			fmt.Println("greska")
-		}
-
-		config.PublishToTopic(ac.client, topicTemp, string(jsonString))
 		return temp
 	}
 }
@@ -122,8 +139,11 @@ func (ac *AirConditionerSimulator) HandleSwitchChange(client mqtt.Client, msg mq
 		fmt.Println("Error unmarshaling JSON:", err)
 		return
 	}
-	fmt.Println("PRIOMIO SAM PORUKU")
-	fmt.Println(air_conditioner)
+
+	// set values
+	ac.off_on = air_conditioner
+
+	// todo send values to back
 	// ac.device.IsOn = sp.IsOn == true
 	// fmt.Printf("Solar panel id=%d, switch status:\n", deviceId)
 }
