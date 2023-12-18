@@ -232,8 +232,8 @@ func (repo *VehicleGateRepositoryImpl) GetFromInfluxDb(id int, from string, filt
 		query = fmt.Sprintf(`from(bucket: "bucket")
             |> range(start: %s, stop: %s)
             |> filter(fn: (r) => r._measurement == "gates" and r.Id == "%s" and r._field == "LicensePlate"
-			and r._value == "NS-123-45")`,
-			from, filter[0], queryId)
+			and r._value == "%s")`,
+			from, filter[0], queryId, filter[1])
 	}
 
 	results, err := queryAPI.Query(context.Background(), query)

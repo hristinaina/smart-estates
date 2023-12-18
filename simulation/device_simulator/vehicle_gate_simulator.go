@@ -10,7 +10,9 @@ import (
 	"strings"
 	"time"
 	"fmt"
-
+	"net/http"
+	"io/ioutil"
+	"encoding/json"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
@@ -22,12 +24,32 @@ const (
 type VehicleGateSimulator struct {
 	client mqtt.Client
 	device models.Device
+	licensePlates []string
 }
 
 func NewVehicleGateSimulator(client mqtt.Client, device models.Device) *VehicleGateSimulator{
+	url := "http://localhost:8081/api/vehicle-gate/license-plate"
+
+	response, _ := http.Get(url)
+
+	defer response.Body.Close()
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+	}
+	
+	var parsedStrings []string
+
+	err = json.Unmarshal([]byte(body), &parsedStrings)
+	if err != nil {
+		fmt.Println("Error parsing JSON:", err)
+	}
+
 	return &VehicleGateSimulator {
 		client: client,
 		device: device,
+		licensePlates: parsedStrings,
+
 	}
 }
 
@@ -53,25 +75,21 @@ func (sim *VehicleGateSimulator) GenerateVehicleData() {
 }
 
 func (sim *VehicleGateSimulator) HandleCarApproached() {
-	licensePlate := "NS-123-45"
+	licensePlate := sim.getRandomLicensePlate()
 	config.PublishToTopic(sim.client, config.TopicApproached+strconv.Itoa(sim.device.ID), licensePlate+"+enter")
 	fmt.Println("Published to topic approached!")
 }
 
 func (sim *VehicleGateSimulator) HandleLeaving(client mqtt.Client, msg mqtt.Message) {
-	fmt.Println("Someone is leaving\n")
 	payload := string(msg.Payload())
 	payloadTokens := strings.Split(payload, "+")
-	fmt.Printf("payload: %s\n", payload)
 	if (payloadTokens[0] == "open") {
 		licensePlate := payloadTokens[1]
 		action := payloadTokens[2]
 		if action == "enter" {
-			fmt.Printf("Simulation %s is leaving...\n", licensePlate)
 			rand.Seed(time.Now().UnixNano())
 			randomNumber := rand.Float64()
 			sec := int(randomNumber * 15)
-			fmt.Printf("Leaving in %d seconds\n", sec)
 			go func () {
 				timerChan := time.After(time.Duration(sec) * time.Second)
 				select {
@@ -82,5 +100,11 @@ func (sim *VehicleGateSimulator) HandleLeaving(client mqtt.Client, msg mqtt.Mess
 			} ()
 		}
 	}
+}
 
+func (sim *VehicleGateSimulator) getRandomLicensePlate() string {
+	x := len(sim.licensePlates)
+	rand.Seed(time.Now().UnixNano())
+	index := rand.Intn(x)
+	return sim.licensePlates[index]
 }
