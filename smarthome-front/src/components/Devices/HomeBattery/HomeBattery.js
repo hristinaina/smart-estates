@@ -112,8 +112,12 @@ export class HomeBattery extends Component {
         const { data } = this.state;
 
         const newValue = JSON.parse(message);
+        if (newValue.estateId != this.state.device.Device.RealEstate) return;
+        console.log("HEEEEEJ");
+        console.log(newValue);
+        console.log(data);
         const timestamps = data.timestamps.filter((label) => this.isTimestampInLastHour(label)).concat(newValue.timestamp);
-        const consumptionData = [...data.consumptionData[0].data, newValue.consumption];
+        const consumptionData = data.consumptionData.concat(newValue.consumed);
         const updatedChartData = {
             timestamps: timestamps,
             consumptionData: consumptionData
@@ -177,7 +181,7 @@ export class HomeBattery extends Component {
 
     convertResultToGraphData(values) {
         const timestamps = Object.keys(values);
-        const consumptionData = timestamps.map((timestamp) => values[timestamp].humidity);
+        const consumptionData = timestamps.map((timestamp) => values[timestamp].consumed);
         const graphData = {
             timestamps: timestamps,
             consumptionData: consumptionData
@@ -223,7 +227,7 @@ export class HomeBattery extends Component {
                         {this.renderBatteryIcon(device.CurrentValue, device.Size)}
                     </div>
                     <div id='sp-right-card'>
-                        <p className='sp-card-title'>This estate consumption</p>
+                        <p className='sp-card-title'>Estate consumption</p>
                         <span className='buttons'>
                             <span onClick={() => this.setActiveGraph(1)} className={this.state.activeGraph === 1 ? 'active-button' : 'non-active-button'}>Real Time</span>
                             <span onClick={() => { this.setActiveGraph(2); this.updateGraph(this.state.selectedOption.value) }} className={this.state.activeGraph === 2 ? 'active-button' : 'non-active-button'}>History</span>
