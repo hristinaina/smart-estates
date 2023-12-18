@@ -136,7 +136,7 @@ export class HomeBattery extends Component {
     }
 
     setActiveGraph = async (graphNumber) => {
-        if (graphNumber == 1){
+        if (graphNumber == 1) {
             const historyData = await DeviceService.getHBGraphDataByRS(this.rs);
             const graphData = this.convertResultToGraphData(historyData.result);
             this.setState({
@@ -144,7 +144,7 @@ export class HomeBattery extends Component {
                 activeGraph: graphNumber
             });
         }
-        else{
+        else {
             this.setState({ activeGraph: graphNumber });
         }
     }
@@ -178,11 +178,13 @@ export class HomeBattery extends Component {
             this.handleClick();
             return;
         }
-        const result = await DeviceService.getGraphDataForDates(this.id, this.state.startDate, this.state.endDate);  //todo this
+        const result = await DeviceService.getGraphDataForDates(this.rs, this.state.startDate, this.state.endDate);
         console.log("datum graf ", result.result.result)
         const graphData = this.convertResultToGraphData(result.result.result)
-        result.result.result != null ? await HBGraph(graphData) : await HBGraph([])
-    };
+        this.setState({
+            data: graphData,
+        });
+    }
 
     extractDeviceIdFromUrl() {
         const parts = window.location.href.split('/');
@@ -190,6 +192,12 @@ export class HomeBattery extends Component {
     }
 
     convertResultToGraphData(values) {
+        if (values == null) {
+            return {
+                timestamps: [],
+                consumptionData: []
+            }
+        }
         const timestamps = Object.keys(values);
         const consumptionData = timestamps.map((timestamp) => values[timestamp]);
         const graphData = {
@@ -304,10 +312,10 @@ export class HomeBattery extends Component {
                                 </Grid>
 
                             </div>}
-                            <div className='canvas'>
-                    {this.state.activeGraph === 1 && <HBGraph data={data} />}
-                    {this.state.activeGraph === 2 && <HBGraph data={data}/>}
-                </div>
+                        <div className='canvas'>
+                            {this.state.activeGraph === 1 && <HBGraph data={data} />}
+                            {this.state.activeGraph === 2 && <HBGraph data={data} />}
+                        </div>
                     </div>
                 </div>
                 <Snackbar

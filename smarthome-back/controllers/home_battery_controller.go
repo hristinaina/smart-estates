@@ -2,11 +2,13 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
 	"smarthome-back/services"
 	"strconv"
+	"time"
 )
 
 type HomeBatteryController struct {
@@ -44,6 +46,29 @@ func (uc HomeBatteryController) GetConsumptionForSelectedTime(c *gin.Context) {
 		return
 	}
 	results := uc.service.GetConsumptionForSelectedTime(input.Time, id)
+	c.JSON(http.StatusOK, gin.H{"result": results})
+}
+
+func (uc HomeBatteryController) GetConsumptionForSelectedDate(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	CheckIfError(err, c)
+	var input DateInput
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+
+	startDate, err := time.Parse("2006-01-02", input.Start)
+	if err != nil {
+		fmt.Println("Error parsing date:", err)
+	}
+
+	endDate, err := time.Parse("2006-01-02", input.End)
+	if err != nil {
+		fmt.Println("Error parsing date:", err)
+	}
+	results := uc.service.GetConsumptionForSelectedDate(startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), id)
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 
