@@ -70,15 +70,16 @@ func (sim *VehicleGateSimulator) HandleLeaving(client mqtt.Client, msg mqtt.Mess
 			fmt.Printf("Simulation %s is leaving...\n", licensePlate)
 			rand.Seed(time.Now().UnixNano())
 			randomNumber := rand.Float64()
-			sec := int(randomNumber * 30)
+			sec := int(randomNumber * 15)
 			fmt.Printf("Leaving in %d seconds\n", sec)
-			timerChan := time.After(time.Duration(sec) * time.Second)
-			select {
-			case <- timerChan:
-				fmt.Printf("Left %s\n", licensePlate)
-				config.PublishToTopic(sim.client, config.TopicApproached+strconv.Itoa(sim.device.ID), licensePlate+"+exit")
-			}
-			
+			go func () {
+				timerChan := time.After(time.Duration(sec) * time.Second)
+				select {
+				case <- timerChan:
+					fmt.Printf("Left %s\n", licensePlate)
+					config.PublishToTopic(sim.client, config.TopicApproached+strconv.Itoa(sim.device.ID), licensePlate+"+exit")
+				}
+			} ()
 		}
 	}
 

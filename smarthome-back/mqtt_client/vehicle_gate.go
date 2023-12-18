@@ -78,11 +78,11 @@ func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePla
 					return
 				}
 				mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, true, licensePlate)
-				setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, true)
+				//setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, true)
 			}
 		} else {
 			mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, false, licensePlate)
-			setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, false)
+			//setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, false)
 
 		}
 	} else {
@@ -97,7 +97,7 @@ func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePla
 				return
 			}
 			mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, true, licensePlate)
-			setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, true)
+			//setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, true)
 
 		}
 	}

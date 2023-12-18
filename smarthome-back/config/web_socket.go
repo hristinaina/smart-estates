@@ -75,46 +75,7 @@ func SendAmbientValues(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func SendNewGraphData(w http.ResponseWriter, r *http.Request) {
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
-	}
-
-	fmt.Println("Client Successfully Connected for new vehicle gate graph data...")
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			newValue := mqtt_client.GetNewGate()
-
-			fmt.Println("NEW VALUEEEEEEEEEEEEEEEEEEEEE")
-			fmt.Println(newValue)
-
-			jsonData, err := json.Marshal(newValue)
-			if err != nil {
-				fmt.Println("Error encoding JSON:", err)
-				return
-			}
-
-			// fmt.Println(jsonData)
-
-			if err := ws.WriteMessage(websocket.TextMessage, jsonData); err != nil {
-				fmt.Println("GRESKA PRILIKOM SLANJA PORUKE")
-				log.Println(err)
-				return
-			}
-		}
-	}
-
-}
-
 func SetupWebSocketRoutes() {
 	// http.HandleFunc("/ws", HandleWebSocket)
 	http.HandleFunc("/ambient", SendAmbientValues)
-	//http.HandleFunc("/vehiclegate", SendNewGraphData)
 }

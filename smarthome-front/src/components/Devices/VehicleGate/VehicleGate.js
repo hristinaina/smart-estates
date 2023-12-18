@@ -87,23 +87,6 @@ export class VehicleGate extends Component {
                 });
             }
 
-            // web socket connection
-            let socket = new WebSocket("ws://localhost:8082/vehicle-gate")
-            console.log("Attempting Websocket Connection")
-
-            socket.onopen = () => {
-                console.log("Successfully Connected")
-                socket.send(this.id)
-            }
-
-            socket.onclose = (event) => {
-                console.log("Socket Closed Connection: ", event)
-            }
-
-            socket.onmessage = (msg) => {
-                console.log("STIGLA PORUKA");
-                console.log(msg.data);
-            }
         } catch (error) {
             console.error(error);
         }
@@ -225,12 +208,14 @@ export class VehicleGate extends Component {
         let keys = [];
         console.log("data: ", data);
         if (data == null) {
+            await this.setState({snackbarMessage: "No data found."});
+            this.handleClick();
             return;
         }
         for (const obj of data) {
-            keys.push(obj.Value);
+            keys.push(obj.LicensePlate);
             datasets.push({
-                        label: obj.Value,
+                        label: obj.LicensePlate,
                         data: [obj.Count],
                         borderColor: LampService.getRandomColor(),
                         borderWidth: 2,
