@@ -74,7 +74,7 @@ export class VehicleGate extends Component {
             if (!this.connected) {
                 this.connected = true;
                 this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
-                        clientId: "react-front-nvt-2023-lamp",
+                        clientId: "react-front-nvt-2023-vehiclegate",
                         clean: false,
                         keepalive: 60
                 });

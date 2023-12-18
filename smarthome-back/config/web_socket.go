@@ -84,25 +84,30 @@ func SendNewGraphData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("Client Successfully Connected for new vehicle gate graph data...")
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
 
 	for {
-		newValue := mqtt_client.GetNewGate()
+		select {
+		case <-ticker.C:
+			newValue := mqtt_client.GetNewGate()
 
-		fmt.Println("NEW VALUEEEEEEEEEEEEEEEEEEEEE")
-		fmt.Println(newValue)
+			fmt.Println("NEW VALUEEEEEEEEEEEEEEEEEEEEE")
+			fmt.Println(newValue)
 
-		jsonData, err := json.Marshal(newValue)
-		if err != nil {
-			fmt.Println("Error encoding JSON:", err)
-			return
-		}
+			jsonData, err := json.Marshal(newValue)
+			if err != nil {
+				fmt.Println("Error encoding JSON:", err)
+				return
+			}
 
-		// fmt.Println(jsonData)
+			// fmt.Println(jsonData)
 
-		if err := ws.WriteMessage(websocket.TextMessage, jsonData); err != nil {
-			fmt.Println("GRESKA PRILIKOM SLANJA PORUKE")
-			log.Println(err)
-			return
+			if err := ws.WriteMessage(websocket.TextMessage, jsonData); err != nil {
+				fmt.Println("GRESKA PRILIKOM SLANJA PORUKE")
+				log.Println(err)
+				return
+			}
 		}
 	}
 
@@ -111,5 +116,5 @@ func SendNewGraphData(w http.ResponseWriter, r *http.Request) {
 func SetupWebSocketRoutes() {
 	// http.HandleFunc("/ws", HandleWebSocket)
 	http.HandleFunc("/ambient", SendAmbientValues)
-	http.HandleFunc("/vehicle-gate", SendNewGraphData)
+	//http.HandleFunc("/vehiclegate", SendNewGraphData)
 }
