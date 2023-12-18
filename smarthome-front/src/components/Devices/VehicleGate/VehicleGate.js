@@ -13,6 +13,8 @@ import Dialog from "../../Dialog/Dialog";
 import { Snackbar } from "@mui/material";
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
+import { Line } from "react-chartjs-2";
+import LampService from "../../../services/LampService";
 
 
 export class VehicleGate extends Component {
@@ -32,10 +34,29 @@ export class VehicleGate extends Component {
             snackbarMessage: '',
             showSnackbar: false,
             open: false,
+            data: {
+                labels: [],
+                datasets: [
+                  {
+                    label: '',
+                    data: [],
+                    borderColor: 'rgba(128,104,148,1)',
+                    borderWidth: 2,
+                    fill: false,
+                  },
+                ],
+            },
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
         this.Name = '';
+        this.options = {
+            scales: {
+              y: {
+                beginAtZero: false,
+              },
+            },
+        };
     }
 
     async componentDidMount() {
@@ -117,7 +138,7 @@ export class VehicleGate extends Component {
         }
     }
 
-    openAddLicensePlateDialog = async () => {
+    openAddLicensePlateDialog = async() => {
         await this.setState({showAddLicensePlateDialog: true})
     }
 
@@ -146,6 +167,46 @@ export class VehicleGate extends Component {
         this.handleClick();
     }
 
+    formatDate = (date) => {
+        console.log(date);
+        if (date != '') {
+            const dateObject = new Date(date);
+            return dateObject.toISOString();
+        } else {
+            return -1;
+        }
+    }
+    
+    fetch = async() => {
+        let startDate = this.formatDate(this.state.startDate);
+        let endDate = this.formatDate(this.state.endDate);
+        if (startDate == -1 || endDate == -1) {
+            console.log("Dates not good");
+            return;
+        }
+        let data = await VehicleGateService.getCountGraphData(this.id.toString(), startDate, endDate, this.state.licensePlate);
+        let datasets = [];
+        let keys = [];
+        console.log("data: ", data);
+        if (data == null) {
+            return;
+        }
+        for (const obj of data) {
+            keys.push(obj.Value);
+            datasets.push({
+                        label: obj.Value,
+                        data: [obj.Count],
+                        borderColor: LampService.getRandomColor(),
+                        borderWidth: 2,
+                        fill: false,
+                        },)
+        }
+        await this.setState({ data: {
+            labels: keys,
+            datasets: datasets
+        }});
+    }
+
     // snackbar
     handleClick = () => {
         this.setState({open: true});
@@ -171,7 +232,7 @@ export class VehicleGate extends Component {
         );
 
     render() {            
-        const { licensePlate, startDate, endDate} = this.state;
+        const { licensePlate, startDate, endDate } = this.state;
 
         return (
             <div>
@@ -209,12 +270,16 @@ export class VehicleGate extends Component {
                             <form onSubmit={this.handleFormSubmit} className='sp-container'>
                             <label>
                                 License Plate:
-                                <TextField style={{ backgroundColor: "white" }} type="text" value={licensePlate} onChange={(e) => this.setState({ licensePlate: e.target.value })} />
+                                <TextField style={{ backgroundColor: "white" }} type="text" value={licensePlate} onChange={(e) => this.setState({ licensePlate: e.target.value }, () => {
+                                    console.log('Updated state:', this.state.licensePlate);
+                                })} />
                             </label>
                             <br />
                             <label>
                                 Start Date:
-                                <TextField style={{ backgroundColor: "white" }} type="date" value={startDate} onChange={(e) => this.setState({ startDate: e.target.value })} />
+                                <TextField style={{ backgroundColor: "white" }} type="date" value={startDate} onChange={(e) => this.setState({ startDate: e.target.value }, ()=> {
+                                    console.log('Update state: ', this.state.startDate);
+                                })} />
                             </label>
                             <br />
                             <label>
@@ -222,8 +287,9 @@ export class VehicleGate extends Component {
                                 <TextField style={{ backgroundColor: "white" }} type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
                             </label>
                             <br />
-                            <Button id='sp-data-button'>Confirm</Button>
+                            <Button id='sp-data-button' onClick={this.fetch}>Confirm</Button>
                         </form>
+                        <Line key={JSON.stringify(this.state.data)} id="vg-graph" data={this.state.data} options={this.options} />
                     </div>
                 </div>
                 {this.state.showAddLicensePlateDialog && (

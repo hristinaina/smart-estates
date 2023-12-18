@@ -67,3 +67,7 @@
     cursor: pointer;
     color: black;
 }
+
+#vg-graph {
+    margin-top: 4em;
+}

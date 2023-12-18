@@ -100,6 +100,28 @@ class VehicleGateService {
         const responseData = await response.json();
         return responseData;
     }
+
+    async getCountGraphData(id, from, to, licensePlate) {
+        try {
+            let url = '';
+            licensePlate = licensePlate.trim()
+            console.log(licensePlate);
+            if (licensePlate === '') {
+                console.log('ovdje');
+                url = `http://localhost:8081/api/vehicle-gate/count/${id}/${from}/${to}/-1`;
+            } else {
+                url = `http://localhost:8081/api/vehicle-gate/count/${id}/${from}/${to}/${licensePlate}`;
+            }
+            console.log(url);
+            const response = await fetch(url);
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+
+    }
 }
 
 export default new VehicleGateService();

@@ -161,6 +161,11 @@ func (controller VehicleGateController) GetLicencePlatesCount(c *gin.Context) {
 	to := c.Param("to")
 	licensePlate := c.Param("license-plate")
 
-	result := controller.service.GetLicensePlatesCount(id, from, to, licensePlate)
+	var result []dtos.VehicleGateCountData
+	if licensePlate == "-1" {
+		result = controller.service.GetLicensePlatesCount(id, from, to)
+	} else {
+		result = controller.service.GetLicensePlatesCount(id, from, to, licensePlate)
+	}
 	c.JSON(200, result)
 }
