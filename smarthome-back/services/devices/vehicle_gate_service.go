@@ -104,12 +104,7 @@ func (service *VehicleGateServiceImpl) Add(dto dto.DeviceDTO) (models.VehicleGat
 	if err != nil {
 		return models.VehicleGate{}, err
 	}
-	defer func(tx *sql.Tx) {
-		err := tx.Rollback()
-		if err != nil {
-			fmt.Println("Rollback error: ", err)
-		}
-	}(tx)
+	defer tx.Rollback()
 
 	// TODO: move transaction to repository
 	result, err := tx.Exec(`

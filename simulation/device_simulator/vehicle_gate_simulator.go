@@ -34,7 +34,7 @@ func NewVehicleGateSimulator(client mqtt.Client, device models.Device) *VehicleG
 func (sim *VehicleGateSimulator) ConnectVehicleGate() {
 	go SendHeartBeat(sim.client, sim.device.ID, sim.device.Name)
 	go sim.GenerateVehicleData()
-	go config.SubscribeToTopic(sim.client, TopicVGOpenClose+strconv.Itoa(sim.device.ID), sim.HandleLeaving)
+	config.SubscribeToTopic(sim.client, TopicVGOpenClose+strconv.Itoa(sim.device.ID), sim.HandleLeaving)
 }
 
 func (sim *VehicleGateSimulator) GenerateVehicleData() {
