@@ -36,6 +36,7 @@ export class HomeBattery extends Component {
         };
         this.id = parseInt(this.extractDeviceIdFromUrl());
         this.Name = "";
+        this.rs = 0;
     }
 
     async componentDidMount() {
@@ -50,6 +51,7 @@ export class HomeBattery extends Component {
             CurrentValue: device.CurrentValue.toFixed(3),
         }
 
+        this.rs = device.Device.RealEstate;
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
 
@@ -126,15 +128,25 @@ export class HomeBattery extends Component {
     };
 
     updateGraph = async (value) => {
-        const result = await AmbientSensorService.getDataForSelectedTime(this.id, value);
+        const result = await AmbientSensorService.getDataForSelectedTime(this.id, value);  //todo implement this
         const graphData = this.convertResultToGraphData(result.result.result)
         this.setState({
             data: graphData,
         });
     }
 
-    setActiveGraph = (graphNumber) => {
-        this.setState({ activeGraph: graphNumber });
+    setActiveGraph = async (graphNumber) => {
+        if (graphNumber == 1){
+            const historyData = await DeviceService.getHBGraphDataByRS(this.rs);
+            const graphData = this.convertResultToGraphData(historyData.result);
+            this.setState({
+                data: graphData,
+                activeGraph: graphNumber
+            });
+        }
+        else{
+            this.setState({ activeGraph: graphNumber });
+        }
     }
 
     handleOptionChange = async (event, value) => {
@@ -166,7 +178,7 @@ export class HomeBattery extends Component {
             this.handleClick();
             return;
         }
-        const result = await AmbientSensorService.getDataForSelectedDate(this.id, this.state.startDate, this.state.endDate);
+        const result = await AmbientSensorService.getDataForSelectedDate(this.id, this.state.startDate, this.state.endDate);  //todo this
         console.log("datum graf ", result.result.result)
         const graphData = this.convertResultToGraphData(result.result.result)
         result.result.result != null ? await HBGraph(graphData) : await HBGraph([])
