@@ -4,6 +4,7 @@ import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices"
 	"strconv"
 	"strings"
@@ -26,20 +27,17 @@ func (mc *MQTTClient) HandleHBData(client mqtt.Client, msg mqtt.Message) {
 		return
 	}
 
-	//consumptionDevice, err := mc.deviceRepository.GetConsumptionDevice(deviceId)
-	//if err != nil {
-	//	return
-	//}
-	//if consumptionDevice.PowerSupply == enumerations.Autonomous {
-	//	return
-	//}
-	//
-	//mc.handleConsumption(consumptionDevice.Device, consumptionValue)
-	//
-	//fmt.Printf("Device: name=%s, id=%d, consumption value %f \n", consumptionDevice.Device.Name, consumptionDevice.Device.Id, consumptionValue)
+	consumptionDevice, err := mc.deviceRepository.GetConsumptionDevice(deviceId)
+	if err != nil {
+		return
+	}
+	if consumptionDevice.PowerSupply == enumerations.Autonomous {
+		return
+	}
 
-	device, err := mc.deviceRepository.Get(deviceId)
-	mc.handleConsumption(device, consumptionValue)
+	mc.handleConsumption(consumptionDevice.Device, consumptionValue)
+
+	fmt.Printf("Device: name=%s, id=%d, consumption value %f \n", consumptionDevice.Device.Name, consumptionDevice.Device.Id, consumptionValue)
 }
 
 func (mc *MQTTClient) handleConsumption(device models.Device, consumptionValue float64) {
