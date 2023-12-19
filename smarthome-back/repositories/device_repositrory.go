@@ -14,6 +14,7 @@ type DeviceRepository interface {
 	GetDevicesByUserID(userID int) ([]models.Device, error)
 	Update(device models.Device) bool
 	GetConsumptionDevicesByEstateId(userID int) ([]models.ConsumptionDevice, error)
+	GetConsumptionDevice(id int) (models.ConsumptionDevice, error)
 }
 
 type DeviceRepositoryImpl struct {
@@ -45,6 +46,54 @@ func (res *DeviceRepositoryImpl) GetAll() []models.Device {
 	}
 
 	return devices
+}
+
+func (res *DeviceRepositoryImpl) GetConsumptionDevice(id int) (models.ConsumptionDevice, error) {
+	query := `
+		SELECT
+			d.id,
+			d.name,
+			d.realEstate,
+			d.isOnline,
+			cd.powerSupply,
+			cd.powerConsumption
+		FROM
+			device d
+		JOIN
+			consumptionDevice cd ON d.id = cd.deviceId
+		WHERE
+			d.id = ?
+	`
+
+	rows, err := res.db.Query(query, id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	row := res.db.QueryRow(query, id)
+
+	var cd models.ConsumptionDevice
+	var device models.Device
+
+	err = row.Scan(
+		&device.Id,
+		&device.Name,
+		&device.RealEstate,
+		&device.IsOnline,
+		&cd.PowerSupply,
+		&cd.PowerConsumption,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			fmt.Println("No consumption device found with the specified ID")
+		} else {
+			fmt.Println("Error retrieving solar panel:", err)
+		}
+		return models.ConsumptionDevice{}, err
+	}
+	cd.Device = device
+	return cd, nil
 }
 
 func (res *DeviceRepositoryImpl) GetConsumptionDevicesByEstateId(id int) ([]models.ConsumptionDevice, error) {

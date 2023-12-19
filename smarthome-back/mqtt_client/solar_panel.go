@@ -71,9 +71,10 @@ func (mc *MQTTClient) handleProduction(device models.SolarPanel, value float64) 
 			// surplus=what was left (if one of the batteries was full) is sent to batteries again (not divided)
 			surplus = mc.calculateProductionForBatteries(batteries, device.Device.Id, surplus, true)
 		}
-	} else if len(batteries) == 0 {
+	} else {
 		saveSPDataToInfluxDb(mc.influxDb, device.Device.Id, "electrical_distribution", value)
-	} else if surplus != 0.0 {
+	}
+	if surplus != 0.0 {
 		saveSPDataToInfluxDb(mc.influxDb, device.Device.Id, "electrical_distribution", surplus)
 	}
 
@@ -81,18 +82,18 @@ func (mc *MQTTClient) handleProduction(device models.SolarPanel, value float64) 
 
 func (mc *MQTTClient) calculateProductionForBatteries(batteries []models.HomeBattery, deviceId int, valuePerBattery float64, isSurplus bool) float64 {
 	surplus := 0.0
-	for _, hb := range batteries {
-		if !hb.Device.IsOnline {
+	for i, _ := range batteries {
+		if !batteries[i].Device.IsOnline {
 			if !isSurplus {
 				surplus = surplus + valuePerBattery
 			}
 			continue
 		}
-		if hb.CurrentValue+valuePerBattery <= hb.Size {
-			hb.CurrentValue = hb.CurrentValue + valuePerBattery
-			saveSPDataToInfluxDb(mc.influxDb, deviceId, strconv.Itoa(hb.Device.Id), valuePerBattery)
-			SaveHBDataToInfluxDb(mc.influxDb, hb.Device.Id, hb.CurrentValue)
-			mc.homeBatteryRepository.Update(hb)
+		if batteries[i].CurrentValue+valuePerBattery <= batteries[i].Size {
+			batteries[i].CurrentValue = batteries[i].CurrentValue + valuePerBattery
+			saveSPDataToInfluxDb(mc.influxDb, deviceId, strconv.Itoa(batteries[i].Device.Id), valuePerBattery)
+			SaveHBDataToInfluxDb(mc.influxDb, batteries[i].Device.Id, batteries[i].CurrentValue)
+			mc.homeBatteryRepository.Update(batteries[i])
 			//everything that was supposed to go into the battery went into it
 			if isSurplus {
 				valuePerBattery = 0.0
@@ -100,16 +101,16 @@ func (mc *MQTTClient) calculateProductionForBatteries(batteries []models.HomeBat
 			}
 		} else {
 			//not everything that was supposed to go into the battery went into it
-			produced := hb.CurrentValue + valuePerBattery - hb.Size
-			hb.CurrentValue = hb.Size
+			produced := batteries[i].Size - batteries[i].CurrentValue
+			batteries[i].CurrentValue = batteries[i].Size
 			if isSurplus {
 				valuePerBattery = valuePerBattery - produced
 			} else {
 				surplus = surplus + valuePerBattery - produced
 			}
-			saveSPDataToInfluxDb(mc.influxDb, deviceId, strconv.Itoa(hb.Device.Id), produced)
-			SaveHBDataToInfluxDb(mc.influxDb, hb.Device.Id, hb.CurrentValue)
-			mc.homeBatteryRepository.Update(hb)
+			saveSPDataToInfluxDb(mc.influxDb, deviceId, strconv.Itoa(batteries[i].Device.Id), produced)
+			SaveHBDataToInfluxDb(mc.influxDb, batteries[i].Device.Id, batteries[i].CurrentValue)
+			mc.homeBatteryRepository.Update(batteries[i])
 		}
 	}
 	if isSurplus {

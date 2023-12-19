@@ -50,7 +50,7 @@ func (ls *SolarPanelSimulator) GenerateSolarPanelData() {
 		case <-ticker.C:
 			if ls.device.IsOn {
 				// SolarRadiation is in W/m^2
-				openMeteoResponse, err := config.GetSolarRadiation(45.45, 19) //todo get real lat and long
+				openMeteoResponse, err := config.GetSolarRadiation(45.45, 19)
 				if err != nil {
 					fmt.Printf("Error: %v \n", err.Error())
 				} else {
