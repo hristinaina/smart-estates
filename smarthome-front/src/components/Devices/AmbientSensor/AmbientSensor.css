@@ -4,9 +4,12 @@
 
 .buttons {
     display: flex;
-    justify-content: center;
+    /* justify-content: center; */
     align-items: center;
     margin-top: 50px;
+    margin-left: 15%;
+    font-weight: 900;
+    font-size: x-large;
 }
 
 .active-button {
@@ -25,4 +28,9 @@
 
 .canvas {
     margin: 75px 20px;
+}
+
+.ambient-sensor-title {
+    font-size: 45px;
+    margin-left: 35px;
 }

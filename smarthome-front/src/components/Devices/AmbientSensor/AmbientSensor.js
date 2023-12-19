@@ -9,6 +9,7 @@ import authService from '../../../services/AuthService'
 import AmbientSensorService from '../../../services/AmbientSensorService';
 import { Autocomplete, TextField, Button, Box, Grid, IconButton, Snackbar } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import DeviceService from '../../../services/DeviceService';
 
 
 export class AmbientSensor extends Component {
@@ -55,6 +56,7 @@ export class AmbientSensor extends Component {
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
+        this.Name = "";
 
         this.options = {
             scales: {
@@ -77,7 +79,10 @@ export class AmbientSensor extends Component {
         const valid = await authService.validateUser();
         if (!valid) window.location.assign("/");
 
-        const { device } = this.state;  // todo instead of this get device from back by deviceId
+        const device = await DeviceService.getDeviceById(this.id, 'http://localhost:8081/api/ambient/');
+        console.log(device)
+        this.Name = device.Device.Name;
+        // const { device } = this.state;  // todo instead of this get device from back by deviceId
         const updatedData =
         {
             ...device,
@@ -293,7 +298,11 @@ export class AmbientSensor extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' id='arrow' alt='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer", float: "left" }} onClick={this.handleBackArrow} />
+                <span style={{float: "left", marginRight: "250px"}}>
+                <img src='/images/arrow.png' id='arrow' alt='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer"}} onClick={this.handleBackArrow} />
+                <span className='ambient-sensor-title'>{this.Name}</span>
+                </span>
+                
                 <span className='buttons'>
                     <span onClick={() => this.setActiveGraph(1)} className={this.state.activeGraph === 1 ? 'active-button' : 'non-active-button'}>Real Time</span>
                     <span onClick={() => { this.setActiveGraph(2); this.updateGraph(this.state.selectedOption.value) }} className={this.state.activeGraph === 2 ? 'active-button' : 'non-active-button'}>History</span>
