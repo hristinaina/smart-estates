@@ -123,14 +123,14 @@ class VehicleGateService {
         }
     }
 
-    addNewGraphData(graphType, oldData, newData, id) {
-        console.log("web socket radi");
-        if (id == newData["vehicle_gate_id"]) {
+    addNewGraphData(graphType, oldData, newData) {
             // license plate entries count graph
+            console.log("dataaaa");
+            console.log(oldData);
             if (graphType == 0) {
                 if (oldData.labels.includes(newData["license_plate"])) {
                     const index = oldData.labels.indexOf(newData["license_plate"]);
-                    let data = oldData.datasets[index].data;
+                    let data = oldData.datasets[0].data;
                     let count = data[index] + 1;
                     data[index] = count;
                     oldData.datasets.data = data;
@@ -140,7 +140,7 @@ class VehicleGateService {
                     let labels = oldData.labels;
                     labels.push(newData["license_plate"]);
                     console.log(index);
-                    console.log(oldData.datasets[index]);
+                    console.log(oldData.datasets[0]);
                     oldData.datasets[index].data.push(1);
                     oldData.labels = labels;
                   
@@ -148,11 +148,12 @@ class VehicleGateService {
                 }
             }
             // TODO: handle other types of graphs
-        }
+        
         
         // console.log(oldData);
         return oldData;
     }
+    
 }
 
 export default new VehicleGateService();

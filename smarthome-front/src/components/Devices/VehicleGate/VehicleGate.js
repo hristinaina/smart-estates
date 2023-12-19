@@ -147,8 +147,15 @@ export class VehicleGate extends Component {
 
         }
         else if (tokens[0] === "close") {
+            let newData = {
+                "license_plate": await this.state.enterLicensePlate,
+            }
             device.IsOpen = false;
             await this.setState({device: device, enterLicensePlate: '', enter: false, exit: false});
+            
+            let data = await VehicleGateService.addNewGraphData(0, this.state.data, newData);
+            console.log("dataaa");
+            console.log(data);
         } 
         else {
             await this.setState({enterLicensePlate: '', enter: false, exit: false});
@@ -212,16 +219,23 @@ export class VehicleGate extends Component {
             this.handleClick();
             return;
         }
+        let values = []
         for (const obj of data) {
             keys.push(obj.LicensePlate);
-            datasets.push({
-                        label: obj.LicensePlate,
-                        data: [obj.Count],
-                        borderColor: LampService.getRandomColor(),
-                        borderWidth: 2,
-                        fill: false,
-                        },)
+            values.push(obj.Count)
         }
+
+        datasets.push({
+            // TODO: make this depend on graph type
+            label: "Count vehicle entries",
+            data: values,
+            borderColor: LampService.getRandomColor(),
+            borderWidth: 2,
+            fill: false,
+            },)
+        console.log("datasets");
+        console.log(datasets);
+        console.log(keys);
         await this.setState({ data: {
             labels: keys,
             datasets: datasets
@@ -290,21 +304,21 @@ export class VehicleGate extends Component {
                             <p className="sp-card-title">Reports</p>
                             <form onSubmit={this.handleFormSubmit} className='sp-container'>
                             <label>
-                                License Plate:
-                                <TextField style={{ backgroundColor: "white" }} type="text" value={licensePlate} onChange={(e) => this.setState({ licensePlate: e.target.value }, () => {
+                                License Plate
+                                <TextField placeholder="all vehicles" style={{ backgroundColor: "white" }} type="text" value={licensePlate} onChange={(e) => this.setState({ licensePlate: e.target.value }, () => {
                                     console.log('Updated state:', this.state.licensePlate);
                                 })} />
                             </label>
                             <br />
                             <label>
-                                Start Date:
+                                Start Date*
                                 <TextField style={{ backgroundColor: "white" }} type="date" value={startDate} onChange={(e) => this.setState({ startDate: e.target.value }, ()=> {
                                     console.log('Update state: ', this.state.startDate);
                                 })} />
                             </label>
                             <br />
                             <label>
-                                End Date:
+                                End Date*
                                 <TextField style={{ backgroundColor: "white" }} type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
                             </label>
                             <br />
