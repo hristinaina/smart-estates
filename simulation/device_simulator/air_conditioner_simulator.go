@@ -49,7 +49,8 @@ func (ac *AirConditionerSimulator) ConnectAirConditioner() {
 }
 
 func (ac *AirConditionerSimulator) GenerateAirConditionerData() {
-	temp := 20.0
+	currentTemp := ac.GetCurrentTemp()
+	temp := currentTemp
 
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
@@ -70,7 +71,6 @@ func (ac *AirConditionerSimulator) GenerateAirConditionerData() {
 					} else {
 						temp = float64(ac.off_on.Temp)
 					}
-
 				case "Cooling":
 					if temp > float64(ac.off_on.Temp) {
 						if temp-0.5 < float64(ac.off_on.Temp) {
@@ -99,12 +99,24 @@ func (ac *AirConditionerSimulator) GenerateAirConditionerData() {
 					// do not change temperature
 				}
 			} else {
-				temp = ac.GetCurrentTemp()
+				if temp < currentTemp {
+					if temp+0.5 > currentTemp {
+						temp = currentTemp
+					} else {
+						temp += 0.5
+					}
+				} else if temp > currentTemp {
+					if temp-0.5 < currentTemp {
+						temp = currentTemp
+					} else {
+						temp -= 0.5
+					}
+				}
 			}
 			// send on front
 			data := map[string]interface{}{
 				"id":   ac.device.Device.Device.ID,
-				"temp": temp,
+				"temp": math.Round(temp*100) / 100,
 			}
 			jsonString, err := json.Marshal(data)
 			if err != nil {

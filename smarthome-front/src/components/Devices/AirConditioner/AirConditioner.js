@@ -27,7 +27,7 @@ export class AirConditioner extends Component {
             showSnackbar: false,
             open: false,
             temp: 20.0,
-            currentTemp: 20.0
+            currentTemp: "Loading..."
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -171,7 +171,7 @@ export class AirConditioner extends Component {
             }
         });       
         // ovo znaci da nista pre toga nije bilo ukljuceno/iskljuceno
-        if(i===0) {
+        if(i===0 && item.switchOn) {
             console.log("zakazano drugo")
             console.log(item.name)
             console.log(item.temp)
