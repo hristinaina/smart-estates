@@ -179,9 +179,6 @@ class VehicleGateService {
     checkDateOrder(startDate2, endDate2) {
         const startDate = new Date(startDate2);
         const endDate = new Date(endDate2);
-
-        const currentDate = new Date();
-
         if (endDate <= startDate) {
             return false;
         }

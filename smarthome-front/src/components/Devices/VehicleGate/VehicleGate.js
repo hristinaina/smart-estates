@@ -79,6 +79,8 @@ export class VehicleGate extends Component {
                         keepalive: 60
                 });
                 this.mqttClient.on('connect', () => {
+                    console.log("iddddd");
+                    console.log(this.id);
                     this.mqttClient.subscribe('vg/open/' + this.id);
                 });
     
@@ -107,11 +109,15 @@ export class VehicleGate extends Component {
         if (device.Mode != mode) {
             device.Mode = mode;
             if (mode === 0) {
+                device.IsOpen = false;
+                await VehicleGateService.close(this.id);
                 await VehicleGateService.toPrivate(this.id);
+
             } else {
                 await VehicleGateService.toPublic(this.id);
             }
             await this.setState({device: device});
+            console.log(this.state.device);
         }
     }
 
@@ -120,18 +126,34 @@ export class VehicleGate extends Component {
         if (this.state.enterLicensePlate === '') {
             let device = this.state.device;
             if (device.IsOpen != action) {
-                device.IsOpen = action;
                 if (action === true) {
+                    if (device.Mode == 0) {
+                        await this.setState({snackbarMessage: "Cannot open gate in private mode."});
+                        this.handleClick();
+                        return;
+                    }
                     await VehicleGateService.open(this.id);
                 } else {
                     await VehicleGateService.close(this.id);
                 }
-                this.setState({device : device});
+                device.IsOpen = action;
+                await this.setState({device : device});
             }
         }
     }
 
     async handleMqttMessage(topic, message) {
+        var parts = topic.split("/");
+
+        // Get the last part (after the last "/")
+        var lastPart = parts[parts.length - 1];
+
+        // Parse the last part to an integer
+        var parsedNumber = parseInt(lastPart, 10);
+        if (parsedNumber != this.id) {
+            console.log(parsedNumber);
+            return;
+        }
         const tokens = message.toString().split('+');
         let device = this.state.device;
         console.log(message.toString());

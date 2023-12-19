@@ -59,6 +59,7 @@ func (mc *MQTTClient) HandleVehicleApproached(_ mqtt.Client, msg mqtt.Message) {
 func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePlate string, action string) {
 	if !gate.IsOpen {
 		if (gate.Mode == enumerations.Public) || (contains(gate.LicensePlates, licensePlate)) || (action == "exit") {
+			fmt.Println("usao")
 			_, err := mc.vehicleGateRepository.UpdateIsOpen(gate.ConsumptionDevice.Device.Id, true)
 			if repositories.CheckIfError(err) {
 				return
@@ -85,7 +86,7 @@ func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePla
 			//setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, false)
 
 		}
-	} else {
+	} else if (gate.Mode == enumerations.Public) || contains(gate.LicensePlates, licensePlate) || (action == "exit") {
 		err := mc.Publish(TopicVGOpenClose+strconv.Itoa(gate.ConsumptionDevice.Device.Id), "open+"+licensePlate+"+"+action)
 		if repositories.CheckIfError(err) {
 			return

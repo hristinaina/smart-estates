@@ -26,7 +26,6 @@ const (
 	TopicSPData        = "sp/data/"
 	TopicApproached    = "device/approached/"
 	TopicVGOpenClose   = "vg/open/"
-	TopicVGEntered     = "vg/entered/"
 )
 
 type MQTTClient struct {
