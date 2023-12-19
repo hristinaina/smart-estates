@@ -34,9 +34,7 @@ func (mc *MQTTClient) HandleActionChange(client mqtt.Client, msg mqtt.Message) {
 	fmt.Println("PRIMLJENA PORUKA")
 	fmt.Println(deviceId, mode, temp, previous, user, switchAC)
 
-	// todo sacuvaj u bazi
 	saveACToInfluxDb(mc.influxDb, deviceId, mode, previous, user, switchAC)
-	// fmt.Printf("AmbientSensor id=%d, switch status: %s\n", deviceId, status)
 }
 
 func saveACToInfluxDb(client influxdb2.Client, deviceId int, mode, previous, user string, switchAC bool) {

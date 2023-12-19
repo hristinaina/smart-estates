@@ -3,6 +3,7 @@ package device_simulator
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"simulation/config"
 	"simulation/models"
 	"strconv"
@@ -13,9 +14,9 @@ import (
 )
 
 const (
-	topicACSwitch = "ac/switch/"
-	topicTemp     = "ac/temp"
-	topicAction   = "ac/action/"
+	topicACSwitch = "ac/switch/" // front salje sta se upalilo/ugasilo
+	topicTemp     = "ac/temp"    // salje temp na front
+	topicAction   = "ac/action"  // slanje na front i back zakazan termin
 )
 
 type AirConditionerSimulator struct {
@@ -43,6 +44,7 @@ func NewAirConditionerSimulator(client mqtt.Client, device models.Device) *AirCo
 func (ac *AirConditionerSimulator) ConnectAirConditioner() {
 	go SendHeartBeat(ac.client, ac.device.Device.Device.ID, ac.device.Device.Device.Name)
 	go ac.GenerateAirConditionerData()
+	go ac.SendScheduledData()
 	config.SubscribeToTopic(ac.client, topicACSwitch+strconv.Itoa(ac.device.Device.Device.ID), ac.HandleSwitchChange)
 }
 
@@ -55,7 +57,7 @@ func (ac *AirConditionerSimulator) GenerateAirConditionerData() {
 	for {
 		select {
 		case <-ticker.C:
-			// todo proveravaj da li ima nesto zakazano
+
 			if ac.off_on.Switch {
 				switch ac.off_on.Mode {
 				case "Heating":
@@ -97,7 +99,7 @@ func (ac *AirConditionerSimulator) GenerateAirConditionerData() {
 					// do not change temperature
 				}
 			} else {
-				temp = ac.SendCurrentTemp()
+				temp = ac.GetCurrentTemp()
 			}
 			// send on front
 			data := map[string]interface{}{
@@ -115,15 +117,88 @@ func (ac *AirConditionerSimulator) GenerateAirConditionerData() {
 	}
 }
 
-func (ac *AirConditionerSimulator) SendCurrentTemp() float64 {
+func (ac *AirConditionerSimulator) GetCurrentTemp() float64 {
 	openMeteoResponse, err := config.GetTemp()
 	if err != nil {
 		fmt.Printf("Error: %v \n", err.Error())
 		return 20.0
 	} else {
 		temp := 0.8*openMeteoResponse.Current.Temperature2m + 15
-		return temp
+		return math.Round(temp*100) / 100
 	}
+}
+
+func (ac *AirConditionerSimulator) SendScheduledData() {
+	// temp := ac.GetCurrentTemp()
+
+	ticker := time.NewTicker(60 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+
+			if ac.device.SpecialMode[0].StartTime != "" {
+				s := ac.checkScheduledMode()
+
+				if s.StartTime != "" {
+					// send on front
+					data := map[string]interface{}{
+						"id":     ac.device.Device.Device.ID,
+						"mode":   s.Mode,
+						"switch": true,
+						"temp":   s.Temperature,
+					}
+					jsonString, err := json.Marshal(data)
+					if err != nil {
+						fmt.Println("greska")
+					}
+					config.PublishToTopic(ac.client, topicAction, string(jsonString))
+
+					fmt.Printf("Turn on: %s \n", s.Mode)
+				}
+			}
+		}
+	}
+}
+
+func (ac *AirConditionerSimulator) checkScheduledMode() models.SpecialMode {
+	currentTime := time.Now()
+	currentDay := currentTime.Weekday()
+
+	for _, s := range ac.device.SpecialMode {
+		one := isTimeInRange(currentTime, parseTime(s.StartTime), parseTime(s.EndTime))
+		if one && isDayInSchedule(currentDay, s.SelectedDays) {
+			fmt.Printf("Schould turn on: %s, temp: %f\n", s.Mode, s.Temperature)
+			return s
+		}
+	}
+	return models.SpecialMode{}
+}
+
+func isTimeInRange(current, start, end time.Time) bool {
+	currentTime := current.Hour()*60 + current.Minute()
+	startTime := start.Hour()*60 + start.Minute()
+	endTime := end.Hour()*60 + end.Minute()
+
+	return (currentTime >= startTime && currentTime <= endTime) || (currentTime <= startTime && currentTime <= endTime)
+}
+
+func isDayInSchedule(currentDay time.Weekday, days string) bool {
+	if strings.Contains(days, currentDay.String()) {
+		return true
+	} else {
+		return false
+	}
+}
+
+func parseTime(timeString string) time.Time {
+	layout := "15:04:05"
+	t, err := time.Parse(layout, timeString)
+	if err != nil {
+		panic(err)
+	}
+	return t
 }
 
 func (ac *AirConditionerSimulator) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
@@ -142,27 +217,6 @@ func (ac *AirConditionerSimulator) HandleSwitchChange(client mqtt.Client, msg mq
 
 	// set values
 	ac.off_on = air_conditioner
-
-	// todo send values to back
-	// ac.SendActionToBack(air_conditioner)
+	fmt.Println("PRIMLJENA PORUKA")
+	fmt.Println(ac.off_on)
 }
-
-// func (ac *AirConditionerSimulator) SendActionToBack(air_conditioner models.ReceiveValue) {
-// 	fmt.Println("SALJEM")
-// 	fmt.Println(air_conditioner.Mode)
-// 	fmt.Println(air_conditioner.Temp)
-// 	fmt.Println(air_conditioner.Previous)
-// 	// send on back
-// 	// data := map[string]interface{}{
-// 	// 	"mode":     mode,
-// 	// 	"temp":     temp,
-// 	// 	"previous": previous,
-// 	// 	"user":     user,
-// 	// }
-// 	jsonString, err := json.Marshal(air_conditioner)
-// 	if err != nil {
-// 		fmt.Println("greska")
-// 	}
-// 	config.PublishToTopic(ac.client, topicAction+strconv.Itoa(ac.device.Device.Device.ID), string(jsonString))
-
-// }

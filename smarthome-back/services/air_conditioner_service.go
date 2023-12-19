@@ -163,8 +163,10 @@ func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner
 		fmt.Println(err)
 		return models.AirConditioner{}
 	}
-
+	fmt.Println("OVDE SAAAAAAAAM")
+	fmt.Println(device.SpecialMode)
 	if len(device.SpecialMode) != 0 {
+		fmt.Println(device.SpecialMode)
 		for _, mode := range device.SpecialMode {
 			result, err = tx.Exec(`
 			INSERT INTO specialModes (DeviceId, StartTime, EndTime, Mode, Temperature, SelectedDays)

@@ -36,3 +36,10 @@ type ReceiveValue struct {
 	Previous  string
 	UserEmail string
 }
+
+// uvek ce biti auto, i previous ”
+type SendValue struct {
+	Mode   string
+	Switch bool
+	Temp   float32
+}

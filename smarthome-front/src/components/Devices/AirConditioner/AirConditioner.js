@@ -71,7 +71,7 @@ export class AirConditioner extends Component {
                 // Subscribe to the MQTT topic
                 this.mqttClient.on('connect', () => {
                     this.mqttClient.subscribe('ac/temp');
-                    // this.mqttClient.subscribe('ac/data/' + this.id);
+                    this.mqttClient.subscribe('ac/action');
                 });
 
                 // Handle incoming MQTT messages
@@ -103,35 +103,31 @@ export class AirConditioner extends Component {
         return data
     }
 
-    handleSwitchToggle = (item) => {
+    handleSwitchToggle = (item, scheduled) => {
         let i = 0
         const { mode } = this.state;
-
-        const canTurnOn = this.canTurnOn(item.name, item.temp)
+        let canTurnOn = false
+        if(!item.switchOn || scheduled)
+            canTurnOn = this.canTurnOn(item.name, item.temp)
     
-        // turn off if it's on
-        if(canTurnOn)
+        if(canTurnOn || item.switchOn)
         {
-            const updatedMode = mode.map((m) => {
-                // console.log(m.switchOn)     
-                // ako je bio upaljen, posalji da se gasi       
-                    if(m.switchOn && item.name != m.name) {     
-                        // console.log("ovo je prvo")
-                        // console.log(item.name)
-                        // console.log(item.temp)
-                        // console.log(m.name)
-                        // console.log(!item.switchOn)
-                        this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn)
-                        ++i                   
-                    }
-                if (m.name === item.name) {
+            const updatedMode = mode.map((m) => { 
+                // ako je bio upaljen, posalji da se gasi  
+                console.log(item.name)
+                console.log(m.name)     
+                if(m.switchOn && item.name != m.name) {  
+                    this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn)
+                    ++i                   
+                }
+                if (!m.switchOn && m.name === item.name || scheduled && m.name === item.name) {
                     return {
                         ...m,
-                        switchOn: !m.switchOn,
+                        switchOn: true,
                     };
                 } 
                 else { 
-                    // turn off others
+                    // turn off others                   
                     return {
                         ...m,
                         switchOn: false,
@@ -140,11 +136,6 @@ export class AirConditioner extends Component {
             });       
             // ovo znaci da nista pre toga nije bilo ukljuceno/iskljuceno
             if(i===0) {
-                console.log("ovo je drugo")
-                // console.log(item.name)
-                // console.log(item.temp)
-                // console.log('')
-                // console.log(!item.switchOn)
                 this.sendDataToSimulation(item.name, item.temp, '', !item.switchOn)
             }                   
             
@@ -170,6 +161,9 @@ export class AirConditioner extends Component {
         const { device, currentTemp } = this.state
         // da li je uneta temperatura u rasponu device.min i device.max
         if(device.MinTemperature > temp || temp > device.MaxTemperature) {
+            console.log(device.MinTemperature)
+            console.log(device.MaxTemperature)
+            console.log(temp)
             this.setState({ snackbarMessage: "Temperature out of the range" });
             this.handleClick();
             return false
@@ -209,11 +203,23 @@ export class AirConditioner extends Component {
 
     // Handle incoming MQTT messages
     handleMqttMessage(topic, message) {
+        console.log(topic)
         const result = JSON.parse(message.toString())
-        if (result.id === this.id)
+        if (result.id === this.id) {
             this.setState({
                 currentTemp: result.temp
             });
+            if(result.mode != null) {
+                this.handleSwitchToggle({
+                    name: result.mode,
+                    switchOn: !result.switch,
+                    temp: result.temp,
+                }, true)
+            }
+        }
+        // todo ako je prethodno nesto bilo upaljeno treba da se ugase
+
+        // todo upali ono sto treba
     }
 
     handleFormSubmit = async (e) => {
@@ -283,7 +289,7 @@ export class AirConditioner extends Component {
                             <Typography style={{ fontSize: '1.1em' }}>Off</Typography>
                             <Switch
                                 checked={item.switchOn}
-                                onChange={() => this.handleSwitchToggle(item)}
+                                onChange={() => this.handleSwitchToggle(item, false)}
                             />
                             <Typography style={{ fontSize: '1.1em' }}>On</Typography>
                             <span style={{ flex: 1 }}>{item.name}</span>                            
