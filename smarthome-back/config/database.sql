@@ -58,6 +58,7 @@ CREATE TABLE evCharger (
 CREATE TABLE homeBattery (
                              DeviceId INT PRIMARY KEY,
                              Size DOUBLE NOT NULL,
+                             CurrentValue DOUBLE  DEFAULT 0.0,
                              FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
@@ -111,7 +112,8 @@ INSERT INTO solarPanel (DeviceId, SurfaceArea, Efficiency, NumberOfPanels, IsOn)
 VALUES
     (4, 2.3, 30, 3, true);
 
-INSERT INTO homeBattery (DeviceId, Size)
+INSERT INTO homeBattery (DeviceId, Size, CurrentValue)
 VALUES
-    (6, 10);
+    (6, 10, 2);
+
     
