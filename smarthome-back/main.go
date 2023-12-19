@@ -41,7 +41,7 @@ func main() {
 
 	// web socket
 	go func() {
-		config.SetupWebSocketRoutes()
+		config.SetupWebSocketRoutes(db, influxDb)
 		http.ListenAndServe(":8082", nil)
 	}()
 

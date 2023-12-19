@@ -7,13 +7,13 @@ import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import authService from '../../../services/AuthService';
-import DeviceService from '../../../services/DeviceService';
 import 'chart.js/auto';
 import SPGraph from './SPGraph';
 import { TextField } from '@mui/material';
 import { Button } from 'reactstrap';
 import './SolarPanel.css'
 import { Snackbar } from "@mui/material";
+import SolarPanelService from '../../../services/SolarPanelService';
 
 
 export class SolarPanel extends Component {
@@ -41,17 +41,20 @@ export class SolarPanel extends Component {
         const valid = await authService.validateUser();
         if (!valid) window.location.assign("/");
 
-        const device = await DeviceService.getSPById(this.id);
+        const device = await SolarPanelService.getSPById(this.id);
+        let lastValue = await SolarPanelService.getSPLastValue(this.id);
+        if (lastValue == null) lastValue = 0.0;
         const updatedData =
         {
             ...device,
-            Value: "Loading...",
+            Value: lastValue,
         }
         console.log(device);
 
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
-        const historyData = await DeviceService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
+        const historyData = await SolarPanelService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
+    
         this.setState({
             device: updatedData,
             switchOn: device.IsOn,
@@ -128,7 +131,7 @@ export class SolarPanel extends Component {
 
         const { email, startDate, endDate } = this.state;
         console.log(email, startDate, endDate);
-        const historyData = await DeviceService.getSPGraphData(this.id, email, startDate, endDate);
+        const historyData = await SolarPanelService.getSPGraphData(this.id, email, startDate, endDate);
         this.setState({
             data: historyData,
         });

@@ -3,7 +3,8 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
-	"smarthome-back/models/devices"
+	"log"
+	models "smarthome-back/models/devices"
 )
 
 type DeviceRepository interface {
@@ -13,6 +14,8 @@ type DeviceRepository interface {
 	GetDevicesByUserID(userID int) ([]models.Device, error)
 	Update(device models.Device) bool
 	UpdateLastValue(id int, value float32) (bool, error)
+	GetConsumptionDevicesByEstateId(userID int) ([]models.ConsumptionDevice, error)
+	GetConsumptionDevice(id int) (models.ConsumptionDevice, error)
 }
 
 type DeviceRepositoryImpl struct {
@@ -44,6 +47,107 @@ func (res *DeviceRepositoryImpl) GetAll() []models.Device {
 	}
 
 	return devices
+}
+
+func (res *DeviceRepositoryImpl) GetConsumptionDevice(id int) (models.ConsumptionDevice, error) {
+	query := `
+		SELECT
+			d.id,
+			d.name,
+			d.realEstate,
+			d.isOnline,
+			cd.powerSupply,
+			cd.powerConsumption
+		FROM
+			device d
+		JOIN
+			consumptionDevice cd ON d.id = cd.deviceId
+		WHERE
+			d.id = ?
+	`
+
+	rows, err := res.db.Query(query, id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	row := res.db.QueryRow(query, id)
+
+	var cd models.ConsumptionDevice
+	var device models.Device
+
+	err = row.Scan(
+		&device.Id,
+		&device.Name,
+		&device.RealEstate,
+		&device.IsOnline,
+		&cd.PowerSupply,
+		&cd.PowerConsumption,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			fmt.Println("No consumption device found with the specified ID")
+		} else {
+			fmt.Println("Error retrieving solar panel:", err)
+		}
+		return models.ConsumptionDevice{}, err
+	}
+	cd.Device = device
+	return cd, nil
+}
+
+func (res *DeviceRepositoryImpl) GetConsumptionDevicesByEstateId(id int) ([]models.ConsumptionDevice, error) {
+	query := `
+		SELECT
+			d.id,
+			d.name,
+			d.realEstate,
+			d.isOnline,
+			cd.powerSupply,
+			cd.powerConsumption
+		FROM
+			device d
+		JOIN
+			consumptionDevice cd ON d.id = cd.deviceId
+		WHERE
+			d.realEstate = ?
+	`
+
+	rows, err := res.db.Query(query, id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	// Iterate through the result set
+	var consumptionDevices []models.ConsumptionDevice
+	for rows.Next() {
+		var device models.Device
+		var cd models.ConsumptionDevice
+
+		//todo da li treba da scan bude skroz ispunjen?
+		err := rows.Scan(
+			&device.Id,
+			&device.Name,
+			&device.RealEstate,
+			&device.IsOnline,
+			&cd.PowerSupply,
+			&cd.PowerConsumption,
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		cd.Device = device
+		consumptionDevices = append(consumptionDevices, cd)
+	}
+
+	// Check for errors from iterating over rows
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return consumptionDevices, nil
 }
 
 func (res *DeviceRepositoryImpl) GetAllByEstateId(estateId int) []models.Device {

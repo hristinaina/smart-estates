@@ -19,6 +19,7 @@ type DeviceService interface {
 	Get(id int) (models.Device, error)
 	Add(estate dto.DeviceDTO) (models.Device, error)
 	GetAll() []models.Device
+	GetConsumptionDevicesByEstateId(estateId int) ([]models.ConsumptionDevice, error)
 }
 
 type DeviceServiceImpl struct {
@@ -35,7 +36,7 @@ type DeviceServiceImpl struct {
 
 func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceService {
 	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db), evChargerService: NewEVChargerService(db),
-		homeBatteryService: NewHomeBatteryService(db), lampService: services.NewLampService(db, influxDb),
+		homeBatteryService: NewHomeBatteryService(db, influxDb), lampService: services.NewLampService(db, influxDb),
 		mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db),
 		solarPanelService: NewSolarPanelService(db, influxDb)}
 }
@@ -46,6 +47,10 @@ func (res *DeviceServiceImpl) GetAll() []models.Device {
 
 func (res *DeviceServiceImpl) GetAllByEstateId(estateId int) []models.Device {
 	return res.deviceRepository.GetAllByEstateId(estateId)
+}
+
+func (res *DeviceServiceImpl) GetConsumptionDevicesByEstateId(estateId int) ([]models.ConsumptionDevice, error) {
+	return res.deviceRepository.GetConsumptionDevicesByEstateId(estateId)
 }
 
 func (res *DeviceServiceImpl) Get(id int) (models.Device, error) {

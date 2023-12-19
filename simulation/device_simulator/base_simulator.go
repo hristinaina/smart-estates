@@ -59,10 +59,13 @@ func StartSimulation(client mqtt.Client, d models.Device) {
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		sp := NewSolarPanelSimulator(client, d)
 		sp.ConnectSolarPanel()
+	case 7:
+		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
+		sp := NewBatterySimulator(client, d)
+		sp.ConnectBattery()
 	default:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		lamp := NewLampSimulator(client, d)
 		lamp.ConnectLamp()
-		//todo change this and add separate logic for each device type
 	}
 }

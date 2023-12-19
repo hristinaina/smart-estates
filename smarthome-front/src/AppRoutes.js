@@ -13,6 +13,7 @@ import AddAdmin from './components/SuperAdmin/AddAdmin';
 import ForgotPassword from './components/User/ForgotPassword';
 import { AmbientSensor } from './components/Devices/AmbientSensor';
 import { SolarPanel } from './components/Devices/SolarPanel/SolarPanel';
+import { HomeBattery } from './components/Devices/HomeBattery/HomeBattery';
 
 const AppRoutes = [
   {
@@ -70,6 +71,10 @@ const AppRoutes = [
   {
     path: "/sp/:id",
     element: <SolarPanel />
+  },
+  {
+    path: "/hb/:id",
+    element: <HomeBattery />
   },
 ];
 
