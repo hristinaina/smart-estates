@@ -222,6 +222,18 @@ export class VehicleGate extends Component {
             this.handleClick();
             return;
         }
+        if (startDate == endDate) {
+            console.log("Dates not good");
+            await this.setState({snackbarMessage: "Please check out input data."});
+            this.handleClick();
+            return;
+        }
+        if (!VehicleGateService.checkDateOrder(startDate, endDate)) {
+            await this.setState({snackbarMessage: "Please check out input data."});
+            this.handleClick();
+            return;
+        }
+        
         let data = await VehicleGateService.getCountGraphData(this.id.toString(), startDate, endDate, this.state.licensePlate);
         let datasets = [];
         let keys = [];
