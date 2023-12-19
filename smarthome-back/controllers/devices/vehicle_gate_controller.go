@@ -7,7 +7,7 @@ import (
 	"smarthome-back/controllers"
 	dto2 "smarthome-back/dto"
 	"smarthome-back/dtos"
-	"smarthome-back/dtos/vehicle_gate_graph_data"
+	"smarthome-back/dtos/vehicle_gate_graph"
 	services "smarthome-back/services/devices"
 	"strconv"
 )
@@ -162,7 +162,7 @@ func (controller VehicleGateController) GetLicencePlatesCount(c *gin.Context) {
 	to := c.Param("to")
 	licensePlate := c.Param("license-plate")
 
-	var result []vehicle_gate_graph_data.VehicleEntriesCount
+	var result []vehicle_gate_graph.VehicleEntriesCount
 	if licensePlate == "-1" {
 		result = controller.service.GetLicensePlatesCount(id, from, to)
 	} else {

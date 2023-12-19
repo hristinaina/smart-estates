@@ -25,9 +25,31 @@ type VehicleGateSimulator struct {
 	client mqtt.Client
 	device models.Device
 	licensePlates []string
+	consumptionDevice models.ConsumptionDevice
 }
 
 func NewVehicleGateSimulator(client mqtt.Client, device models.Device) *VehicleGateSimulator{
+	parsedStrings := getAllLicensePlates()
+
+	consumptionDevice, err := config.GetConsumptionDevice(device.ID)
+	if err != nil {
+		fmt.Println("Error while getting consumption device for lamp, id: " + strconv.Itoa(device.ID))
+		return &VehicleGateSimulator {
+			client: client,
+			device: device,
+			licensePlates: parsedStrings,
+		}
+	}
+
+	return &VehicleGateSimulator {
+		client: client,
+		device: device,
+		licensePlates: parsedStrings,
+		consumptionDevice: consumptionDevice,
+	}
+}
+
+func getAllLicensePlates() []string {
 	url := "http://localhost:8081/api/vehicle-gate/license-plate"
 
 	response, _ := http.Get(url)
@@ -37,7 +59,6 @@ func NewVehicleGateSimulator(client mqtt.Client, device models.Device) *VehicleG
 	if err != nil {
 		fmt.Println("Error reading response body:", err)
 	}
-	
 	var parsedStrings []string
 
 	err = json.Unmarshal([]byte(body), &parsedStrings)
@@ -45,12 +66,7 @@ func NewVehicleGateSimulator(client mqtt.Client, device models.Device) *VehicleG
 		fmt.Println("Error parsing JSON:", err)
 	}
 
-	return &VehicleGateSimulator {
-		client: client,
-		device: device,
-		licensePlates: parsedStrings,
-
-	}
+	return parsedStrings
 }
 
 func (sim *VehicleGateSimulator) ConnectVehicleGate() {

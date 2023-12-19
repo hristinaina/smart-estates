@@ -127,6 +127,13 @@ class VehicleGateService {
             // license plate entries count graph
             console.log("dataaaa");
             console.log(oldData);
+            if (!this.checkDates(newData["start_date"], newData["end_date"])) {
+                return oldData;
+            }
+            if (newData["current_license_plate"] != '' & newData["current_license_plate"] != newData["license_plate"]) {
+                return oldData;
+            }
+            
             if (graphType == 0) {
                 if (oldData.labels.includes(newData["license_plate"])) {
                     const index = oldData.labels.indexOf(newData["license_plate"]);
@@ -152,6 +159,21 @@ class VehicleGateService {
         
         // console.log(oldData);
         return oldData;
+    }
+
+    checkDates(startDate2, endDate2) {
+        if (startDate2 != '' || endDate2 != '') {
+            const startDate = new Date(startDate2);
+            const endDate = new Date(endDate2);
+    
+            const currentDate = new Date();
+    
+            if (currentDate >= startDate && currentDate <= endDate) {
+                return true;
+            }
+            return false;
+        }
+        return true;
     }
     
 }

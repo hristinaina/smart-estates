@@ -22,15 +22,26 @@ type LampSimulator struct {
 	switchOn bool
 	client   mqtt.Client
 	device   models.Device
+	consumptionDevice models.ConsumptionDevice
 }
 
 func NewLampSimulator(client mqtt.Client, device models.Device) *LampSimulator {
 	//todo da se proslijedi samo deviceId (umjesto device) i posalje upit ka beku za dobavljane svih podataka za lampu
 	// (jer device ima samo opste podatke)
+	consumptionDevice, err := config.GetConsumptionDevice(device.ID)
+	if err != nil {
+		fmt.Println("Error while getting consumption device for lamp, id: " + strconv.Itoa(device.ID))
+		return &LampSimulator{
+			client:   client,
+			device:   device,
+			switchOn: false,
+		}
+	}
 	return &LampSimulator{
 		client:   client,
 		device:   device,
 		switchOn: false,
+		consumptionDevice: consumptionDevice,
 	}
 }
 

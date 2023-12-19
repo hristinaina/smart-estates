@@ -3,6 +3,8 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"smarthome-back/dtos"
+	"smarthome-back/enumerations"
 	"smarthome-back/models/devices"
 )
 
@@ -13,6 +15,7 @@ type DeviceRepository interface {
 	GetDevicesByUserID(userID int) ([]models.Device, error)
 	Update(device models.Device) bool
 	UpdateLastValue(id int, value float32) (bool, error)
+	GetConsumptionDevice(id int) (dtos.ConsumptionDeviceDto, error)
 }
 
 type DeviceRepositoryImpl struct {
@@ -139,4 +142,37 @@ func (res *DeviceRepositoryImpl) UpdateLastValue(id int, value float32) (bool, e
 		return false, err
 	}
 	return true, nil
+}
+
+func (res *DeviceRepositoryImpl) GetConsumptionDevice(id int) (dtos.ConsumptionDeviceDto, error) {
+	query := `SELECT  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption
+			  FROM ConsumptionDevice 
+   			  WHERE ConsumptionDevice.DeviceId = ?`
+	rows, err := res.db.Query(query, id)
+	if IsError(err) {
+		return dtos.ConsumptionDeviceDto{}, err
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			fmt.Println("Database connection closing error: ", err)
+		}
+	}(rows)
+
+	var consumptionDevices []dtos.ConsumptionDeviceDto
+	for rows.Next() {
+		var (
+			consumptionDevice dtos.ConsumptionDeviceDto
+		)
+		if err := rows.Scan(&consumptionDevice.PowerSupply, &consumptionDevice.PowerConsumption); err != nil {
+			fmt.Println("Error: ", err.Error())
+		}
+		consumptionDevices = append(consumptionDevices, consumptionDevice)
+	}
+
+	if len(consumptionDevices) > 0 {
+		return consumptionDevices[0], nil
+	}
+	// TODO: check if here should be Autonomous power supply
+	return dtos.ConsumptionDeviceDto{PowerSupply: enumerations.Autonomous, PowerConsumption: 0}, nil
 }

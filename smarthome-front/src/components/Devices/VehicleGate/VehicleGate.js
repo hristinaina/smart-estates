@@ -149,6 +149,9 @@ export class VehicleGate extends Component {
         else if (tokens[0] === "close") {
             let newData = {
                 "license_plate": await this.state.enterLicensePlate,
+                "current_license_plate": this.state.licensePlate,
+                "start_date": this.state.startDate,
+                "end_date": this.state.endDate,
             }
             device.IsOpen = false;
             await this.setState({device: device, enterLicensePlate: '', enter: false, exit: false});
@@ -156,9 +159,18 @@ export class VehicleGate extends Component {
             let data = await VehicleGateService.addNewGraphData(0, this.state.data, newData);
             console.log("dataaa");
             console.log(data);
+            await this.setState({data: data});
         } 
         else {
+            let newData = {
+                "license_plate": await this.state.enterLicensePlate,
+                "current_license_plate": this.state.licensePlate,
+                "start_date": this.state.startDate,
+                "end_date": this.state.endDate,
+            }
             await this.setState({enterLicensePlate: '', enter: false, exit: false});
+            let data = await VehicleGateService.addNewGraphData(0, this.state.data, newData);
+            await this.setState({data: data});
         }
     }
 

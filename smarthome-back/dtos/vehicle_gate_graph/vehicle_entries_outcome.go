@@ -1,4 +1,4 @@
-package vehicle_gate_graph_data
+package vehicle_gate_graph
 
 type VehicleEntriesOutcome struct {
 	LicensePlate   string

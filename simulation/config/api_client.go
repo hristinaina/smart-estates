@@ -84,6 +84,30 @@ func GetSP(id int) (models.SolarPanel, error) {
 	return device, nil
 }
 
+func GetConsumptionDevice(id int) (models.ConsumptionDevice, error) {
+	url := api + "/devices/consumption-device/" + strconv.Itoa(id)
+
+	response, err := http.Get(url)
+	if err != nil {
+		return models.ConsumptionDevice{}, fmt.Errorf("error making GET request: %v", err)
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return models.ConsumptionDevice{}, fmt.Errorf("error reading response body: %v", err)
+	}
+
+	var device models.ConsumptionDevice
+	err = json.Unmarshal(body, &device)
+	if err != nil {
+		return models.ConsumptionDevice{}, fmt.Errorf("error unmarshalling JSON: %v", err)
+	}
+
+	return device, nil
+
+}
+
 func GetSolarRadiation(latitude float64, longitude float64) (models.OpenMeteoResponse, error) {
 	apiUrl := "https://api.open-meteo.com/v1/forecast"
 	params := url.Values{}
