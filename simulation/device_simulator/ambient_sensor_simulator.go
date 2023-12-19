@@ -17,21 +17,23 @@ const (
 type AmbientSensorSimulator struct {
 	switchOn bool
 	client   mqtt.Client
-	device   models.Device
+	device   models.AmbientSensor
 }
 
 func NewAmbientSensorSimulator(client mqtt.Client, device models.Device) *AmbientSensorSimulator {
-	//todo da se proslijedi samo deviceId (umjesto device) i posalje upit ka beku za dobavljane svih podataka za AmbientSensoru
-	// (jer device ima samo opste podatke)
+	as, err := config.GetAmbientSensor(device.ID)
+	if err != nil {
+		return nil
+	}
 	return &AmbientSensorSimulator{
 		client:   client,
-		device:   device,
+		device:   as,
 		switchOn: false,
 	}
 }
 
 func (as *AmbientSensorSimulator) ConnectAmbientSensor() {
-	go SendHeartBeat(as.client, as.device.ID, as.device.Name)
+	go SendHeartBeat(as.client, as.device.Device.ID, as.device.Device.Name)
 	go as.GenerateAmbientSensorData()
 	// config.SubscribeToTopic(as.client, topicSwitch+strconv.Itoa(as.device.ID), as.HandleSwitchChange)
 }
@@ -58,7 +60,7 @@ func (as *AmbientSensorSimulator) GenerateAmbientSensorData() {
 			indoorHumidity = openMeteoResponse.Current.RelativeHumidity2m / 2
 
 			data := map[string]interface{}{
-				"id":          as.device.ID,
+				"id":          as.device.Device.ID,
 				"temperature": indoorTemperature,
 				"humidity":    indoorHumidity,
 			}
@@ -67,7 +69,7 @@ func (as *AmbientSensorSimulator) GenerateAmbientSensorData() {
 				fmt.Println("greska")
 			}
 			config.PublishToTopic(as.client, "device/ambient/sensor", string(jsonString)) // todo eventualno promeni topic ako bude potrebno
-			fmt.Printf("AmbientSensor name=%s, id=%d, temeprature: %v °C, humidity: %v %% \n", as.device.Name, as.device.ID, indoorTemperature, indoorHumidity)
+			fmt.Printf("AmbientSensor name=%s, id=%d, temeprature: %v °C, humidity: %v %% \n", as.device.Device.Name, as.device.Device.ID, indoorTemperature, indoorHumidity)
 		}
 	}
 }

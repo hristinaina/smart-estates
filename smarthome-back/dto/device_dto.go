@@ -108,6 +108,20 @@ func (dto *DeviceDTO) ToDevice() models.Device {
 	}
 }
 
+func (dto *DeviceDTO) ToAmbientSensor() models.ConsumptionDevice {
+	return models.ConsumptionDevice{
+		Device: models.Device{
+			Id:         dto.Id,
+			Name:       dto.Name,
+			Type:       dto.Type,
+			RealEstate: dto.RealEstate,
+			IsOnline:   dto.IsOnline,
+		},
+		PowerSupply:      dto.PowerSupply,
+		PowerConsumption: dto.PowerConsumption,
+	}
+}
+
 func (dto *DeviceDTO) ToSpecialMode() []models.SpecialMode {
 	var specialModesDTO []models.SpecialModeDTO
 	err := json.Unmarshal([]byte(dto.SpecialMode), &specialModesDTO)

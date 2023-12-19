@@ -79,6 +79,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	ambientSensor := r.Group("/api/ambient")
 	{
 		ambientSensorController := controllers.NewAmbientSensorController(db, mqtt)
+		ambientSensor.GET("/:id", ambientSensorController.Get)
 		ambientSensor.GET("/last-hour/:id", ambientSensorController.GetValueForHour)
 		ambientSensor.POST("/selected-time/:id", ambientSensorController.GetValueForSelectedTime)
 		ambientSensor.POST("/selected-date/:id", ambientSensorController.GetValuesForDate)

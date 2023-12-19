@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/services"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,17 @@ type AmbientSensorController struct {
 
 func NewAmbientSensorController(db *sql.DB, mqtt *mqtt_client.MQTTClient) AmbientSensorController {
 	return AmbientSensorController{service: services.NewAmbientSensorService(db), mqtt: mqtt}
+}
+
+func (as AmbientSensorController) Get(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	CheckIfError(err, c)
+	device, err := as.service.Get(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Device not found"})
+		return
+	}
+	c.JSON(http.StatusOK, device)
 }
 
 type AmbientSensor struct {

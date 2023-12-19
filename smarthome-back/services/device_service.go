@@ -5,13 +5,14 @@ import (
 	_ "database/sql"
 	"errors"
 	_ "fmt"
-	_ "github.com/gin-gonic/gin"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"smarthome-back/dto"
-	"smarthome-back/models/devices"
+	models "smarthome-back/models/devices"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/repositories"
 	"strconv"
+
+	_ "github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type DeviceService interface {
@@ -19,6 +20,7 @@ type DeviceService interface {
 	Get(id int) (models.Device, error)
 	Add(estate dto.DeviceDTO) (models.Device, error)
 	GetAll() []models.Device
+	// GetConsumptionDevice(id int) (models.ConsumptionDevice, error)
 }
 
 type DeviceServiceImpl struct {
@@ -27,13 +29,14 @@ type DeviceServiceImpl struct {
 	evChargerService      EVChargerService
 	homeBatteryService    HomeBatteryService
 	solarPanelService     SolarPanelService
+	ambientSensorService  AmbientSensorService
 	mqtt                  *mqtt_client.MQTTClient
 	deviceRepository      repositories.DeviceRepository
 }
 
 func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceService {
 	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db), evChargerService: NewEVChargerService(db),
-		homeBatteryService: NewHomeBatteryService(db), mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db), solarPanelService: NewSolarPanelService(db, influxDb)}
+		homeBatteryService: NewHomeBatteryService(db), mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db), solarPanelService: NewSolarPanelService(db, influxDb), ambientSensorService: NewAmbientSensorService(db)}
 }
 
 func (res *DeviceServiceImpl) GetAll() []models.Device {
@@ -59,7 +62,9 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 		}
 	}
 	var device models.Device
-	if dto.Type == 1 {
+	if dto.Type == 0 {
+		device = res.ambientSensorService.Add(dto).ToDevice()
+	} else if dto.Type == 1 {
 		device = res.airConditionerService.Add(dto).ToDevice()
 	} else if dto.Type == 8 {
 		device = res.evChargerService.Add(dto).ToDevice()
