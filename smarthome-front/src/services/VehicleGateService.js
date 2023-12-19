@@ -141,7 +141,7 @@ class VehicleGateService {
                     labels.push(newData["license_plate"]);
                     console.log(index);
                     console.log(oldData.datasets[0]);
-                    oldData.datasets[index].data.push(1);
+                    oldData.datasets[0].data.push(1);
                     oldData.labels = labels;
                   
 
