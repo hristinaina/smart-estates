@@ -123,7 +123,7 @@ func (ac *AirConditionerSimulator) GetCurrentTemp() float64 {
 		fmt.Printf("Error: %v \n", err.Error())
 		return 20.0
 	} else {
-		temp := 0.8*openMeteoResponse.Current.Temperature2m + 15
+		temp := 0.5*openMeteoResponse.Current.Temperature2m + 15
 		return math.Round(temp*100) / 100
 	}
 }

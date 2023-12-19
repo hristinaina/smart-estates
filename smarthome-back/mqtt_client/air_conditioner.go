@@ -46,7 +46,6 @@ func saveACToInfluxDb(client influxdb2.Client, deviceId int, mode, previous, use
 	if switchAC {
 		action = 1
 	}
-
 	point := influxdb2.NewPoint("air_conditioner1", // table
 		map[string]string{"device_id": strconv.Itoa(deviceId)}, // tag
 		map[string]interface{}{"action": action, "mode": mode, "user_id": user},
@@ -55,11 +54,12 @@ func saveACToInfluxDb(client influxdb2.Client, deviceId int, mode, previous, use
 	writeAPI.WritePoint(point)
 	writeAPI.Flush()
 
+	time.Sleep(1 * time.Second)
+
 	if previous != "" {
 		point := influxdb2.NewPoint("air_conditioner1", // table
 			map[string]string{"device_id": strconv.Itoa(deviceId)},                               // tag
 			map[string]interface{}{"action": 0, "mode": previous, "user_id": "auto"}, time.Now()) // field
-		fmt.Println(point)
 
 		writeAPI.WritePoint(point)
 		writeAPI.Flush()

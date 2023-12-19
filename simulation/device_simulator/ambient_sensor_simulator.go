@@ -40,7 +40,7 @@ func (as *AmbientSensorSimulator) ConnectAmbientSensor() {
 // GenerateAmbientSensorData Simulate sending periodic AmbientSensor data
 func (as *AmbientSensorSimulator) GenerateAmbientSensorData() {
 	var indoorTemperature, indoorHumidity float64
-	slope := 0.8
+	slope := 0.5
 	intercept := 15.0
 
 	ticker := time.NewTicker(5 * time.Second)

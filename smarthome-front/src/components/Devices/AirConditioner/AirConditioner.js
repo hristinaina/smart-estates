@@ -103,24 +103,24 @@ export class AirConditioner extends Component {
         return data
     }
 
-    handleSwitchToggle = (item, scheduled) => {
+    handleSwitchToggle = (item) => {
+        console.log("uslo je i ovde")
         let i = 0
         const { mode } = this.state;
         let canTurnOn = false
-        if(!item.switchOn || scheduled)
+        if(!item.switchOn)
             canTurnOn = this.canTurnOn(item.name, item.temp)
     
         if(canTurnOn || item.switchOn)
         {
             const updatedMode = mode.map((m) => { 
-                // ako je bio upaljen, posalji da se gasi  
-                console.log(item.name)
-                console.log(m.name)     
+                // ako je bio upaljen, posalji da se gasi   
                 if(m.switchOn && item.name != m.name) {  
-                    this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn)
+                    console.log("dugme prvo")
+                    this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn, authService.getCurrentUser().Email)
                     ++i                   
                 }
-                if (!m.switchOn && m.name === item.name || scheduled && m.name === item.name) {
+                if (!m.switchOn && m.name === item.name) {
                     return {
                         ...m,
                         switchOn: true,
@@ -136,7 +136,8 @@ export class AirConditioner extends Component {
             });       
             // ovo znaci da nista pre toga nije bilo ukljuceno/iskljuceno
             if(i===0) {
-                this.sendDataToSimulation(item.name, item.temp, '', !item.switchOn)
+                console.log("dugme drugo")
+                this.sendDataToSimulation(item.name, item.temp, '', !item.switchOn, authService.getCurrentUser().Email)
             }                   
             
             this.setState({ mode: updatedMode });
@@ -144,7 +145,45 @@ export class AirConditioner extends Component {
         }
     };
 
-    sendDataToSimulation = (mode, temp, previous, isSwitchOn) => {
+    handleScheduledToggle = (item) => {
+        let i = 0
+        const { mode } = this.state;
+
+        const updatedMode = mode.map((m) => { 
+            // ako je bio upaljen, posalji da se gasi   
+            if(m.switchOn && item.name != m.name) {  
+                console.log("zakazano prvo")
+                this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn, "auto")
+                ++i                   
+            }
+            if (!item.switchOn && m.name === item.name) {
+                return {
+                    ...m,
+                    switchOn: true,
+                };
+            } 
+            else { 
+                // turn off others                   
+                return {
+                    ...m,
+                    switchOn: false,
+                };
+            }
+        });       
+        // ovo znaci da nista pre toga nije bilo ukljuceno/iskljuceno
+        if(i===0) {
+            console.log("zakazano drugo")
+            console.log(item.name)
+            console.log(item.temp)
+            console.log(!item.switchOn)
+            this.sendDataToSimulation(item.name, item.temp, '', !item.switchOn, "auto")
+        }                   
+        
+        this.setState({ mode: updatedMode });
+        console.log(updatedMode)
+    };
+
+    sendDataToSimulation = (mode, temp, previous, isSwitchOn, user) => {
         const topic = "ac/switch/" + this.id;
 
         var message = {
@@ -152,7 +191,7 @@ export class AirConditioner extends Component {
             "Switch": isSwitchOn,
             "Temp": temp,
             "Previous": previous,
-            "UserEmail": authService.getCurrentUser().Email,
+            "UserEmail": user,
         }
         this.mqttClient.publish(topic, JSON.stringify(message));
     }
@@ -161,9 +200,6 @@ export class AirConditioner extends Component {
         const { device, currentTemp } = this.state
         // da li je uneta temperatura u rasponu device.min i device.max
         if(device.MinTemperature > temp || temp > device.MaxTemperature) {
-            console.log(device.MinTemperature)
-            console.log(device.MaxTemperature)
-            console.log(temp)
             this.setState({ snackbarMessage: "Temperature out of the range" });
             this.handleClick();
             return false
@@ -210,16 +246,13 @@ export class AirConditioner extends Component {
                 currentTemp: result.temp
             });
             if(result.mode != null) {
-                this.handleSwitchToggle({
+                this.handleScheduledToggle({
                     name: result.mode,
                     switchOn: !result.switch,
                     temp: result.temp,
-                }, true)
+                })
             }
         }
-        // todo ako je prethodno nesto bilo upaljeno treba da se ugase
-
-        // todo upali ono sto treba
     }
 
     handleFormSubmit = async (e) => {
@@ -289,7 +322,7 @@ export class AirConditioner extends Component {
                             <Typography style={{ fontSize: '1.1em' }}>Off</Typography>
                             <Switch
                                 checked={item.switchOn}
-                                onChange={() => this.handleSwitchToggle(item, false)}
+                                onChange={() => this.handleSwitchToggle(item)}
                             />
                             <Typography style={{ fontSize: '1.1em' }}>On</Typography>
                             <span style={{ flex: 1 }}>{item.name}</span>                            
