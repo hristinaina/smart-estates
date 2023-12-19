@@ -25,14 +25,14 @@ export class AmbientSensor extends Component {
                 labels: [],
                 datasets: [
                     {
-                        label: 'Humidity',
+                        label: 'Humidity (%)',
                         data: [],
                         borderColor: 'rgba(128,104,148,1)',
                         borderWidth: 2,
                         fill: false,
                     },
                     {
-                        label: 'Temperature',
+                        label: 'Temperature (°C)',
                         data: [],
                         borderColor: 'rgba(255, 99, 132, 1)', 
                         borderWidth: 2,
@@ -107,14 +107,14 @@ export class AmbientSensor extends Component {
                     labels: timestamps,
                     datasets: [
                         {
-                            label: 'Humidity',
+                            label: 'Humidity (%)',
                             data: humidityData,
                             borderColor: 'rgba(128,104,148,1)',
                             borderWidth: 2,
                             fill: false,
                         },
                         {
-                            label: 'Temperature',
+                            label: 'Temperature (°C)',
                             data: temperatureData,
                             borderColor: 'rgba(255, 99, 132, 1)', 
                             borderWidth: 2,
@@ -173,14 +173,14 @@ export class AmbientSensor extends Component {
                 labels: timestamps,
                 datasets: [
                     {
-                        label: 'Humidity',
+                        label: 'Humidity (%)',
                         data: humidityData,
                         borderColor: 'rgba(128,104,148,1)',
                         borderWidth: 2,
                         fill: false,
                     },
                     {
-                        label: 'Temperature',
+                        label: 'Temperature (°C)',
                         data: temperatureData,
                         borderColor: 'rgba(255, 99, 132, 1)', 
                         borderWidth: 2,
@@ -200,14 +200,14 @@ export class AmbientSensor extends Component {
             labels: data.labels.filter((label) => this.isTimestampInLastHour(label)).concat(newValue.timestamp),
             datasets: [
                 {
-                    label: 'Humidity',
+                    label: 'Humidity (%)',
                     data: [...data.datasets[0].data, newValue.humidity],
                     borderColor: 'rgba(128,104,148,1)',
                     borderWidth: 2,
                     fill: false,
                 },
                 {
-                    label: 'Temperature',
+                    label: 'Temperature (°C)',
                     data: [...data.datasets[1].data, newValue.temperature], 
                     borderColor: 'rgba(255, 99, 132, 1)',
                     borderWidth: 2,

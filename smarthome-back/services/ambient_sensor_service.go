@@ -50,7 +50,6 @@ func (as *AmbientSensorServiceImpl) Get(id int) (models.ConsumptionDevice, error
 	var consDevice models.ConsumptionDevice
 
 	for rows.Next() {
-		fmt.Println(rows)
 		err := rows.Scan(
 			&device.Id,
 			&device.Name,

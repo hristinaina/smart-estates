@@ -130,10 +130,13 @@ func GetValuesForSelectedTime(influxdb influxdb2.Client, selectedTime, deviceId 
 }
 
 func GetValuesForDate(influxdb influxdb2.Client, start, end, deviceId string) map[time.Time]AmbientSensor {
+	endDate, _ := time.Parse(time.RFC3339, end)
+	endDate = endDate.AddDate(0, 0, 1)
+	endDateStr := endDate.Format(time.RFC3339)
 	query := fmt.Sprintf(`from(bucket:"bucket") 
 	|> range(start: %s, stop: %s)
 	|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`,
-		start, end, deviceId)
+		start, endDateStr, deviceId)
 
 	return processingQuery(influxdb, query)
 }
