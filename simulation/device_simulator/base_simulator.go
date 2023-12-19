@@ -63,5 +63,9 @@ func StartSimulation(client mqtt.Client, d models.Device) {
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		sp := NewBatterySimulator(client, d)
 		sp.ConnectBattery()
+	default:
+		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
+		lamp := NewLampSimulator(client, d)
+		lamp.ConnectLamp()
 	}
 }
