@@ -19,7 +19,7 @@ type DeviceDTO struct {
 	MinTemperature   float32
 	MaxTemperature   float32
 	Mode             string
-	SpecialMode      string // todo izmeni ovo
+	SpecialMode      string
 	ChargingPower    float64
 	Connections      uint
 	Size             float64

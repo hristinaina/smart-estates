@@ -184,8 +184,12 @@ export class NewDevice extends Component {
     };
 
     handleAddSpecialMode = (specialMode) => {
-        this.setState({ specialModes: specialMode,});
-        console.log('Adding special mode:', specialMode);
+        const updatedSchedule = specialMode.map(item => ({
+            ...item,
+            temperature: parseFloat(item.temperature)
+        }));
+        this.setState({ specialModes: updatedSchedule });
+        console.log('Adding special mode:', updatedSchedule);
     };
 
     handleBatterySize = (event) => {

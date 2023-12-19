@@ -48,9 +48,8 @@ export class AirConditioner extends Component {
         this.setState({device: device})
 
         const user = authService.getCurrentUser();
-        this.Name = device.Device.Name;
+        this.Name = device.Device.Device.Name;
         const logData = await DeviceService.getACHistoryData(this.id, 'none', "", "");      
-        console.log(logData.result)
         const data = this.setAction(logData.result)
         this.setState({ 
             logData: data,
