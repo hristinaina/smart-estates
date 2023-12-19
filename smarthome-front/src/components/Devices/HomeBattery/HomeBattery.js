@@ -291,7 +291,7 @@ export class HomeBattery extends Component {
                                                     shrink: true,
                                                 }}
                                                 inputProps={{
-                                                    max: new Date().toISOString().split('T')[0],
+                                                    max: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0],
                                                 }}
                                             />
                                             <TextField
@@ -304,7 +304,7 @@ export class HomeBattery extends Component {
                                                     shrink: true,
                                                 }}
                                                 inputProps={{
-                                                    max: new Date().toISOString().split('T')[0],
+                                                    max: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0],
                                                 }}
                                             />
                                             <Button variant="contained" color="primary" onClick={this.handleButtonClick}>
