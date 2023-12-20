@@ -171,7 +171,9 @@ export class AirConditioner extends Component {
             }
         });       
         // ovo znaci da nista pre toga nije bilo ukljuceno/iskljuceno
-        if(i===0 && item.switchOn) {
+        console.log(i)
+        console.log(item.switchOn)
+        if(i===0 && !item.switchOn) {
             console.log("zakazano drugo")
             console.log(item.name)
             console.log(item.temp)
@@ -246,6 +248,7 @@ export class AirConditioner extends Component {
                 currentTemp: result.temp
             });
             if(result.mode != null) {
+                console.log("ovde saaaaaaaaaaam")
                 this.handleScheduledToggle({
                     name: result.mode,
                     switchOn: !result.switch,
