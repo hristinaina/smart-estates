@@ -53,7 +53,7 @@ CREATE TABLE specialModes (
     DeviceId INT PRIMARY KEY,
     StartTime TIME NOT NULL,
     EndTime TIME NOT NULL,
-    Mode INT NOT NULL,
+    Mode VARCHAR(255) NOT NULL,
     Temperature FLOAT(32) NOT NULL,
     SelectedDays VARCHAR(255) NOT NULL,
     FOREIGN KEY (DeviceId) REFERENCES airConditioner(DeviceId)
@@ -112,11 +112,11 @@ VALUES
 
 INSERT INTO airConditioner (DeviceId, MinTemperature, MaxTemperature, Mode)
 VALUES
-    (3, 10, 30, 'c,a,f');
+    (3, 10, 30, 'Cooling,Automatic,Ventilation');
 
 INSERT INTO specialModes (DeviceId, StartTime, EndTime, Mode, Temperature, SelectedDays)
 VALUES
-    (3, '08:00:00', '16:00:00', 0, 22, 'Monday,Tuesday,Wednesday');
+    (3, '08:00:00', '16:00:00', 'Ventilation', 22, 'Monday,Tuesday,Wednesday');
 
 INSERT INTO evCharger (DeviceId, ChargingPower, Connections)
 VALUES
