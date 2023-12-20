@@ -22,7 +22,6 @@ type LampSimulator struct {
 	switchOn          bool
 	client            mqtt.Client
 	device            models.Device
-	consumption       float64
 	consumptionDevice models.ConsumptionDevice
 }
 
@@ -43,7 +42,6 @@ func NewLampSimulator(client mqtt.Client, device models.Device) *LampSimulator {
 		client:            client,
 		device:            device,
 		switchOn:          false,
-		consumption:       0.6,
 		consumptionDevice: consumptionDevice,
 	}
 }
@@ -71,7 +69,7 @@ func (ls *LampSimulator) SendConsumption() {
 			} else {
 				scalingFactor = 0.15 + rand.Float64()*0.2 // get a number between 0.15 and 0.35
 			}
-			consumed := ls.consumption * scalingFactor / 60 / 2 // divide by 60 and 2 to get consumption for previous 30s
+			consumed := ls.consumptionDevice.PowerConsumption * scalingFactor / 60 / 2 // divide by 60 and 2 to get consumption for previous 30s
 			err := config.PublishToTopic(ls.client, config.TopicConsumption+strconv.Itoa(ls.device.ID), strconv.FormatFloat(consumed,
 				'f', -1, 64))
 			if err != nil {
