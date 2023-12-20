@@ -56,6 +56,7 @@ func (ls *LampSimulator) ConnectLamp() {
 // todo get real device and it's consumption (only if its powering is netwok, if it is not then end the function)
 // SendConsumprion Periodically send consumption
 func (ls *LampSimulator) SendConsumption() {
+	fmt.Println(ls.consumptionDevice)
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 

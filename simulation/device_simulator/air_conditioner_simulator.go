@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"math/rand"
 	"simulation/config"
 	"simulation/models"
 	"strconv"
@@ -45,7 +46,30 @@ func (ac *AirConditionerSimulator) ConnectAirConditioner() {
 	go SendHeartBeat(ac.client, ac.device.Device.Device.ID, ac.device.Device.Device.Name)
 	go ac.GenerateAirConditionerData()
 	go ac.SendScheduledData()
+	go ac.SendConsumption()
 	config.SubscribeToTopic(ac.client, topicACSwitch+strconv.Itoa(ac.device.Device.Device.ID), ac.HandleSwitchChange)
+}
+
+func (ls *AirConditionerSimulator) SendConsumption() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			rand.Seed(time.Now().UnixNano())
+			scalingFactor := 0.8 + rand.Float64()*0.2                              // get a number between 0.8 and 1.0
+			consumed := ls.device.Device.PowerConsumption * scalingFactor / 60 / 2 // divide by 60 and 2 to get consumption for previous 30s
+			err := config.PublishToTopic(ls.client, config.TopicConsumption+strconv.Itoa(ls.device.Device.Device.ID), strconv.FormatFloat(consumed,
+				'f', -1, 64))
+			if err != nil {
+				fmt.Printf("Error publishing message with the device: %s \n", ls.device.Device.Device.Name)
+			} else {
+				fmt.Printf("%s: Lamp with id=%d, Name=%s, consumed=%fkWh for previous 30s\n", time.Now().Format("15:04:05"),
+					ls.device.Device.Device.ID, ls.device.Device.Device.Name, consumed)
+			}
+		}
+	}
 }
 
 func (ac *AirConditionerSimulator) GenerateAirConditionerData() {

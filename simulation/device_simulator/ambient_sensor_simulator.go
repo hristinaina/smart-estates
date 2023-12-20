@@ -17,10 +17,9 @@ const (
 )
 
 type AmbientSensorSimulator struct {
-	switchOn    bool
-	client      mqtt.Client
-	device      models.AmbientSensor
-	consumption float64
+	switchOn bool
+	client   mqtt.Client
+	device   models.AmbientSensor
 }
 
 func NewAmbientSensorSimulator(client mqtt.Client, device models.Device) *AmbientSensorSimulator {
@@ -29,21 +28,19 @@ func NewAmbientSensorSimulator(client mqtt.Client, device models.Device) *Ambien
 		return nil
 	}
 	return &AmbientSensorSimulator{
-		client:      client,
-		device:      as,
-		switchOn:    true,
-		consumption: 0.1,
+		client:   client,
+		device:   as,
+		switchOn: true,
 	}
 }
 
 func (as *AmbientSensorSimulator) ConnectAmbientSensor() {
 	go SendHeartBeat(as.client, as.device.Device.ID, as.device.Device.Name)
 	go as.GenerateAmbientSensorData()
-	go as.SendConsumption() //todo get this value from back
+	go as.SendConsumption()
 	//config.SubscribeToTopic(as.client, topicSwitch+strconv.Itoa(as.device.ID), as.HandleSwitchChange)
 }
 
-// todo get real device and it's consumption (only if its powering is netwok, if it is not then end the function)
 func (as *AmbientSensorSimulator) SendConsumption() {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
@@ -58,7 +55,7 @@ func (as *AmbientSensorSimulator) SendConsumption() {
 			} else {
 				scalingFactor = 0.15 + rand.Float64()*0.2 // get a number between 0.15 and 0.35
 			}
-			consumed := as.consumption * scalingFactor / 60 / 2 // divide by 60 and 2 to get consumption for previous 30s
+			consumed := as.device.PowerConsumption * scalingFactor / 60 / 2 // divide by 60 and 2 to get consumption for previous 30s
 			err := config.PublishToTopic(as.client, config.TopicConsumption+strconv.Itoa(as.device.Device.ID), strconv.FormatFloat(consumed,
 				'f', -1, 64))
 			if err != nil {
