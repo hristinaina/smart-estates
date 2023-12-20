@@ -3,8 +3,10 @@ package device_simulator
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"simulation/config"
 	"simulation/models"
+	"strconv"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -15,9 +17,10 @@ const (
 )
 
 type AmbientSensorSimulator struct {
-	switchOn bool
-	client   mqtt.Client
-	device   models.AmbientSensor
+	switchOn    bool
+	client      mqtt.Client
+	device      models.AmbientSensor
+	consumption float64
 }
 
 func NewAmbientSensorSimulator(client mqtt.Client, device models.Device) *AmbientSensorSimulator {
@@ -26,16 +29,46 @@ func NewAmbientSensorSimulator(client mqtt.Client, device models.Device) *Ambien
 		return nil
 	}
 	return &AmbientSensorSimulator{
-		client:   client,
-		device:   as,
-		switchOn: false,
+		client:      client,
+		device:      as,
+		switchOn:    true,
+		consumption: 0.1,
 	}
 }
 
 func (as *AmbientSensorSimulator) ConnectAmbientSensor() {
 	go SendHeartBeat(as.client, as.device.Device.ID, as.device.Device.Name)
 	go as.GenerateAmbientSensorData()
-	// config.SubscribeToTopic(as.client, topicSwitch+strconv.Itoa(as.device.ID), as.HandleSwitchChange)
+	go as.SendConsumption() //todo get this value from back
+	//config.SubscribeToTopic(as.client, topicSwitch+strconv.Itoa(as.device.ID), as.HandleSwitchChange)
+}
+
+// todo get real device and it's consumption (only if its powering is netwok, if it is not then end the function)
+func (as *AmbientSensorSimulator) SendConsumption() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			rand.Seed(time.Now().UnixNano())
+			scalingFactor := 1.0
+			if as.switchOn {
+				scalingFactor = 0.8 + rand.Float64()*0.2 // get a number between 0.8 and 1.0
+			} else {
+				scalingFactor = 0.15 + rand.Float64()*0.2 // get a number between 0.15 and 0.35
+			}
+			consumed := as.consumption * scalingFactor / 60 / 2 // divide by 60 and 2 to get consumption for previous 30s
+			err := config.PublishToTopic(as.client, config.TopicConsumption+strconv.Itoa(as.device.Device.ID), strconv.FormatFloat(consumed,
+				'f', -1, 64))
+			if err != nil {
+				fmt.Printf("Error publishing message with the device: %s \n", as.device.Device.Name)
+			} else {
+				fmt.Printf("%s: Ambient Sensor with id=%d, Name=%s, consumed=%fkWh for previous 30s\n", time.Now().Format("15:04:05"),
+					as.device.Device.ID, as.device.Device.Name, consumed)
+			}
+		}
+	}
 }
 
 // za back

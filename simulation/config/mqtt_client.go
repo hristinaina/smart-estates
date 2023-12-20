@@ -3,14 +3,14 @@ package config
 import (
 	"fmt"
 	"os"
-
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 const (
-	TopicOnline    = "device/online/" //device/online/{deviceId}
-	TopicPayload   = "device/data/"   //device/data/{deviceId}
-	TopicNewDevice = "device/new/"    //device/data/{deviceId}
+	TopicOnline      = "device/online/" //device/online/{deviceId}
+	TopicPayload     = "device/data/"   //device/data/{deviceId}
+	TopicNewDevice   = "device/new/"    //device/data/{deviceId}
+	TopicConsumption = "device/consumption/"
 )
 
 func CreateConnection() mqtt.Client {

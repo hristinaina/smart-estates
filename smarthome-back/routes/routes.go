@@ -3,6 +3,7 @@ package routes
 import (
 	"database/sql"
 	"smarthome-back/controllers"
+	devicesController "smarthome-back/controllers/devices"
 	"smarthome-back/middleware"
 	"smarthome-back/mqtt_client"
 
@@ -55,6 +56,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		deviceRoutes.GET("/", deviceController.GetAll)
 		deviceRoutes.GET("/estate/:estateId", middleware.RequireAuth, deviceController.GetAllByEstateId)
 		deviceRoutes.POST("/", middleware.RequireAuth, deviceController.Add)
+		deviceRoutes.GET("/consumption-device/:id", deviceController.GetConsumptionDeviceDto)
 	}
 	airConditionerRoutes := r.Group("/api/ac")
 	{
@@ -68,6 +70,16 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		SolarPanelController := controllers.NewSolarPanelController(db, influxDb)
 		solarPanelRoutes.GET("/:id", SolarPanelController.Get)
 		solarPanelRoutes.PUT("/graphData", middleware.RequireAuth, SolarPanelController.GetGraphData)
+		solarPanelRoutes.GET("/lastValue/:id", middleware.RequireAuth, SolarPanelController.GetValueFromLastMinute)
+	}
+	homeBatteryRoutes := r.Group("/api/hb")
+	{
+		middleware := middleware.NewMiddleware(db)
+		HomeBatteryController := controllers.NewHomeBatteryController(db, influxDb)
+		homeBatteryRoutes.GET("/:id", middleware.RequireAuth, HomeBatteryController.Get)
+		homeBatteryRoutes.GET("/last-hour/:id", middleware.RequireAuth, HomeBatteryController.GetConsumptionForLastHour)
+		homeBatteryRoutes.POST("/selected-time/:id", middleware.RequireAuth, HomeBatteryController.GetConsumptionForSelectedTime)
+		homeBatteryRoutes.POST("/selected-date/:id", middleware.RequireAuth, HomeBatteryController.GetConsumptionForSelectedDate)
 	}
 	uploadImageRoutes := r.Group("/api/upload")
 	{
@@ -83,5 +95,18 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		ambientSensor.GET("/last-hour/:id", ambientSensorController.GetValueForHour)
 		ambientSensor.POST("/selected-time/:id", ambientSensorController.GetValueForSelectedTime)
 		ambientSensor.POST("/selected-date/:id", ambientSensorController.GetValuesForDate)
+	}
+
+	lampRoutes := r.Group("api/lamp")
+	{
+		lampController := devicesController.NewLampController(db, influxDb)
+		lampRoutes.GET("/:id", lampController.Get)
+		lampRoutes.GET("/", lampController.GetAll)
+		lampRoutes.PUT("/on/:id", lampController.TurnOn)
+		lampRoutes.PUT("/off/:id", lampController.TurnOff)
+		lampRoutes.PUT("/:id/:level", lampController.SetLightning)
+		lampRoutes.POST("/", lampController.Add)
+		lampRoutes.DELETE("/:id", lampController.Delete)
+		lampRoutes.GET("/graph/:id/:from/:to", lampController.GetGraphData)
 	}
 }

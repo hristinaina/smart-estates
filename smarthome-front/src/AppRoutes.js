@@ -14,6 +14,7 @@ import ForgotPassword from './components/User/ForgotPassword';
 import { AmbientSensor } from './components/Devices/AmbientSensor/AmbientSensor';
 import { SolarPanel } from './components/Devices/SolarPanel/SolarPanel';
 import { AirConditioner } from './components/Devices/AirConditioner/AirConditioner';
+import { HomeBattery } from './components/Devices/HomeBattery/HomeBattery';
 
 const AppRoutes = [
   {
@@ -75,6 +76,10 @@ const AppRoutes = [
   {
     path: "/sp/:id",
     element: <SolarPanel />
+  },
+  {
+    path: "/hb/:id",
+    element: <HomeBattery />
   },
 ];
 

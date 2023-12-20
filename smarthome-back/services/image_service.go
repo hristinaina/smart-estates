@@ -134,7 +134,7 @@ func (is *ImageServiceImpl) findFullFileName(fileName string) (string, error) {
 	}
 
 	// iterate through objects
-	// fmt.Println("Objects in the bucket:")
+	//fmt.Println("Objects in the bucket:")
 	for _, item := range result.Contents {
 		lastDotIndex := strings.LastIndex(*item.Key, ".")
 		comparation := *item.Key

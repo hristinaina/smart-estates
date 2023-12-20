@@ -44,8 +44,25 @@ func (mc *MQTTClient) HandleHeartBeat(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Device is online, id=%d\n", deviceId)
 }
 
+func (mc *MQTTClient) StartDeviceStatusThread() {
+	// Periodically check if the device is still online
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				// This block will be executed every time the ticker ticks
+				fmt.Println("checking device status...")
+				mc.checkDeviceStatus()
+			}
+		}
+	}()
+}
+
 // CheckDeviceStatus function that checks if there is a device that has disconnected
-func (mc *MQTTClient) CheckDeviceStatus() {
+func (mc *MQTTClient) checkDeviceStatus() {
 	offlineTimeout := 60 * time.Second
 	devices := mc.deviceRepository.GetAll()
 	for _, device := range devices {

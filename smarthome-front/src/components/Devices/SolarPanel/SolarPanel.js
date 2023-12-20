@@ -7,13 +7,13 @@ import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import authService from '../../../services/AuthService';
-import DeviceService from '../../../services/DeviceService';
 import 'chart.js/auto';
 import SPGraph from './SPGraph';
 import { TextField } from '@mui/material';
 import { Button } from 'reactstrap';
 import './SolarPanel.css'
 import { Snackbar } from "@mui/material";
+import SolarPanelService from '../../../services/SolarPanelService';
 
 
 export class SolarPanel extends Component {
@@ -41,17 +41,21 @@ export class SolarPanel extends Component {
         const valid = await authService.validateUser();
         if (!valid) window.location.assign("/");
 
-        const device = await DeviceService.getDeviceById(this.id, 'http://localhost:8081/api/sp/');
+        //const device = await DeviceService.getDeviceById(this.id, 'http://localhost:8081/api/sp/');
+        const device = await SolarPanelService.getSPById(this.id);
+        let lastValue = await SolarPanelService.getSPLastValue(this.id);
+        if (lastValue == null) lastValue = 0.0;
         const updatedData =
         {
             ...device,
-            Value: "Loading...",
+            Value: lastValue,
         }
         console.log(device);
 
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
-        const historyData = await DeviceService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
+        const historyData = await SolarPanelService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
+    
         this.setState({
             device: updatedData,
             switchOn: device.IsOn,
@@ -128,7 +132,7 @@ export class SolarPanel extends Component {
 
         const { email, startDate, endDate } = this.state;
         console.log(email, startDate, endDate);
-        const historyData = await DeviceService.getSPGraphData(this.id, email, startDate, endDate);
+        const historyData = await SolarPanelService.getSPGraphData(this.id, email, startDate, endDate);
         this.setState({
             data: historyData,
         });
@@ -167,18 +171,14 @@ export class SolarPanel extends Component {
                     <div id="sp-left-card">
                         <p className='sp-card-title'>Device Data</p>
                         <p className='sp-data-text'>Number of panels:</p>
-                        <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.NumberOfPanels} InputProps={{
-                            readOnly: true,
-                        }} />
+                        <p><b>{device.NumberOfPanels} </b> </p>
                         <p className='sp-data-text'>Surface area per panel (m<sup>2</sup>):</p>
-                        <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.SurfaceArea} InputProps={{
-                            readOnly: true,
-                        }} />
+                        <p><b>{device.SurfaceArea}</b></p> 
                         <p className='sp-data-text'>Efficiency per panel (%):</p>
-                        <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.Efficiency} InputProps={{
-                            readOnly: true,
-                        }} />
+                        <p><b>{device.Efficiency}</b></p>
                         {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
+                        <p className='sp-data-text'>Produced electricity in previous minute (kW/m<sup>2</sup>): </p>
+                        <p><b>{device.Value}</b></p>
                         <p className='sp-data-text'>Status: </p>
                         <Stack direction="row" className="status-alingment" spacing={1} alignItems="center">
                             <Typography style={{ display: "inline", fontSize: "1.1em" }}>Off</Typography>
@@ -188,8 +188,6 @@ export class SolarPanel extends Component {
                             />
                             <Typography style={{ display: "inline", fontSize: "1.1em" }}>On</Typography>
                         </Stack>
-                        <p className='sp-data-text'>Produced electricity in previous minute (kW/m<sup>2</sup>): </p>
-                        <p><b>{device.Value}</b></p>
                     </div>
                     <div id='sp-right-card'>
                         <p className='sp-card-title'>Switch History</p>
