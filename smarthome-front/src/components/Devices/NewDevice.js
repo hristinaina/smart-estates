@@ -25,7 +25,7 @@ export class NewDevice extends Component {
             selectedPowerSupply: 0,
             efficiency: 20,
             surfaceArea: 1.5,
-            panelsNum: 1,
+            panelsNum: 2,
             showPowerSupply: true,
             showPowerConsumption: false,
             showAirConditioner: false,

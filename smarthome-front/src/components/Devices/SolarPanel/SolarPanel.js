@@ -170,18 +170,14 @@ export class SolarPanel extends Component {
                     <div id="sp-left-card">
                         <p className='sp-card-title'>Device Data</p>
                         <p className='sp-data-text'>Number of panels:</p>
-                        <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.NumberOfPanels} InputProps={{
-                            readOnly: true,
-                        }} />
+                        <p><b>{device.NumberOfPanels} </b> </p>
                         <p className='sp-data-text'>Surface area per panel (m<sup>2</sup>):</p>
-                        <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.SurfaceArea} InputProps={{
-                            readOnly: true,
-                        }} />
+                        <p><b>{device.SurfaceArea}</b></p> 
                         <p className='sp-data-text'>Efficiency per panel (%):</p>
-                        <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.Efficiency} InputProps={{
-                            readOnly: true,
-                        }} />
+                        <p><b>{device.Efficiency}</b></p>
                         {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
+                        <p className='sp-data-text'>Produced electricity in previous minute (kW/m<sup>2</sup>): </p>
+                        <p><b>{device.Value}</b></p>
                         <p className='sp-data-text'>Status: </p>
                         <Stack direction="row" className="status-alingment" spacing={1} alignItems="center">
                             <Typography style={{ display: "inline", fontSize: "1.1em" }}>Off</Typography>
@@ -191,8 +187,6 @@ export class SolarPanel extends Component {
                             />
                             <Typography style={{ display: "inline", fontSize: "1.1em" }}>On</Typography>
                         </Stack>
-                        <p className='sp-data-text'>Produced electricity in previous minute (kW/m<sup>2</sup>): </p>
-                        <p><b>{device.Value}</b></p>
                     </div>
                     <div id='sp-right-card'>
                         <p className='sp-card-title'>Switch History</p>

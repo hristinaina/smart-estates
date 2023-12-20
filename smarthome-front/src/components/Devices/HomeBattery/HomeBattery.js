@@ -236,13 +236,9 @@ export class HomeBattery extends Component {
                     <div id="sp-left-card">
                         <p className='sp-card-title'>Device Data</p>
                         <p className='sp-data-text'>Maximum capacity (kWh):</p>
-                        <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.Size} InputProps={{
-                            readOnly: true,
-                        }} />
+                        <p><b>{device.Size}</b></p>
                         <p className='sp-data-text'>Occupied size (kWh): </p>
-                        <TextField style={{ backgroundColor: "white", width: "300px" }} type="number" value={device.CurrentValue} InputProps={{
-                            readOnly: true,
-                        }} />
+                        <p><b>{device.CurrentValue}</b></p>
                         {this.renderBatteryIcon(device.CurrentValue, device.Size)}
                     </div>
                     <div id='sp-right-card'>
