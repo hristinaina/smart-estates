@@ -55,6 +55,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		deviceRoutes.GET("/", deviceController.GetAll)
 		deviceRoutes.GET("/estate/:estateId", middleware.RequireAuth, deviceController.GetAllByEstateId)
 		deviceRoutes.POST("/", middleware.RequireAuth, deviceController.Add)
+		deviceRoutes.GET("/consumption-device/:id", deviceController.GetConsumptionDeviceDto)
 	}
 	airConditionerRoutes := r.Group("/api/ac")
 	{
@@ -92,7 +93,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		ambientSensor.POST("/selected-time/:id", ambientSensorController.GetValueForSelectedTime)
 		ambientSensor.POST("/selected-date/:id", ambientSensorController.GetValuesForDate)
 	}
-	
+
 	lampRoutes := r.Group("api/lamp")
 	{
 		lampController := devicesController.NewLampController(db, influxDb)

@@ -7,6 +7,7 @@ import (
 	_ "github.com/gin-gonic/gin"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"smarthome-back/dto"
+	"smarthome-back/dtos"
 	"smarthome-back/models/devices"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/repositories"
@@ -20,6 +21,7 @@ type DeviceService interface {
 	Add(estate dto.DeviceDTO) (models.Device, error)
 	GetAll() []models.Device
 	GetConsumptionDevicesByEstateId(estateId int) ([]models.ConsumptionDevice, error)
+	GetConsumptionDeviceDto(id int) (dtos.ConsumptionDeviceDto, error)
 }
 
 type DeviceServiceImpl struct {
@@ -95,4 +97,8 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 
 	res.mqtt.Publish(mqtt_client.TopicNewDevice+strconv.Itoa(device.Id), "new device created")
 	return device, nil
+}
+
+func (res *DeviceServiceImpl) GetConsumptionDeviceDto(id int) (dtos.ConsumptionDeviceDto, error) {
+	return res.deviceRepository.GetConsumptionDeviceDto(id)
 }
