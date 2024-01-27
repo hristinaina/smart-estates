@@ -24,7 +24,7 @@ type MailService interface {
 	SendVerifyEmail(email, token string)
 	Send(toAddress, subject, content string) error
 	DiscardRealEstate(estate models.RealEstate) error
-	ApproveRealEstate(estate models.RealEstate) error
+	ApproveRealEstate(estate models.RealEstate, email, name string)
 }
 
 type MailServiceImpl struct {
@@ -150,7 +150,6 @@ func (ms *MailServiceImpl) CreateAdminLoginRequest(name, surname, email, passwor
 	}
 }
 
-// todo async done - not imeplemented
 func (ms *MailServiceImpl) SendVerifyEmail(email, token string) {
 	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
 	subject := "Verify email!"
@@ -203,22 +202,44 @@ func (ms *MailServiceImpl) Send(to, subject, body string) error {
 	return nil
 }
 
-func (ms *MailServiceImpl) ApproveRealEstate(estate models.RealEstate) error {
+func (ms *MailServiceImpl) ApproveRealEstate(estate models.RealEstate, email, name string) {
 	// TODO : use this after A&A is implemented
 	// user := ms.service.GetUser(estate.User)
 	// toAddress := user.Email
-	toAddress := "kacorinav@gmail.com"
-	subject := "New Real Estate State"
-	// TODO : change parameter name in content
-	content := fmt.Sprintf("<h1>Hi %s,</h1> <br/> We have some good news. Your real estate request has been approved!"+
-		"<br/>Real Estate Name: %s. <br/> Smart Home Support Team", "User", estate.Name)
 
-	err := ms.Send(toAddress, subject, content)
-	if err != nil {
-		fmt.Println("Error: ", err)
-		return err
+	// toAddress := "anastasijas557@gmail.com"
+	// subject := "New Real Estate State"
+	// // TODO : change parameter name in content
+	// content := fmt.Sprintf("<h1>Hi %s,</h1> <br/> We have some good news. Your real estate request has been approved!"+
+	// 	"<br/>Real Estate Name: %s. <br/> Smart Home Support Team", "User", estate.Name)
+
+	// err := ms.Send(toAddress, subject, content)
+	// if err != nil {
+	// 	fmt.Println("Error: ", err)
+	// 	return err
+	// }
+	// return nil
+
+	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
+	subject := "Approved real estate"
+	to := mail.NewEmail(name, email)
+	plainTextContent := fmt.Sprintf("Hi %s! We have some good news. Your real estate request has been approved! Real Estate Name: %s.", name, estate.Name)
+	htmlContent := fmt.Sprintf("Hi %s! We have some good news. Your real estate request has been approved! Real Estate Name: %s.", name, estate.Name)
+	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+
+	if isDomainSupportingHTML(strings.Split(email, "@")[1]) {
+		message.SetTemplateID("d-be3dd5200af74140a641fc12b9d2f710")
+		message.Personalizations[0].SetDynamicTemplateData("user_name", name)
+		message.Personalizations[0].SetDynamicTemplateData("real_estate_name", estate.Name)
 	}
-	return nil
+
+	client := sendgrid.NewSendClient(readFromEnvFile())
+	response, err := client.Send(message)
+	if err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println(response.StatusCode)
+	}
 }
 
 func (ms *MailServiceImpl) DiscardRealEstate(estate models.RealEstate) error {

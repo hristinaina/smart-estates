@@ -21,13 +21,14 @@ type RealEstateService interface {
 }
 
 type RealEstateServiceImpl struct {
-	db          *sql.DB
-	repository  repositories.RealEstateRepository
-	mailService MailService
+	db             *sql.DB
+	repository     repositories.RealEstateRepository
+	userRepository repositories.UserRepository
+	mailService    MailService
 }
 
 func NewRealEstateService(db *sql.DB) RealEstateService {
-	return &RealEstateServiceImpl{db: db, mailService: NewMailService(db), repository: *repositories.NewRealEstateRepository(db)}
+	return &RealEstateServiceImpl{db: db, mailService: NewMailService(db), repository: *repositories.NewRealEstateRepository(db), userRepository: repositories.NewUserRepository(db)}
 }
 
 func (res *RealEstateServiceImpl) GetAll() ([]models.RealEstate, error) {
@@ -47,6 +48,8 @@ func (res *RealEstateServiceImpl) GetPending() ([]models.RealEstate, error) {
 }
 
 func (res *RealEstateServiceImpl) ChangeState(id int, state int, reason string) (models.RealEstate, error) {
+	// todo proveri da li iz real estate moze da se nadje email osobe cija je nekretnina i njoj da se posalje mejl
+
 	realEstate, err := res.Get(id)
 	if CheckIfError(err) {
 		return models.RealEstate{}, err
@@ -61,7 +64,11 @@ func (res *RealEstateServiceImpl) ChangeState(id int, state int, reason string) 
 	}
 	if state == 0 {
 		realEstate.State = enumerations.ACCEPTED
-		err = res.mailService.ApproveRealEstate(realEstate)
+
+		// todo aync
+		user, e := res.userRepository.GetUserById(realEstate.User)
+		err = e
+		go res.mailService.ApproveRealEstate(realEstate, user.Email, user.Name)
 	} else {
 		realEstate.State = enumerations.DECLINED
 		realEstate.DiscardReason = reason
