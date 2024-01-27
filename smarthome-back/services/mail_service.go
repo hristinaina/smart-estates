@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -21,7 +22,6 @@ type MailService interface {
 	GenerateToken(email string, expiration time.Time) (string, error)
 	CreateAdminLoginRequest(name, surname, email, password string)
 	SendVerifyEmail(email, token string)
-	// Send(toAddress, subject, content string) error
 	DiscardRealEstate(estate models.RealEstate, email, name string)
 	ApproveRealEstate(estate models.RealEstate, email, name string)
 }
@@ -42,6 +42,30 @@ func readFromEnvFile() string {
 	return os.Getenv("SENDGRID_API_KEY")
 }
 
+func readSenderEmailFromJson() string {
+	file, err := os.Open("properties.json")
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return ""
+	}
+	defer file.Close()
+
+	// Parsiranje JSON fajla u mapu
+	var config map[string]interface{}
+	err = json.NewDecoder(file).Decode(&config)
+	if err != nil {
+		fmt.Println("Error decoding JSON:", err)
+		return ""
+	}
+
+	email, ok := config["senderEmail"].(string)
+	if !ok {
+		return ""
+	}
+
+	return email
+}
+
 // Funkcija za proveru da li domen podržava HTML
 func isDomainSupportingHTML(domain string) bool {
 	domainsSupportingHTML := map[string]bool{
@@ -54,9 +78,8 @@ func isDomainSupportingHTML(domain string) bool {
 	return domainsSupportingHTML[domain]
 }
 
-// async done
 func (ms *MailServiceImpl) CreateVarificationMail(email, name, surname, token string) {
-	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
+	from := mail.NewEmail("SMART HOME SUPPORT", readSenderEmailFromJson())
 	subject := "You're almost done! Activate your account now"
 	to := mail.NewEmail(name+" "+surname, email)
 	plainTextContent := fmt.Sprintf("Click the following link to activate your account: %s", "http://localhost:3000/activate?token="+token)
@@ -123,9 +146,8 @@ func (ms *MailServiceImpl) IsValidToken(tokenString string) bool {
 	return true
 }
 
-// async done - add new admin
 func (ms *MailServiceImpl) CreateAdminLoginRequest(name, surname, email, password string) {
-	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
+	from := mail.NewEmail("SMART HOME SUPPORT", readSenderEmailFromJson())
 	subject := "Join our team!"
 	to := mail.NewEmail(name+" "+surname, email)
 	plainTextContent := fmt.Sprintf("Your login credentials to our system are:  E=mail: %s  Password: %s", email, password)
@@ -150,7 +172,7 @@ func (ms *MailServiceImpl) CreateAdminLoginRequest(name, surname, email, passwor
 }
 
 func (ms *MailServiceImpl) SendVerifyEmail(email, token string) {
-	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
+	from := mail.NewEmail("SMART HOME SUPPORT", readSenderEmailFromJson())
 	subject := "Verify email!"
 	to := mail.NewEmail("", email)
 	plainTextContent := fmt.Sprintf("Click the following link to verify your email: %s", "http://localhost:3000/reset-password?token="+token)
@@ -172,7 +194,7 @@ func (ms *MailServiceImpl) SendVerifyEmail(email, token string) {
 }
 
 func (ms *MailServiceImpl) ApproveRealEstate(estate models.RealEstate, email, name string) {
-	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
+	from := mail.NewEmail("SMART HOME SUPPORT", readSenderEmailFromJson())
 	subject := "Approved real estate"
 	to := mail.NewEmail(name, email)
 	plainTextContent := fmt.Sprintf("Hi %s! We have some good news. Your real estate request has been approved! Real Estate Name: %s.", name, estate.Name)
@@ -195,7 +217,7 @@ func (ms *MailServiceImpl) ApproveRealEstate(estate models.RealEstate, email, na
 }
 
 func (ms *MailServiceImpl) DiscardRealEstate(estate models.RealEstate, email, name string) {
-	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
+	from := mail.NewEmail("SMART HOME SUPPORT", readSenderEmailFromJson())
 	subject := "Discarded real estate"
 	to := mail.NewEmail(name, email)
 	plainTextContent := fmt.Sprintf("Hi %s, We are very sorry, but Your new real estate request has been rejected. Real Estate Name: %s. Reason for rejection: %s.", name, estate.Name, estate.DiscardReason)
