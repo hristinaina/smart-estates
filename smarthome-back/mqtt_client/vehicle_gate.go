@@ -68,19 +68,22 @@ func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePla
 			if repositories.CheckIfError(err) {
 				return
 			}
-			select {
-			case <-time.After(6 * time.Second):
-				_, err = mc.vehicleGateRepository.UpdateIsOpen(gate.ConsumptionDevice.Device.Id, false)
-				if repositories.CheckIfError(err) {
-					return
+			go func() {
+				select {
+				case <-time.After(6 * time.Second):
+					_, err = mc.vehicleGateRepository.UpdateIsOpen(gate.ConsumptionDevice.Device.Id, false)
+					if repositories.CheckIfError(err) {
+						return
+					}
+					err = mc.Publish(TopicVGOpenClose+strconv.Itoa(gate.ConsumptionDevice.Device.Id), "close+"+licensePlate)
+					if repositories.CheckIfError(err) {
+						return
+					}
+					mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, true, licensePlate)
+					//setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, true)
 				}
-				err = mc.Publish(TopicVGOpenClose+strconv.Itoa(gate.ConsumptionDevice.Device.Id), "close+"+licensePlate)
-				if repositories.CheckIfError(err) {
-					return
-				}
-				mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, true, licensePlate)
-				//setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, true)
-			}
+			}()
+
 		} else {
 			mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, false, licensePlate)
 			//setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, false)

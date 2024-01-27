@@ -113,7 +113,7 @@ func (sim *VehicleGateSimulator) HandleLeaving(client mqtt.Client, msg mqtt.Mess
 					fmt.Printf("Left %s\n", licensePlate)
 					config.PublishToTopic(sim.client, config.TopicApproached+strconv.Itoa(sim.device.ID), licensePlate+"+exit")
 				}
-			} ()
+			}()
 		}
 	}
 }
