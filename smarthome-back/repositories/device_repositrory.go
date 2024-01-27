@@ -18,6 +18,7 @@ type DeviceRepository interface {
 	UpdateLastValue(id int, value float32) (bool, error)
 	GetConsumptionDevicesByEstateId(userID int) ([]models.ConsumptionDevice, error)
 	GetConsumptionDeviceDto(id int) (dtos.ConsumptionDeviceDto, error)
+	GetConsumptionDevice(id int) (models.ConsumptionDevice, error)
 }
 
 type DeviceRepositoryImpl struct {

@@ -22,7 +22,7 @@ type DeviceService interface {
 	Get(id int) (models.Device, error)
 	Add(estate dto.DeviceDTO) (models.Device, error)
 	GetAll() []models.Device
-	// GetConsumptionDevice(id int) (models.ConsumptionDevice, error)
+	GetConsumptionDevice(id int) (models.ConsumptionDevice, error)
 	GetConsumptionDevicesByEstateId(estateId int) ([]models.ConsumptionDevice, error)
 	GetConsumptionDeviceDto(id int) (dtos.ConsumptionDeviceDto, error)
 }
@@ -115,4 +115,8 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 
 func (res *DeviceServiceImpl) GetConsumptionDeviceDto(id int) (dtos.ConsumptionDeviceDto, error) {
 	return res.deviceRepository.GetConsumptionDeviceDto(id)
+}
+
+func (res *DeviceServiceImpl) GetConsumptionDevice(id int) (models.ConsumptionDevice, error) {
+	return res.deviceRepository.GetConsumptionDevice(id)
 }
