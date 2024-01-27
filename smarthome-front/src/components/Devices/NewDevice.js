@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import DeviceService from "../../services/DeviceService";
 import ImageService from "../../services/ImageService";
 import authService from '../../services/AuthService'
-import { Snackbar } from "@mui/material";
+import { FormControl, InputLabel, MenuItem, Select, Snackbar } from "@mui/material";
+import SpecialModeForm from "./AirConditioner/SpecialModeForm";
 
 
 export class NewDevice extends Component {
@@ -16,17 +17,23 @@ export class NewDevice extends Component {
             selectedImage: null,
             imagePreview: null,
             name: "",
-            powerConsumption: 200,
+            powerConsumption: 0.8,
             minTemp: 16,
             maxTemp: 31,
+            acModes: [],
+            specialModes: [],
             batterySize: 13,
             chargingPower: 2.3,
             connections: 1,
             selectedPowerSupply: 0,
+            efficiency: 20,
+            surfaceArea: 1.5,
+            panelsNum: 2,
             showPowerSupply: true,
             showPowerConsumption: false,
             showAirConditioner: false,
             showBatterySize: false,
+            showSolarPanel: false,
             showCharger: false,
             isButtonDisabled: true,
             snackbarMessage: '',
@@ -43,8 +50,8 @@ export class NewDevice extends Component {
         { value: 3, label: 'Lamp' },
         { value: 4, label: 'Vehicle gate' },
         { value: 5, label: 'Sprinkler' },
-        { value: 6, label: 'Solar panel' },
-        { value: 7, label: 'Battery storage' },
+        { value: 6, label: 'Solar panel system' },
+        { value: 7, label: 'Home battery' },
         { value: 8, label: 'Electric vehicle charger' },
     ];
 
@@ -62,6 +69,7 @@ export class NewDevice extends Component {
                 showAirConditioner: false,
                 showBatterySize: false,
                 showCharger: false,
+                showSolarPanel: false,
             });
 
             if (selectedType == 6 || selectedType == 7 || selectedType == 8) {
@@ -91,6 +99,10 @@ export class NewDevice extends Component {
             } else if (selectedType == 8) {
                 this.setState({
                     showCharger: true,
+                });
+            } else if (selectedType == 6) {
+                this.setState({
+                    showSolarPanel: true,
                 });
             }
             this.checkButton();
@@ -161,6 +173,25 @@ export class NewDevice extends Component {
         });
     }
 
+    handleACModes = (event) => {
+        const acModes = event.target.value;
+
+        this.setState(() => ({
+            acModes,
+        }), () => {
+            this.checkButton();
+        });
+    };
+
+    handleAddSpecialMode = (specialMode) => {
+        const updatedSchedule = specialMode.map(item => ({
+            ...item,
+            temperature: parseFloat(item.temperature)
+        }));
+        this.setState({ specialModes: updatedSchedule });
+        console.log('Adding special mode:', updatedSchedule);
+    };
+
     handleBatterySize = (event) => {
         const batterySize = event.target.value;
 
@@ -182,6 +213,29 @@ export class NewDevice extends Component {
         });
     }
 
+    handlePanelsNum = (event) => {
+        const panelsNum = event.target.value;
+
+        this.setState({ panelsNum }, () => {
+            this.checkButton();
+        });
+    }
+    
+    handleEfficiency = (event) => {
+        const efficiency = event.target.value;
+
+        this.setState({ efficiency }, () => {
+            this.checkButton();
+        });
+    }
+
+    handleSurfaceArea = (event) => {
+        const surfaceArea = event.target.value;
+
+        this.setState({ surfaceArea }, () => {
+            this.checkButton();
+        });
+    }
 
     handleImageChange = (event) => {
         const file = event.target.files[0];
@@ -202,18 +256,22 @@ export class NewDevice extends Component {
             this.setState({ isButtonDisabled: true })
         }
         else {
-            if (this.state.selectedType == 1 && (this.state.minTemp >= this.state.maxTemp || this.state.minTemp < -40 || this.state.maxTemp > 60)) {
+            if (this.state.selectedType == 1 && (this.state.minTemp >= this.state.maxTemp || this.state.minTemp < -40 || this.state.maxTemp > 60 || this.state.acModes.length === 0)) {
                 this.setState({ isButtonDisabled: true })
             }
             else if (this.state.selectedType == 7 && (this.state.batterySize > 100000 || this.state.batterySize < 1)) {
                 this.setState({ isButtonDisabled: true })
             }
-            else if (this.state.selectedPowerSupply == 1 && (this.state.powerConsumption > 60000 || this.state.powerConsumption <= 0)
+            else if (this.state.selectedPowerSupply == 1 && (this.state.powerConsumption > 300 || this.state.powerConsumption <= 0)
                 && (this.state.selectedType != 6 && this.state.selectedType != 7 && this.state.selectedType != 8)) {
                 this.setState({ isButtonDisabled: true })
             }
             else if (this.state.selectedType == 8 && (this.state.connections < 1 || this.state.connections > 20
                 || this.state.chargingPower < 1 || this.state.chargingPower > 360)) {
+                this.setState({ isButtonDisabled: true })
+            }
+            else if (this.state.selectedType == 6 && (this.state.efficiency < 0 || this.state.efficiency > 100
+                || this.state.surfaceArea < 0 || this.state.surfaceArea > 9999 || this.state.panelsNum < 1 || this.state.panelsNum > 1000 )) {
                 this.setState({ isButtonDisabled: true })
             }
             else {
@@ -228,19 +286,22 @@ export class NewDevice extends Component {
             const data = {
                 Name: this.state.name,
                 Type: parseInt(this.state.selectedType),
-                Picture: "/images/" + this.state.selectedImage.name,
                 RealEstate: this.id,
                 PowerSupply: parseInt(this.state.selectedPowerSupply),
                 PowerConsumption: parseFloat(this.state.powerConsumption),
                 MinTemperature: parseInt(this.state.minTemp),
                 MaxTemperature: parseInt(this.state.maxTemp),
+                Mode: this.adaptACModes(this.state.acModes, true),
+                SpecialMode: JSON.stringify(this.state.specialModes),
                 ChargingPower: parseFloat(this.state.chargingPower),
                 Connections: parseInt(this.state.connections),
                 Size: parseFloat(this.state.batterySize),
                 UserId: authService.getCurrentUser().Id,
+                SurfaceArea: parseFloat(this.state.surfaceArea),
+                Efficiency: parseFloat(this.state.efficiency),
+                NumberOfPanels: parseInt(this.state.panelsNum),
             };
             const result = await DeviceService.createDevice(data);
-            console.log(result);
             // uploading image
             const formData = new FormData();
             formData.append('image', this.state.selectedImage);
@@ -254,6 +315,10 @@ export class NewDevice extends Component {
             this.handleClick();
         }
     };
+
+    adaptACModes(lista) {
+        return lista.map(mode => mode).join(',');
+    }
 
     cancel() {
         window.location.assign("/devices")
@@ -313,12 +378,12 @@ export class NewDevice extends Component {
                         )}
                         {this.state.showPowerConsumption && (
                             <div>
-                                <p className="new-real-estate-label">Power consumption (watts):</p>
+                                <p className="new-real-estate-label">Power consumption (kWh):</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"
                                     name="power-consumption"
-                                    placeholder="Enter the power consumption of your device (in watts)"
+                                    placeholder="Enter the power consumption of your device (kWh)"
                                     value={this.state.powerConsumption}
                                     onChange={this.handlePowerConsumption}
                                 />
@@ -331,42 +396,92 @@ export class NewDevice extends Component {
                                     className="new-real-estate-input"
                                     type="number"
                                     name="min-temp"
-                                    placeholder="Enter the min temp of your air conditioner (in celsius)"
+                                    placeholder="Enter the minimal temperature (in celsius)"
                                     value={this.state.minTemp}
                                     onChange={this.handleMinTemp}
                                 />
-                                <p className="new-real-estate-label">Maximum temperature: (celsius)</p>
+                                <p className="new-real-estate-label">Maximum temperature (celsius):</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"
                                     name="max-temp"
-                                    placeholder="Enter the min temp of your air conditioner (in celsius)"
+                                    placeholder="Enter the maximal temperature (in celsius)"
                                     value={this.state.maxTemp}
                                     onChange={this.handleMaxTemp}
                                 />
+                                <p className="new-real-estate-label">Select modes:</p>
+                                <FormControl id="ac-dropdown">
+                                    {/* <InputLabel id="multi-select-dropdown-label">Select Modes</InputLabel> */}
+                                    <Select
+                                        labelId="multi-select-dropdown-label"
+                                        id="multi-select-dropdown"
+                                        multiple
+                                        value={this.state.acModes}
+                                        onChange={this.handleACModes}
+                                        renderValue={(selected) => selected.join(', ')}>
+                                    <MenuItem value="Cooling">Cooling</MenuItem>
+                                    <MenuItem value="Heating">Heating</MenuItem>
+                                    <MenuItem value="Automatic">Automatic</MenuItem>
+                                    <MenuItem value="Ventilation">Ventilation</MenuItem>
+                                    </Select>
+                                </FormControl>
+
+                                <SpecialModeForm onAdd={this.handleAddSpecialMode} acModes={this.state.acModes} minTemp={this.state.minTemp} maxTemp={this.state.maxTemp}/>
+
                             </div>
                         )}
                         {this.state.showBatterySize && (
                             <div>
-                                <p className="new-real-estate-label">Battery size (kWh):</p>
+                                <p className="new-real-estate-label">Battery capacity (kWh):</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"
                                     name="battery-size"
-                                    placeholder="Enter the battery size (in kWh)"
+                                    placeholder="Enter the battery capacity (in kWh)"
                                     value={this.state.batterySize}
                                     onChange={this.handleBatterySize}
                                 />
                             </div>
                         )}
+                        {this.state.showSolarPanel && (
+                            <div>
+                                <p className="new-real-estate-label">Number of panels:</p>
+                                <input
+                                    className="new-real-estate-input"
+                                    type="number"
+                                    name="panels"
+                                    placeholder="Enter the number of panels"
+                                    value={this.state.panelsNum}
+                                    onChange={this.handlePanelsNum}
+                                />
+                                <p className="new-real-estate-label">Surface area per panel (m<sup>2</sup>):</p>
+                                <input
+                                    className="new-real-estate-input"
+                                    type="number"
+                                    name="surface-area"
+                                    placeholder="Enter the surface area (in square meters)"
+                                    value={this.state.surfaceArea}
+                                    onChange={this.handleSurfaceArea}
+                                />
+                                <p className="new-real-estate-label">Efficiency per panel (%):</p>
+                                <input
+                                    className="new-real-estate-input"
+                                    type="number"
+                                    name="efficiency"
+                                    placeholder="Enter the efficiency (in percentages)"
+                                    value={this.state.efficiency}
+                                    onChange={this.handleEfficiency}
+                                />
+                            </div>
+                        )}
                         {this.state.showCharger && (
                             <div>
-                                <p className="new-real-estate-label">Charging power (kWatts):</p>
+                                <p className="new-real-estate-label">Charging power (kW):</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"
                                     name="charging-power"
-                                    placeholder="Enter the charging power (in kwatts)"
+                                    placeholder="Enter the charging power (in kW)"
                                     value={this.state.chargingPower}
                                     onChange={this.handleChargingPower}
                                 />
@@ -422,6 +537,7 @@ export class NewDevice extends Component {
                     action={this.action}
                 />
             </div>
+            
         )
     }
 }

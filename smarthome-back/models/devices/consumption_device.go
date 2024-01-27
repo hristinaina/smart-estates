@@ -39,3 +39,13 @@ func NewConsumptionDevice(device Device, powerSupply enumerations.PowerSupplyTyp
 		PowerConsumption: 0,
 	}
 }
+
+func (cd ConsumptionDevice) ToDevice() Device {
+	return Device{
+		Id:         cd.Device.Id,
+		Name:       cd.Device.Name,
+		Type:       cd.Device.Type,
+		RealEstate: cd.Device.RealEstate,
+		IsOnline:   cd.Device.IsOnline,
+	}
+}

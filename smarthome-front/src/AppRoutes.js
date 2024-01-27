@@ -11,6 +11,11 @@ import Account from './components/User/Account';
 import { Lamp } from './components/Devices/Lamp';
 import AddAdmin from './components/SuperAdmin/AddAdmin';
 import ForgotPassword from './components/User/ForgotPassword';
+import { AmbientSensor } from './components/Devices/AmbientSensor/AmbientSensor';
+import { SolarPanel } from './components/Devices/SolarPanel/SolarPanel';
+import { AirConditioner } from './components/Devices/AirConditioner/AirConditioner';
+import { HomeBattery } from './components/Devices/HomeBattery/HomeBattery';
+import { VehicleGate } from './components/Devices/VehicleGate/VehicleGate';
 
 const AppRoutes = [
   {
@@ -60,6 +65,26 @@ const AppRoutes = [
   {
     path: "/lamp/:id",
     element: <Lamp />
+  },
+  {
+    path: "/ambient-sensor/:id",
+    element: <AmbientSensor />
+  },
+  {
+    path: "/air-conditioner/:id",
+    element: <AirConditioner />
+  },
+  {
+    path: "/vehicle-gate/:id",
+    element: <VehicleGate/>
+  },
+  {
+    path: "/sp/:id",
+    element: <SolarPanel />
+  },
+  {
+    path: "/hb/:id",
+    element: <HomeBattery />
   },
 ];
 

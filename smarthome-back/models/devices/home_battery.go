@@ -4,21 +4,24 @@ import "smarthome-back/enumerations"
 
 // HomeBattery inherits Device declared as Device attribute
 type HomeBattery struct {
-	Device Device
-	Size   float64
+	Device       Device
+	Size         float64
+	CurrentValue float64
 }
 
 func NewHomeBattery(device Device, size float64) HomeBattery {
 	return HomeBattery{
-		Device: device,
-		Size:   size,
+		Device:       device,
+		Size:         size,
+		CurrentValue: 0,
 	}
 }
 
 func NewHomeBatteryParam(name string, deviceType enumerations.DeviceType, estate int, size float64) HomeBattery {
 	return HomeBattery{
-		Device: NewDevice(name, deviceType, estate),
-		Size:   size,
+		Device:       NewDevice(name, deviceType, estate),
+		Size:         size,
+		CurrentValue: 0,
 	}
 }
 

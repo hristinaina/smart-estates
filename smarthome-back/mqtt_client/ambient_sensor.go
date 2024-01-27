@@ -1,0 +1,152 @@
+package mqtt_client
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"strconv"
+	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+)
+
+// var switchOn = false
+
+type AmbientSensor struct {
+	Humidity    float64   `json:"humidity"`
+	Temperature float64   `json:"temperature"`
+	Timestemp   time.Time `json:"timestamp"`
+}
+
+var sensor AmbientSensor
+
+func (mc *MQTTClient) ReceiveValue(client mqtt.Client, msg mqtt.Message) {
+	payload := string(msg.Payload())
+
+	var data map[string]interface{}
+	if err := json.Unmarshal([]byte(payload), &data); err != nil {
+		fmt.Println("Error decoding JSON:", err)
+		return
+	}
+
+	deviceId := int(data["id"].(float64))
+	temperature := data["temperature"].(float64)
+	humidity := data["humidity"].(float64)
+
+	saveValueToInfluxDb(mc.influxDb, deviceId, temperature, humidity)
+
+	setNewValue(temperature, humidity, time.Now())
+
+	fmt.Printf("Ambient Sensor, id=%v, temeprature: %v °C, humidity: %v %% \n", deviceId, temperature, humidity)
+
+}
+
+func saveValueToInfluxDb(client influxdb2.Client, deviceId int, temperature, humidity float64) {
+	Org := "Smart Home"
+	Bucket := "bucket"
+	writeAPI := client.WriteAPI(Org, Bucket)
+
+	point := influxdb2.NewPoint("measurement1", // table
+		map[string]string{"device_id": strconv.Itoa(deviceId)}, // tag
+		map[string]interface{}{"temperature": temperature, "humidity": humidity},
+		time.Now()) // field
+
+	// Write the point to InfluxDB
+	writeAPI.WritePoint(point)
+
+	// Close the write API to flush the buffer and release resources
+	writeAPI.Flush()
+	fmt.Println("Ambient sensor influxdb")
+}
+
+// func (mc *MQTTClient) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
+// 	parts := strings.Split(msg.Topic(), "/")
+// 	deviceId, err := strconv.Atoi(parts[len(parts)-1])
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	status := string(msg.Payload())
+// 	switchOn = status == "true"
+// 	fmt.Printf("AmbientSensor id=%d, switch status: %s\n", deviceId, status)
+// }
+
+func processingQuery(influxdb influxdb2.Client, query string) map[time.Time]AmbientSensor {
+	Org := "Smart Home"
+	queryAPI := influxdb.QueryAPI(Org)
+
+	result, err := queryAPI.Query(context.Background(), query)
+	if err != nil {
+		fmt.Println("Error executing InfluxDB query:", err)
+		return nil
+	}
+
+	var resultPoints map[time.Time]AmbientSensor
+	resultPoints = make(map[time.Time]AmbientSensor)
+
+	if err == nil {
+		// Iterate over query response
+		for result.Next() {
+
+			val, _ := resultPoints[result.Record().Time()]
+
+			switch field := result.Record().Field(); field {
+			case "temperature":
+				val.Temperature = result.Record().Value().(float64)
+			case "humidity":
+				val.Humidity = result.Record().Value().(float64)
+			default:
+				fmt.Printf("unrecognized field %s.\n", field)
+			}
+
+			resultPoints[result.Record().Time()] = val
+
+		}
+		// check for an error
+		if result.Err() != nil {
+			fmt.Printf("query parsing error: %s\n", result.Err().Error())
+		}
+	} else {
+		panic(err)
+	}
+
+	return resultPoints
+}
+
+func GetLastOneHourValues(influxdb influxdb2.Client, deviceId string) map[time.Time]AmbientSensor {
+	query := fmt.Sprintf(`from(bucket:"bucket") 
+		|> range(start: -1h, stop: now())
+		|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`, deviceId)
+
+	return processingQuery(influxdb, query)
+}
+
+func GetValuesForSelectedTime(influxdb influxdb2.Client, selectedTime, deviceId string) map[time.Time]AmbientSensor {
+	query := fmt.Sprintf(`from(bucket:"bucket") 
+	|> range(start: %s, stop: now())
+	|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`, selectedTime, deviceId)
+
+	return processingQuery(influxdb, query)
+}
+
+func GetValuesForDate(influxdb influxdb2.Client, start, end, deviceId string) map[time.Time]AmbientSensor {
+	endDate, _ := time.Parse(time.RFC3339, end)
+	endDate = endDate.AddDate(0, 0, 1)
+	endDateStr := endDate.Format(time.RFC3339)
+	query := fmt.Sprintf(`from(bucket:"bucket") 
+	|> range(start: %s, stop: %s)
+	|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`,
+		start, endDateStr, deviceId)
+
+	return processingQuery(influxdb, query)
+}
+
+func setNewValue(temp, hmd float64, time time.Time) {
+	sensor.Temperature = temp
+	sensor.Humidity = hmd
+	sensor.Timestemp = time
+}
+
+func GetNewValue() AmbientSensor {
+	return sensor
+}

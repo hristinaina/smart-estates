@@ -2,13 +2,14 @@ package mqtt_client
 
 import (
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/go-sql-driver/mysql"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	models "smarthome-back/models/devices"
 	"strconv"
 	"strings"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/go-sql-driver/mysql"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 // HandleHeartBeat callback function called when subscribed to TopicOnline. Update heartbeat time when "online" message is received
@@ -43,9 +44,26 @@ func (mc *MQTTClient) HandleHeartBeat(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Device is online, id=%d\n", deviceId)
 }
 
+func (mc *MQTTClient) StartDeviceStatusThread() {
+	// Periodically check if the device is still online
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				// This block will be executed every time the ticker ticks
+				fmt.Println("checking device status...")
+				mc.checkDeviceStatus()
+			}
+		}
+	}()
+}
+
 // CheckDeviceStatus function that checks if there is a device that has disconnected
-func (mc *MQTTClient) CheckDeviceStatus() {
-	offlineTimeout := 30 * time.Second
+func (mc *MQTTClient) checkDeviceStatus() {
+	offlineTimeout := 60 * time.Second
 	devices := mc.deviceRepository.GetAll()
 	for _, device := range devices {
 		if device.IsOnline && time.Since(device.StatusTimeStamp.Time) > offlineTimeout {

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
 	"smarthome-back/dto"
 	"smarthome-back/mqtt_client"
@@ -15,9 +16,9 @@ type DeviceController struct {
 	service services.DeviceService
 }
 
-func NewDeviceController(db *sql.DB, mqtt *mqtt_client.MQTTClient) DeviceController {
+func NewDeviceController(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceController {
 	return DeviceController{
-		service: services.NewDeviceService(db, mqtt)}
+		service: services.NewDeviceService(db, mqtt, influxDb)}
 }
 
 func (uc DeviceController) Get(c *gin.Context) {
@@ -60,4 +61,26 @@ func (rec DeviceController) Add(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, device)
 	}
+}
+
+func (rec DeviceController) GetConsumptionDeviceDto(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	CheckIfError(err, c)
+	dto, err := rec.service.GetConsumptionDeviceDto(id)
+	if CheckIfError(err, c) {
+		return
+	}
+
+	c.JSON(200, dto)
+}
+
+func (rec DeviceController) GetConsumptionDevice(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	CheckIfError(err, c)
+	dto, err := rec.service.GetConsumptionDevice(id)
+	if CheckIfError(err, c) {
+		return
+	}
+
+	c.JSON(200, dto)
 }

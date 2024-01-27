@@ -1,0 +1,36 @@
+/* .top-bar {
+    display: flex;
+} */
+
+.buttons {
+    display: flex;
+    /* justify-content: center; */
+    align-items: center;
+    margin-top: 50px;
+    margin-left: 15%;
+    font-weight: 900;
+    font-size: x-large;
+}
+
+.active-button {
+    cursor: pointer;
+    padding: 10px;
+    /* margin-bottom: 50px; */
+    transition: background-color 0.3s;
+    color: #806894;
+    background-color: #d3d3d3;
+    border-radius: 10px;
+}
+
+.non-active-button:hover {
+    cursor: pointer;
+}
+
+.canvas {
+    margin: 75px 20px;
+}
+
+.ambient-sensor-title {
+    font-size: 45px;
+    margin-left: 35px;
+}

@@ -3,36 +3,21 @@ package config
 import (
 	"fmt"
 	"os"
-	"time"
-
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 const (
-	TopicOnline    = "device/online/" //device/online/{deviceId}
-	TopicPayload   = "device/data/"   //device/data/{deviceId}
-	TopicNewDevice = "device/new/"    //device/data/{deviceId}
+	TopicOnline      = "device/online/" //device/online/{deviceId}
+	TopicPayload     = "device/data/"   //device/data/{deviceId}
+	TopicNewDevice   = "device/new/"    //device/data/{deviceId}
+	TopicConsumption = "device/consumption/"
+	TopicApproached = "device/approached/"  //vehcile-gate/approached/{deviceId}
+	TopicVGOpenClose = "vg/open/" // vg/open/{deviceId} -> this is to know who entered
 )
 
 func CreateConnection() mqtt.Client {
 	opts := mqtt.NewClientOptions().AddBroker("ws://localhost:9001/mqtt")
 	opts.SetClientID("go-simulator-nvt-2023")
-	opts.OnConnectionLost = func(client mqtt.Client, err error) {
-		fmt.Printf("Connection lost: %v\n", err)
-
-		// Attempt to reconnect
-		for {
-			fmt.Println("Attempting to reconnect...")
-			token := client.Connect()
-			if token.Wait() && token.Error() == nil {
-				fmt.Println("Reconnected successfully!")
-				break
-			}
-
-			// Wait before attempting again
-			time.Sleep(5 * time.Second)
-		}
-	}
 
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
