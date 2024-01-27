@@ -1,17 +1,20 @@
-package models
+package energetic
 
-import "smarthome-back/enumerations"
+import (
+	"smarthome-back/enumerations"
+	"smarthome-back/models/devices"
+)
 
 // SolarPanel inherits Device declared as Device attribute
 type SolarPanel struct {
-	Device         Device
+	Device         models.Device
 	SurfaceArea    float64
 	Efficiency     float64
 	NumberOfPanels int
 	IsOn           bool
 }
 
-func NewSolarPanel(device Device, surfaceArea float64, efficiency float64, panels int) SolarPanel {
+func NewSolarPanel(device models.Device, surfaceArea float64, efficiency float64, panels int) SolarPanel {
 	return SolarPanel{
 		Device:         device,
 		SurfaceArea:    surfaceArea,
@@ -23,7 +26,7 @@ func NewSolarPanel(device Device, surfaceArea float64, efficiency float64, panel
 
 func NewSolarPanelParam(name string, deviceType enumerations.DeviceType, estate int, surfaceArea float64, efficiency float64, panels int) SolarPanel {
 	return SolarPanel{
-		Device:         NewDevice(name, deviceType, estate),
+		Device:         models.NewDevice(name, deviceType, estate),
 		SurfaceArea:    surfaceArea,
 		Efficiency:     efficiency,
 		NumberOfPanels: panels,
@@ -31,8 +34,8 @@ func NewSolarPanelParam(name string, deviceType enumerations.DeviceType, estate 
 	}
 }
 
-func (ac SolarPanel) ToDevice() Device {
-	return Device{
+func (ac SolarPanel) ToDevice() models.Device {
+	return models.Device{
 		Id:         ac.Device.Id,
 		Name:       ac.Device.Name,
 		Type:       ac.Device.Type,

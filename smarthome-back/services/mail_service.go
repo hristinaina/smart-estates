@@ -28,12 +28,11 @@ type MailService interface {
 }
 
 type MailServiceImpl struct {
-	db      *sql.DB
-	service UserService
+	db *sql.DB
 }
 
 func NewMailService(db *sql.DB) MailService {
-	return &MailServiceImpl{db: db, service: NewUserService(db)}
+	return &MailServiceImpl{db: db}
 }
 
 func readFromEnvFile() string {

@@ -1,4 +1,4 @@
-package services
+package energetic
 
 import (
 	"database/sql"
@@ -6,12 +6,12 @@ import (
 	_ "fmt"
 	_ "github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
-	"smarthome-back/dto"
-	"smarthome-back/models/devices"
+	"smarthome-back/dtos"
+	"smarthome-back/models/devices/energetic"
 )
 
 type EVChargerService interface {
-	Add(estate dto.DeviceDTO) models.EVCharger
+	Add(estate dtos.DeviceDTO) energetic.EVCharger
 }
 
 type EVChargerServiceImpl struct {
@@ -22,12 +22,12 @@ func NewEVChargerService(db *sql.DB) EVChargerService {
 	return &EVChargerServiceImpl{db: db}
 }
 
-func (s *EVChargerServiceImpl) Add(dto dto.DeviceDTO) models.EVCharger {
+func (s *EVChargerServiceImpl) Add(dto dtos.DeviceDTO) energetic.EVCharger {
 	// TODO: add some validation and exception throwing
 	device := dto.ToEVCharger()
 	tx, err := s.db.Begin()
 	if err != nil {
-		return models.EVCharger{}
+		return energetic.EVCharger{}
 	}
 	defer tx.Rollback()
 
@@ -38,13 +38,13 @@ func (s *EVChargerServiceImpl) Add(dto dto.DeviceDTO) models.EVCharger {
 	`, device.Device.Name, device.Device.Type, device.Device.RealEstate,
 		device.Device.IsOnline)
 	if err != nil {
-		return models.EVCharger{}
+		return energetic.EVCharger{}
 	}
 
 	// Get the last inserted device ID
 	deviceID, err := result.LastInsertId()
 	if err != nil {
-		return models.EVCharger{}
+		return energetic.EVCharger{}
 	}
 
 	// Insert the new EVCharger into the EVCharger table
@@ -53,12 +53,12 @@ func (s *EVChargerServiceImpl) Add(dto dto.DeviceDTO) models.EVCharger {
 		VALUES (?, ?, ?)
 	`, deviceID, device.ChargingPower, device.Connections)
 	if err != nil {
-		return models.EVCharger{}
+		return energetic.EVCharger{}
 	}
 
 	// Commit the transaction
 	if err := tx.Commit(); err != nil {
-		return models.EVCharger{}
+		return energetic.EVCharger{}
 	}
 	device.Device.Id = int(deviceID)
 	return device

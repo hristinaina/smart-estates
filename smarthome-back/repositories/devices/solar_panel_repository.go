@@ -3,14 +3,15 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
-	"smarthome-back/dto"
+	"smarthome-back/dtos"
 	"smarthome-back/models/devices"
+	"smarthome-back/models/devices/energetic"
 )
 
 type SolarPanelRepository interface {
-	Get(id int) models.SolarPanel
-	UpdateSP(device models.SolarPanel) bool
-	Add(dto dto.DeviceDTO) models.SolarPanel
+	Get(id int) energetic.SolarPanel
+	UpdateSP(device energetic.SolarPanel) bool
+	Add(dto dtos.DeviceDTO) energetic.SolarPanel
 }
 
 type SolarPanelRepositoryImpl struct {
@@ -21,7 +22,7 @@ func NewSolarPanelRepository(db *sql.DB) SolarPanelRepository {
 	return &SolarPanelRepositoryImpl{db: db}
 }
 
-func (s *SolarPanelRepositoryImpl) Get(id int) models.SolarPanel {
+func (s *SolarPanelRepositoryImpl) Get(id int) energetic.SolarPanel {
 	query := `
 		SELECT
 			Device.Id,
@@ -44,7 +45,7 @@ func (s *SolarPanelRepositoryImpl) Get(id int) models.SolarPanel {
 	// Execute the query
 	row := s.db.QueryRow(query, id)
 
-	var sp models.SolarPanel
+	var sp energetic.SolarPanel
 	var device models.Device
 
 	err := row.Scan(
@@ -65,18 +66,18 @@ func (s *SolarPanelRepositoryImpl) Get(id int) models.SolarPanel {
 		} else {
 			fmt.Println("Error retrieving solar panel:", err)
 		}
-		return models.SolarPanel{}
+		return energetic.SolarPanel{}
 	}
 	sp.Device = device
 	return sp
 }
 
-func (s *SolarPanelRepositoryImpl) Add(dto dto.DeviceDTO) models.SolarPanel {
+func (s *SolarPanelRepositoryImpl) Add(dto dtos.DeviceDTO) energetic.SolarPanel {
 	// TODO: add some validation and exception throwing
 	device := dto.ToSolarPanel()
 	tx, err := s.db.Begin()
 	if err != nil {
-		return models.SolarPanel{}
+		return energetic.SolarPanel{}
 	}
 	defer tx.Rollback()
 
@@ -87,13 +88,13 @@ func (s *SolarPanelRepositoryImpl) Add(dto dto.DeviceDTO) models.SolarPanel {
 	`, device.Device.Name, device.Device.Type, device.Device.RealEstate,
 		device.Device.IsOnline)
 	if err != nil {
-		return models.SolarPanel{}
+		return energetic.SolarPanel{}
 	}
 
 	// Get the last inserted device ID
 	deviceID, err := result.LastInsertId()
 	if err != nil {
-		return models.SolarPanel{}
+		return energetic.SolarPanel{}
 	}
 
 	// Insert the new SolarPanel into the SolarPanel table
@@ -102,18 +103,18 @@ func (s *SolarPanelRepositoryImpl) Add(dto dto.DeviceDTO) models.SolarPanel {
 		VALUES (?, ?, ?, ?, ?)
 	`, deviceID, device.SurfaceArea, device.Efficiency, device.NumberOfPanels, false)
 	if err != nil {
-		return models.SolarPanel{}
+		return energetic.SolarPanel{}
 	}
 
 	// Commit the transaction
 	if err := tx.Commit(); err != nil {
-		return models.SolarPanel{}
+		return energetic.SolarPanel{}
 	}
 	device.Device.Id = int(deviceID)
 	return device
 }
 
-func (s *SolarPanelRepositoryImpl) UpdateSP(device models.SolarPanel) bool {
+func (s *SolarPanelRepositoryImpl) UpdateSP(device energetic.SolarPanel) bool {
 	query := "UPDATE solarPanel SET surfaceArea = ?, efficiency = ?, numberOfPanels = ?, isOn = ? WHERE deviceId = ?"
 	_, err := s.db.Exec(query, device.SurfaceArea, device.Efficiency, device.NumberOfPanels, device.IsOn, device.Device.Id)
 	if err != nil {

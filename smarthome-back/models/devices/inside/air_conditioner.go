@@ -1,15 +1,17 @@
-package models
+package inside
+
+import "smarthome-back/models/devices"
 
 // AirConditioner inherits ConsumptionDevice declared as Device attribute
 type AirConditioner struct {
-	Device         ConsumptionDevice
+	Device         models.ConsumptionDevice
 	MinTemperature float32
 	MaxTemperature float32
 	Mode           string
 	SpecialMode    []SpecialMode
 }
 
-func NewAirConditioner(device ConsumptionDevice, minTemp, maxTemp float32, mode string, sc []SpecialMode) AirConditioner {
+func NewAirConditioner(device models.ConsumptionDevice, minTemp, maxTemp float32, mode string, sc []SpecialMode) AirConditioner {
 	return AirConditioner{
 		Device:         device,
 		MinTemperature: minTemp,
@@ -19,8 +21,8 @@ func NewAirConditioner(device ConsumptionDevice, minTemp, maxTemp float32, mode 
 	}
 }
 
-func (ac AirConditioner) ToDevice() Device {
-	return Device{
+func (ac AirConditioner) ToDevice() models.Device {
+	return models.Device{
 		Id:         ac.Device.Device.Id,
 		Name:       ac.Device.Device.Name,
 		Type:       ac.Device.Device.Type,

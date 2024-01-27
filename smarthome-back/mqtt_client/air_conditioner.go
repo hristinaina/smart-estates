@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"smarthome-back/dto"
+	"smarthome-back/dtos"
 	"strconv"
 	"strings"
 	"time"
@@ -73,7 +73,7 @@ type ACHistoryData struct {
 	Mode   string
 }
 
-func QueryDeviceData(client influxdb2.Client, data dto.ActionGraphRequest) map[string]ACHistoryData {
+func QueryDeviceData(client influxdb2.Client, data dtos.ActionGraphRequest) map[string]ACHistoryData {
 	Org := "Smart Home"
 	Bucket := "bucket"
 	queryAPI := client.QueryAPI(Org)

@@ -1,16 +1,18 @@
-package services
+package devices
 
 import (
 	"database/sql"
 	_ "database/sql"
 	"errors"
 	_ "fmt"
-	"smarthome-back/dto"
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
 	"smarthome-back/mqtt_client"
-	"smarthome-back/repositories"
-	services "smarthome-back/services/devices"
+	"smarthome-back/repositories/devices"
+	"smarthome-back/services"
+	"smarthome-back/services/devices/energetic"
+	"smarthome-back/services/devices/inside"
+	"smarthome-back/services/devices/outside"
 	"strconv"
 
 	_ "github.com/gin-gonic/gin"
@@ -20,7 +22,7 @@ import (
 type DeviceService interface {
 	GetAllByEstateId(id int) []models.Device
 	Get(id int) (models.Device, error)
-	Add(estate dto.DeviceDTO) (models.Device, error)
+	Add(estate dtos.DeviceDTO) (models.Device, error)
 	GetAll() []models.Device
 	GetConsumptionDevice(id int) (models.ConsumptionDevice, error)
 	GetConsumptionDevicesByEstateId(estateId int) ([]models.ConsumptionDevice, error)
@@ -30,23 +32,23 @@ type DeviceService interface {
 type DeviceServiceImpl struct {
 	db                    *sql.DB
 	inflixDb              influxdb2.Client
-	airConditionerService AirConditionerService
-	evChargerService      EVChargerService
-	homeBatteryService    HomeBatteryService
-	solarPanelService     SolarPanelService
-	ambientSensorService  AmbientSensorService
-	lampService           services.LampService
-	vehicleGateService    services.VehicleGateService
+	airConditionerService inside.AirConditionerService
+	evChargerService      energetic.EVChargerService
+	homeBatteryService    energetic.HomeBatteryService
+	solarPanelService     energetic.SolarPanelService
+	ambientSensorService  inside.AmbientSensorService
+	lampService           outside.LampService
+	vehicleGateService    outside.VehicleGateService
 	mqtt                  *mqtt_client.MQTTClient
 	deviceRepository      repositories.DeviceRepository
 }
 
 func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceService {
-	return &DeviceServiceImpl{db: db, airConditionerService: NewAirConditionerService(db), evChargerService: NewEVChargerService(db),
-		homeBatteryService: NewHomeBatteryService(db, influxDb), lampService: services.NewLampService(db, influxDb),
-		vehicleGateService: services.NewVehicleGateService(db, influxDb),
+	return &DeviceServiceImpl{db: db, airConditionerService: inside.NewAirConditionerService(db), evChargerService: energetic.NewEVChargerService(db),
+		homeBatteryService: energetic.NewHomeBatteryService(db, influxDb), lampService: outside.NewLampService(db, influxDb),
+		vehicleGateService: outside.NewVehicleGateService(db, influxDb),
 		mqtt:               mqtt, deviceRepository: repositories.NewDeviceRepository(db),
-		solarPanelService: NewSolarPanelService(db, influxDb), ambientSensorService: NewAmbientSensorService(db)}
+		solarPanelService: energetic.NewSolarPanelService(db, influxDb), ambientSensorService: inside.NewAmbientSensorService(db)}
 }
 
 func (res *DeviceServiceImpl) GetAll() []models.Device {
@@ -65,7 +67,7 @@ func (res *DeviceServiceImpl) Get(id int) (models.Device, error) {
 	return res.deviceRepository.Get(id)
 }
 
-func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
+func (res *DeviceServiceImpl) Add(dto dtos.DeviceDTO) (models.Device, error) {
 	devices, err := res.deviceRepository.GetDevicesByUserID(dto.UserId)
 	if err != nil {
 		return models.Device{}, err
@@ -102,7 +104,7 @@ func (res *DeviceServiceImpl) Add(dto dto.DeviceDTO) (models.Device, error) {
 		device = dto.ToDevice()
 		query := "INSERT INTO device (Name, Type, RealEstate, IsOnline) VALUES ( ?, ?, ?, ?);"
 		result, err := res.db.Exec(query, device.Name, device.Type, device.RealEstate, device.IsOnline)
-		if CheckIfError(err) {
+		if services.CheckIfError(err) {
 			return models.Device{}, err
 		}
 		id, err := result.LastInsertId()

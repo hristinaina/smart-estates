@@ -1,4 +1,4 @@
-package models
+package inside
 
 type SpecialMode struct {
 	StartTime    string

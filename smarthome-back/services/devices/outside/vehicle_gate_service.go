@@ -1,11 +1,11 @@
-package services
+package outside
 
 import (
 	"database/sql"
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
-	"smarthome-back/dto"
+	"smarthome-back/dtos"
 	"smarthome-back/dtos/vehicle_gate_graph"
 	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices/outside"
@@ -20,7 +20,7 @@ type VehicleGateService interface {
 	Close(id int) (models.VehicleGate, error)
 	ToPrivate(id int) (models.VehicleGate, error)
 	ToPublic(id int) (models.VehicleGate, error)
-	Add(dto dto.DeviceDTO) (models.VehicleGate, error)
+	Add(dto dtos.DeviceDTO) (models.VehicleGate, error)
 	Delete(id int) (bool, error)
 	GetLicensePlates(id int) ([]string, error)
 	AddLicensePlate(deviceId int, licensePlate string) (string, error)
@@ -98,7 +98,7 @@ func (service *VehicleGateServiceImpl) ToPublic(id int) (models.VehicleGate, err
 	return gate, nil
 }
 
-func (service *VehicleGateServiceImpl) Add(dto dto.DeviceDTO) (models.VehicleGate, error) {
+func (service *VehicleGateServiceImpl) Add(dto dtos.DeviceDTO) (models.VehicleGate, error) {
 	device := dto.ToVehicleGate()
 	tx, err := service.db.Begin()
 	if err != nil {

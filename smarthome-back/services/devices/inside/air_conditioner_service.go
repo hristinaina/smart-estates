@@ -1,15 +1,16 @@
-package services
+package inside
 
 import (
 	"database/sql"
 	"fmt"
-	"smarthome-back/dto"
+	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
+	"smarthome-back/models/devices/inside"
 )
 
 type AirConditionerService interface {
-	Add(estate dto.DeviceDTO) models.AirConditioner
-	Get(id int) models.AirConditioner
+	Add(estate dtos.DeviceDTO) inside.AirConditioner
+	Get(id int) inside.AirConditioner
 }
 
 type AirConditionerServiceImpl struct {
@@ -20,7 +21,7 @@ func NewAirConditionerService(db *sql.DB) AirConditionerService {
 	return &AirConditionerServiceImpl{db: db}
 }
 
-func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
+func (s *AirConditionerServiceImpl) Get(id int) inside.AirConditioner {
 	query := `
 		SELECT
 			Device.Id,
@@ -52,14 +53,14 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 	rows, err := s.db.Query(query, id)
 	if err != nil {
 		fmt.Println("Error executing query:", err)
-		return models.AirConditioner{}
+		return inside.AirConditioner{}
 	}
 	defer rows.Close()
 
-	var ac models.AirConditioner
+	var ac inside.AirConditioner
 	var device models.Device
 	var consDevice models.ConsumptionDevice
-	var specialModes []models.SpecialMode
+	var specialModes []inside.SpecialMode
 
 	for rows.Next() {
 		var startTimeStr, endTimeStr sql.NullString
@@ -87,13 +88,13 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 		)
 		if err != nil {
 			fmt.Println("Error scanning row:", err)
-			return models.AirConditioner{}
+			return inside.AirConditioner{}
 		}
 
 		consDevice.Device = device
 		ac.Device = consDevice
 
-		specialMode := models.SpecialMode{}
+		specialMode := inside.SpecialMode{}
 		if startTimeStr.Valid {
 			specialMode.StartTime = startTimeStr.String
 		}
@@ -117,11 +118,11 @@ func (s *AirConditionerServiceImpl) Get(id int) models.AirConditioner {
 	return ac
 }
 
-func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner {
+func (s *AirConditionerServiceImpl) Add(dto dtos.DeviceDTO) inside.AirConditioner {
 	device := dto.ToAirConditioner()
 	tx, err := s.db.Begin()
 	if err != nil {
-		return models.AirConditioner{}
+		return inside.AirConditioner{}
 	}
 	defer tx.Rollback()
 
@@ -133,14 +134,14 @@ func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner
 		device.Device.Device.IsOnline)
 	if err != nil {
 		fmt.Println(err)
-		return models.AirConditioner{}
+		return inside.AirConditioner{}
 	}
 
 	// Get the last inserted device ID
 	deviceID, err := result.LastInsertId()
 	if err != nil {
 		fmt.Println(err)
-		return models.AirConditioner{}
+		return inside.AirConditioner{}
 	}
 
 	// Insert the new consumption device into the ConsumptionDevice table
@@ -150,7 +151,7 @@ func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner
 	`, deviceID, device.Device.PowerSupply, device.Device.PowerConsumption)
 	if err != nil {
 		fmt.Println(err)
-		return models.AirConditioner{}
+		return inside.AirConditioner{}
 	}
 
 	// Insert the new air conditioner into the AirConditioner table
@@ -161,7 +162,7 @@ func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner
 	if err != nil {
 		fmt.Println("ovde je greska")
 		fmt.Println(err)
-		return models.AirConditioner{}
+		return inside.AirConditioner{}
 	}
 	fmt.Println("OVDE SAAAAAAAAM")
 	fmt.Println(device.SpecialMode)
@@ -175,7 +176,7 @@ func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner
 			if err != nil {
 				fmt.Println("ovde jeeeeeeeeeee")
 				fmt.Println(err)
-				return models.AirConditioner{}
+				return inside.AirConditioner{}
 			}
 		}
 	}
@@ -183,7 +184,7 @@ func (s *AirConditionerServiceImpl) Add(dto dto.DeviceDTO) models.AirConditioner
 	// Commit the transaction
 	if err := tx.Commit(); err != nil {
 		fmt.Println(err)
-		return models.AirConditioner{}
+		return inside.AirConditioner{}
 	}
 
 	device.Device.Device.Id = int(deviceID)

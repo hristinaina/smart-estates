@@ -6,24 +6,25 @@ import (
 	"github.com/gin-gonic/gin"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
-	"smarthome-back/dto"
+	"smarthome-back/controllers"
+	"smarthome-back/dtos"
 	"smarthome-back/mqtt_client"
-	"smarthome-back/services"
+	"smarthome-back/services/devices"
 	"strconv"
 )
 
 type DeviceController struct {
-	service services.DeviceService
+	service devices.DeviceService
 }
 
 func NewDeviceController(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceController {
 	return DeviceController{
-		service: services.NewDeviceService(db, mqtt, influxDb)}
+		service: devices.NewDeviceService(db, mqtt, influxDb)}
 }
 
 func (uc DeviceController) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	CheckIfError(err, c)
+	controllers.CheckIfError(err, c)
 	device, err := uc.service.Get(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Device not found"})
@@ -43,13 +44,13 @@ func (uc DeviceController) GetAll(c *gin.Context) {
 
 func (rec DeviceController) GetAllByEstateId(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("estateId"))
-	CheckIfError(err, c)
+	controllers.CheckIfError(err, c)
 	devices := rec.service.GetAllByEstateId(id)
 	c.JSON(http.StatusOK, devices)
 }
 
 func (rec DeviceController) Add(c *gin.Context) {
-	var deviceDTO dto.DeviceDTO
+	var deviceDTO dtos.DeviceDTO
 	// convert json object to model device
 	if err := c.BindJSON(&deviceDTO); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid JSON"})
@@ -65,9 +66,9 @@ func (rec DeviceController) Add(c *gin.Context) {
 
 func (rec DeviceController) GetConsumptionDeviceDto(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	CheckIfError(err, c)
+	controllers.CheckIfError(err, c)
 	dto, err := rec.service.GetConsumptionDeviceDto(id)
-	if CheckIfError(err, c) {
+	if controllers.CheckIfError(err, c) {
 		return
 	}
 
@@ -76,9 +77,9 @@ func (rec DeviceController) GetConsumptionDeviceDto(c *gin.Context) {
 
 func (rec DeviceController) GetConsumptionDevice(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	CheckIfError(err, c)
+	controllers.CheckIfError(err, c)
 	dto, err := rec.service.GetConsumptionDevice(id)
-	if CheckIfError(err, c) {
+	if controllers.CheckIfError(err, c) {
 		return
 	}
 

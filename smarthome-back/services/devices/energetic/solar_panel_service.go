@@ -1,4 +1,4 @@
-package services
+package energetic
 
 import (
 	"context"
@@ -9,17 +9,17 @@ import (
 	_ "github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"smarthome-back/dto"
-	"smarthome-back/models/devices"
-	"smarthome-back/repositories"
+	"smarthome-back/dtos"
+	"smarthome-back/models/devices/energetic"
+	"smarthome-back/repositories/devices"
 	"time"
 )
 
 type SolarPanelService interface {
-	Add(estate dto.DeviceDTO) models.SolarPanel
-	Get(id int) models.SolarPanel
-	UpdateSP(device models.SolarPanel) bool
-	GetGraphData(data dto.ActionGraphRequest) (dto.ActionGraphResponse, error)
+	Add(estate dtos.DeviceDTO) energetic.SolarPanel
+	Get(id int) energetic.SolarPanel
+	UpdateSP(device energetic.SolarPanel) bool
+	GetGraphData(data dtos.ActionGraphRequest) (dtos.ActionGraphResponse, error)
 	GetValueFromLastMinute(id int) (interface{}, error)
 }
 
@@ -33,15 +33,15 @@ func NewSolarPanelService(db *sql.DB, influxDb influxdb2.Client) SolarPanelServi
 	return &SolarPanelServiceImpl{db: db, repository: repositories.NewSolarPanelRepository(db), influxDb: influxDb}
 }
 
-func (s *SolarPanelServiceImpl) Get(id int) models.SolarPanel {
+func (s *SolarPanelServiceImpl) Get(id int) energetic.SolarPanel {
 	return s.repository.Get(id)
 }
 
-func (s *SolarPanelServiceImpl) Add(dto dto.DeviceDTO) models.SolarPanel {
+func (s *SolarPanelServiceImpl) Add(dto dtos.DeviceDTO) energetic.SolarPanel {
 	return s.repository.Add(dto)
 }
 
-func (s *SolarPanelServiceImpl) GetGraphData(data dto.ActionGraphRequest) (dto.ActionGraphResponse, error) {
+func (s *SolarPanelServiceImpl) GetGraphData(data dtos.ActionGraphRequest) (dtos.ActionGraphResponse, error) {
 	influxOrg := "Smart Home"
 	influxBucket := "bucket"
 
@@ -56,16 +56,16 @@ func (s *SolarPanelServiceImpl) GetGraphData(data dto.ActionGraphRequest) (dto.A
 	result, err := queryAPI.Query(context.Background(), query)
 	if err != nil {
 		fmt.Printf("Error executing InfluxDB query: %v\n", err)
-		return dto.ActionGraphResponse{}, err
+		return dtos.ActionGraphResponse{}, err
 	}
 
 	localLocation, err := time.LoadLocation("Local")
 	if err != nil {
 		fmt.Println("Error loading local time zone:", err)
-		return dto.ActionGraphResponse{}, err
+		return dtos.ActionGraphResponse{}, err
 	}
 
-	var response dto.ActionGraphResponse
+	var response dtos.ActionGraphResponse
 	// Iterate over query results
 	for result.Next() {
 		if result.Record().Value() != nil {
@@ -85,7 +85,7 @@ func (s *SolarPanelServiceImpl) GetGraphData(data dto.ActionGraphRequest) (dto.A
 	return response, nil
 }
 
-func (s *SolarPanelServiceImpl) UpdateSP(device models.SolarPanel) bool {
+func (s *SolarPanelServiceImpl) UpdateSP(device energetic.SolarPanel) bool {
 	return s.repository.UpdateSP(device)
 }
 

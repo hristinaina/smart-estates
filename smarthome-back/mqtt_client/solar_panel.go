@@ -5,8 +5,8 @@ import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"smarthome-back/dto"
-	models "smarthome-back/models/devices"
+	"smarthome-back/dtos"
+	"smarthome-back/models/devices/energetic"
 	"strconv"
 	"strings"
 	"time"
@@ -22,7 +22,7 @@ func (mc *MQTTClient) HandleSPSwitch(client mqtt.Client, msg mqtt.Message) {
 
 	device := mc.solarPanelRepository.Get(deviceId)
 	// Unmarshal the JSON string into the struct
-	var data dto.SolarPanelDTO
+	var data dtos.SolarPanelDTO
 	err = json.Unmarshal([]byte(msg.Payload()), &data)
 	if err != nil {
 		fmt.Println("Error unmarshaling JSON:", err)
@@ -57,7 +57,7 @@ func (mc *MQTTClient) HandleSPData(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Solar panel: name=%s, id=%d, generated value %f \n", device.Device.Name, device.Device.Id, value)
 }
 
-func (mc *MQTTClient) handleProduction(device models.SolarPanel, value float64) {
+func (mc *MQTTClient) handleProduction(device energetic.SolarPanel, value float64) {
 	batteries, err := mc.homeBatteryRepository.GetAllByEstateId(device.Device.RealEstate)
 	if err != nil {
 		return
@@ -80,7 +80,7 @@ func (mc *MQTTClient) handleProduction(device models.SolarPanel, value float64) 
 
 }
 
-func (mc *MQTTClient) calculateProductionForBatteries(batteries []models.HomeBattery, deviceId int, valuePerBattery float64, isSurplus bool) float64 {
+func (mc *MQTTClient) calculateProductionForBatteries(batteries []energetic.HomeBattery, deviceId int, valuePerBattery float64, isSurplus bool) float64 {
 	surplus := 0.0
 	for i, _ := range batteries {
 		if !batteries[i].Device.IsOnline {
@@ -120,7 +120,7 @@ func (mc *MQTTClient) calculateProductionForBatteries(batteries []models.HomeBat
 	}
 }
 
-func saveSPSwitchChangeToInfluxDb(client influxdb2.Client, device models.SolarPanel, email string) {
+func saveSPSwitchChangeToInfluxDb(client influxdb2.Client, device energetic.SolarPanel, email string) {
 	Org := "Smart Home"
 	Bucket := "bucket"
 	writeAPI := client.WriteAPI(Org, Bucket)

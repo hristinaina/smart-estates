@@ -1,10 +1,12 @@
-package dto
+package dtos
 
 import (
 	"encoding/json"
 	"fmt"
 	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices"
+	"smarthome-back/models/devices/energetic"
+	"smarthome-back/models/devices/inside"
 	m "smarthome-back/models/devices/outside"
 	"strings"
 )
@@ -33,8 +35,8 @@ type DeviceDTO struct {
 
 // Object conversion has been localized here:
 
-func (dto *DeviceDTO) ToAirConditioner() models.AirConditioner {
-	return models.AirConditioner{
+func (dto *DeviceDTO) ToAirConditioner() inside.AirConditioner {
+	return inside.AirConditioner{
 		//todo change according to code from front.
 		Device: models.ConsumptionDevice{
 			Device: models.Device{
@@ -54,8 +56,8 @@ func (dto *DeviceDTO) ToAirConditioner() models.AirConditioner {
 	}
 }
 
-func (dto *DeviceDTO) ToEVCharger() models.EVCharger {
-	return models.EVCharger{
+func (dto *DeviceDTO) ToEVCharger() energetic.EVCharger {
+	return energetic.EVCharger{
 		//todo change according to code from front.
 		Device: models.Device{
 			Id:         dto.Id,
@@ -69,8 +71,8 @@ func (dto *DeviceDTO) ToEVCharger() models.EVCharger {
 	}
 }
 
-func (dto *DeviceDTO) ToHomeBattery() models.HomeBattery {
-	return models.HomeBattery{
+func (dto *DeviceDTO) ToHomeBattery() energetic.HomeBattery {
+	return energetic.HomeBattery{
 		//todo change according to code from front.
 		Device: models.Device{
 			Id:         dto.Id,
@@ -83,8 +85,8 @@ func (dto *DeviceDTO) ToHomeBattery() models.HomeBattery {
 	}
 }
 
-func (dto *DeviceDTO) ToSolarPanel() models.SolarPanel {
-	return models.SolarPanel{
+func (dto *DeviceDTO) ToSolarPanel() energetic.SolarPanel {
+	return energetic.SolarPanel{
 		Device: models.Device{
 			Id:         dto.Id,
 			Name:       dto.Name,
@@ -160,21 +162,21 @@ func (dto *DeviceDTO) ToAmbientSensor() models.ConsumptionDevice {
 	}
 }
 
-func (dto *DeviceDTO) ToSpecialMode() []models.SpecialMode {
-	var specialModesDTO []models.SpecialModeDTO
+func (dto *DeviceDTO) ToSpecialMode() []inside.SpecialMode {
+	var specialModesDTO []inside.SpecialModeDTO
 	err := json.Unmarshal([]byte(dto.SpecialMode), &specialModesDTO)
 	if err != nil {
 		fmt.Println("Error decoding JSON:", err)
 		return nil
 	}
 
-	var result []models.SpecialMode
+	var result []inside.SpecialMode
 
 	for _, mode := range specialModesDTO {
 
 		selectedDays := strings.Join(mode.SelectedDays, ",")
 
-		sm := models.NewSpecialMode(mode.Start, mode.End, mode.SelectedMode, mode.Temperature, selectedDays)
+		sm := inside.NewSpecialMode(mode.Start, mode.End, mode.SelectedMode, mode.Temperature, selectedDays)
 
 		result = append(result, sm)
 	}

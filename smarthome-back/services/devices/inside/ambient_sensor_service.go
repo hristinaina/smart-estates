@@ -1,15 +1,15 @@
-package services
+package inside
 
 import (
 	"database/sql"
 	"fmt"
-	"smarthome-back/dto"
+	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
 )
 
 type AmbientSensorService interface {
 	Get(id int) (models.ConsumptionDevice, error)
-	Add(dto dto.DeviceDTO) models.ConsumptionDevice
+	Add(dto dtos.DeviceDTO) models.ConsumptionDevice
 }
 
 type AmbientSensorServiceImpl struct {
@@ -69,7 +69,7 @@ func (as *AmbientSensorServiceImpl) Get(id int) (models.ConsumptionDevice, error
 	return consDevice, nil
 }
 
-func (as *AmbientSensorServiceImpl) Add(dto dto.DeviceDTO) models.ConsumptionDevice {
+func (as *AmbientSensorServiceImpl) Add(dto dtos.DeviceDTO) models.ConsumptionDevice {
 	device := dto.ToAmbientSensor()
 	tx, err := as.db.Begin()
 	if err != nil {

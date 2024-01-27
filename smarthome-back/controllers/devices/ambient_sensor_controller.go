@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"smarthome-back/controllers"
 	"smarthome-back/mqtt_client"
-	"smarthome-back/services"
+	"smarthome-back/services/devices/inside"
 	"strconv"
 	"time"
 
@@ -13,17 +14,17 @@ import (
 )
 
 type AmbientSensorController struct {
-	service services.AmbientSensorService
+	service inside.AmbientSensorService
 	mqtt    *mqtt_client.MQTTClient
 }
 
 func NewAmbientSensorController(db *sql.DB, mqtt *mqtt_client.MQTTClient) AmbientSensorController {
-	return AmbientSensorController{service: services.NewAmbientSensorService(db), mqtt: mqtt}
+	return AmbientSensorController{service: inside.NewAmbientSensorService(db), mqtt: mqtt}
 }
 
 func (as AmbientSensorController) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	CheckIfError(err, c)
+	controllers.CheckIfError(err, c)
 	device, err := as.service.Get(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Device not found"})

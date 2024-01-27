@@ -7,6 +7,7 @@ import (
 	"smarthome-back/dtos"
 	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices"
+	"smarthome-back/repositories"
 )
 
 type DeviceRepository interface {
@@ -32,7 +33,7 @@ func NewDeviceRepository(db *sql.DB) DeviceRepository {
 func (res *DeviceRepositoryImpl) GetAll() []models.Device {
 	query := "SELECT * FROM device"
 	rows, err := res.db.Query(query)
-	if CheckIfError(err) {
+	if repositories.CheckIfError(err) {
 		return nil
 	}
 	defer rows.Close()
@@ -156,7 +157,7 @@ func (res *DeviceRepositoryImpl) GetConsumptionDevicesByEstateId(id int) ([]mode
 func (res *DeviceRepositoryImpl) GetAllByEstateId(estateId int) []models.Device {
 	query := "SELECT * FROM device WHERE REALESTATE = ?"
 	rows, err := res.db.Query(query, estateId)
-	if CheckIfError(err) {
+	if repositories.CheckIfError(err) {
 		//todo raise an exception and catch it in controller?
 		return nil
 	}
@@ -180,7 +181,7 @@ func (res *DeviceRepositoryImpl) Get(id int) (models.Device, error) {
 	query := "SELECT * FROM device WHERE ID = ?"
 	rows, err := res.db.Query(query, id)
 
-	if CheckIfError(err) {
+	if repositories.CheckIfError(err) {
 		return models.Device{}, nil
 	}
 	defer rows.Close()
@@ -242,7 +243,7 @@ func (res *DeviceRepositoryImpl) UpdateLastValue(id int, value float32) (bool, e
               SET device.LastValue = ? 
               WHERE Device.Id = ?`
 	_, err := res.db.Exec(query, value, id)
-	if CheckIfError(err) {
+	if repositories.CheckIfError(err) {
 		return false, err
 	}
 	return true, nil
@@ -253,7 +254,7 @@ func (res *DeviceRepositoryImpl) GetConsumptionDeviceDto(id int) (dtos.Consumpti
 			  FROM ConsumptionDevice 
    			  WHERE ConsumptionDevice.DeviceId = ?`
 	rows, err := res.db.Query(query, id)
-	if IsError(err) {
+	if repositories.IsError(err) {
 		return dtos.ConsumptionDeviceDto{}, err
 	}
 	defer func(rows *sql.Rows) {

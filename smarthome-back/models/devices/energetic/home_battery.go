@@ -1,15 +1,18 @@
-package models
+package energetic
 
-import "smarthome-back/enumerations"
+import (
+	"smarthome-back/enumerations"
+	"smarthome-back/models/devices"
+)
 
 // HomeBattery inherits Device declared as Device attribute
 type HomeBattery struct {
-	Device       Device
+	Device       models.Device
 	Size         float64
 	CurrentValue float64
 }
 
-func NewHomeBattery(device Device, size float64) HomeBattery {
+func NewHomeBattery(device models.Device, size float64) HomeBattery {
 	return HomeBattery{
 		Device:       device,
 		Size:         size,
@@ -19,14 +22,14 @@ func NewHomeBattery(device Device, size float64) HomeBattery {
 
 func NewHomeBatteryParam(name string, deviceType enumerations.DeviceType, estate int, size float64) HomeBattery {
 	return HomeBattery{
-		Device:       NewDevice(name, deviceType, estate),
+		Device:       models.NewDevice(name, deviceType, estate),
 		Size:         size,
 		CurrentValue: 0,
 	}
 }
 
-func (ac HomeBattery) ToDevice() Device {
-	return Device{
+func (ac HomeBattery) ToDevice() models.Device {
+	return models.Device{
 		Id:         ac.Device.Id,
 		Name:       ac.Device.Name,
 		Type:       ac.Device.Type,

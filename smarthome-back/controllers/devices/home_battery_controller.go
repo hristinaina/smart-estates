@@ -6,22 +6,23 @@ import (
 	"github.com/gin-gonic/gin"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
-	"smarthome-back/services"
+	"smarthome-back/controllers"
+	"smarthome-back/services/devices/energetic"
 	"strconv"
 	"time"
 )
 
 type HomeBatteryController struct {
-	service services.HomeBatteryService
+	service energetic.HomeBatteryService
 }
 
 func NewHomeBatteryController(db *sql.DB, influxDb influxdb2.Client) HomeBatteryController {
-	return HomeBatteryController{service: services.NewHomeBatteryService(db, influxDb)}
+	return HomeBatteryController{service: energetic.NewHomeBatteryService(db, influxDb)}
 }
 
 func (uc HomeBatteryController) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	CheckIfError(err, c)
+	controllers.CheckIfError(err, c)
 	device := uc.service.Get(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Device not found"})
@@ -32,7 +33,7 @@ func (uc HomeBatteryController) Get(c *gin.Context) {
 
 func (uc HomeBatteryController) GetConsumptionForLastHour(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	CheckIfError(err, c)
+	controllers.CheckIfError(err, c)
 	results := uc.service.GetConsumptionForLastHour(id)
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
@@ -40,7 +41,7 @@ func (uc HomeBatteryController) GetConsumptionForLastHour(c *gin.Context) {
 func (uc HomeBatteryController) GetConsumptionForSelectedTime(c *gin.Context) {
 	var input TimeInput
 	id, err := strconv.Atoi(c.Param("id"))
-	CheckIfError(err, c)
+	controllers.CheckIfError(err, c)
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
@@ -51,7 +52,7 @@ func (uc HomeBatteryController) GetConsumptionForSelectedTime(c *gin.Context) {
 
 func (uc HomeBatteryController) GetConsumptionForSelectedDate(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	CheckIfError(err, c)
+	controllers.CheckIfError(err, c)
 	var input DateInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {

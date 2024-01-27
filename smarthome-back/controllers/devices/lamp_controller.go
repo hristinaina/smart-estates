@@ -6,9 +6,9 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
 	"smarthome-back/controllers"
-	dto "smarthome-back/dto"
+	dto "smarthome-back/dtos"
 	_ "smarthome-back/models/devices/outside"
-	services "smarthome-back/services/devices"
+	services "smarthome-back/services/devices/outside"
 	"strconv"
 )
 

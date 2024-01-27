@@ -1,11 +1,10 @@
-package services
+package outside
 
 import (
 	"database/sql"
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"log"
-	"smarthome-back/dto"
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices/outside"
 	repositories "smarthome-back/repositories/devices"
@@ -18,7 +17,7 @@ type LampService interface {
 	TurnOn(id int) (models.Lamp, error)
 	TurnOff(id int) (models.Lamp, error)
 	SetLightning(id int, level int) (models.Lamp, error)
-	Add(dto dto.DeviceDTO) (models.Lamp, error)
+	Add(dto dtos.DeviceDTO) (models.Lamp, error)
 	Delete(id int) (bool, error)
 	GetGraphData(id int, from, to string) ([]dtos.LampCountGraphData, error)
 }
@@ -68,7 +67,7 @@ func (ls *LampServiceImpl) SetLightning(id int, level int) (models.Lamp, error) 
 	return lamp, err
 }
 
-func (ls *LampServiceImpl) Add(dto dto.DeviceDTO) (models.Lamp, error) {
+func (ls *LampServiceImpl) Add(dto dtos.DeviceDTO) (models.Lamp, error) {
 	device := dto.ToLamp()
 	tx, err := ls.db.Begin()
 	if err != nil {

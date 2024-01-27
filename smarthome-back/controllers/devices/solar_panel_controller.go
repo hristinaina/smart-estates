@@ -5,22 +5,23 @@ import (
 	"github.com/gin-gonic/gin"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
-	"smarthome-back/dto"
-	"smarthome-back/services"
+	"smarthome-back/controllers"
+	"smarthome-back/dtos"
+	"smarthome-back/services/devices/energetic"
 	"strconv"
 )
 
 type SolarPanelController struct {
-	service services.SolarPanelService
+	service energetic.SolarPanelService
 }
 
 func NewSolarPanelController(db *sql.DB, influxDb influxdb2.Client) SolarPanelController {
-	return SolarPanelController{service: services.NewSolarPanelService(db, influxDb)}
+	return SolarPanelController{service: energetic.NewSolarPanelService(db, influxDb)}
 }
 
 func (uc SolarPanelController) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	CheckIfError(err, c)
+	controllers.CheckIfError(err, c)
 	device := uc.service.Get(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Device not found"})
@@ -30,7 +31,7 @@ func (uc SolarPanelController) Get(c *gin.Context) {
 }
 
 func (uc SolarPanelController) GetGraphData(c *gin.Context) {
-	var data dto.ActionGraphRequest
+	var data dtos.ActionGraphRequest
 	// convert json object to model device
 	if err := c.BindJSON(&data); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid JSON"})
@@ -46,7 +47,7 @@ func (uc SolarPanelController) GetGraphData(c *gin.Context) {
 
 func (uc SolarPanelController) GetValueFromLastMinute(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	CheckIfError(err, c)
+	controllers.CheckIfError(err, c)
 	graphData, err := uc.service.GetValueFromLastMinute(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "No data found"})

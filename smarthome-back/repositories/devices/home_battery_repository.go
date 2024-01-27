@@ -4,15 +4,16 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"smarthome-back/dto"
+	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
+	"smarthome-back/models/devices/energetic"
 )
 
 type HomeBatteryRepository interface {
-	Add(estate dto.DeviceDTO) models.HomeBattery
-	GetAllByEstateId(id int) ([]models.HomeBattery, error)
-	Update(device models.HomeBattery) bool
-	Get(id int) models.HomeBattery
+	Add(estate dtos.DeviceDTO) energetic.HomeBattery
+	GetAllByEstateId(id int) ([]energetic.HomeBattery, error)
+	Update(device energetic.HomeBattery) bool
+	Get(id int) energetic.HomeBattery
 }
 
 type HomeBatteryRepositoryImpl struct {
@@ -23,7 +24,7 @@ func NewHomeBatteryRepository(db *sql.DB) HomeBatteryRepository {
 	return &HomeBatteryRepositoryImpl{db: db}
 }
 
-func (s *HomeBatteryRepositoryImpl) GetAllByEstateId(id int) ([]models.HomeBattery, error) {
+func (s *HomeBatteryRepositoryImpl) GetAllByEstateId(id int) ([]energetic.HomeBattery, error) {
 	query := `
 		SELECT
 			d.id,
@@ -47,10 +48,10 @@ func (s *HomeBatteryRepositoryImpl) GetAllByEstateId(id int) ([]models.HomeBatte
 	defer rows.Close()
 
 	// Iterate through the result set
-	var batteries []models.HomeBattery
+	var batteries []energetic.HomeBattery
 	for rows.Next() {
 		var device models.Device
-		var hb models.HomeBattery
+		var hb energetic.HomeBattery
 
 		//todo da li treba da scan bude skroz ispunjen?
 		err := rows.Scan(
@@ -76,12 +77,12 @@ func (s *HomeBatteryRepositoryImpl) GetAllByEstateId(id int) ([]models.HomeBatte
 	return batteries, nil
 }
 
-func (s *HomeBatteryRepositoryImpl) Add(dto dto.DeviceDTO) models.HomeBattery {
+func (s *HomeBatteryRepositoryImpl) Add(dto dtos.DeviceDTO) energetic.HomeBattery {
 	// TODO: add some validation and exception throwing
 	device := dto.ToHomeBattery()
 	tx, err := s.db.Begin()
 	if err != nil {
-		return models.HomeBattery{}
+		return energetic.HomeBattery{}
 	}
 	defer tx.Rollback()
 
@@ -92,13 +93,13 @@ func (s *HomeBatteryRepositoryImpl) Add(dto dto.DeviceDTO) models.HomeBattery {
 	`, device.Device.Name, device.Device.Type, device.Device.RealEstate,
 		device.Device.IsOnline)
 	if err != nil {
-		return models.HomeBattery{}
+		return energetic.HomeBattery{}
 	}
 
 	// Get the last inserted device ID
 	deviceID, err := result.LastInsertId()
 	if err != nil {
-		return models.HomeBattery{}
+		return energetic.HomeBattery{}
 	}
 
 	// Insert the new Home Battery into the Home Battery table
@@ -107,18 +108,18 @@ func (s *HomeBatteryRepositoryImpl) Add(dto dto.DeviceDTO) models.HomeBattery {
 		VALUES (?, ?)
 	`, deviceID, device.Size)
 	if err != nil {
-		return models.HomeBattery{}
+		return energetic.HomeBattery{}
 	}
 
 	// Commit the transaction
 	if err := tx.Commit(); err != nil {
-		return models.HomeBattery{}
+		return energetic.HomeBattery{}
 	}
 	device.Device.Id = int(deviceID)
 	return device
 }
 
-func (res *HomeBatteryRepositoryImpl) Update(device models.HomeBattery) bool {
+func (res *HomeBatteryRepositoryImpl) Update(device energetic.HomeBattery) bool {
 	query := "UPDATE homeBattery SET currentValue = ? WHERE deviceId = ?"
 	_, err := res.db.Exec(query, device.CurrentValue, device.Device.Id)
 	if err != nil {
@@ -128,7 +129,7 @@ func (res *HomeBatteryRepositoryImpl) Update(device models.HomeBattery) bool {
 	return true
 }
 
-func (res *HomeBatteryRepositoryImpl) Get(id int) models.HomeBattery {
+func (res *HomeBatteryRepositoryImpl) Get(id int) energetic.HomeBattery {
 	query := `
 		SELECT
 			Device.Id,
@@ -149,7 +150,7 @@ func (res *HomeBatteryRepositoryImpl) Get(id int) models.HomeBattery {
 	// Execute the query
 	row := res.db.QueryRow(query, id)
 
-	var hb models.HomeBattery
+	var hb energetic.HomeBattery
 	var device models.Device
 
 	err := row.Scan(
@@ -168,7 +169,7 @@ func (res *HomeBatteryRepositoryImpl) Get(id int) models.HomeBattery {
 		} else {
 			fmt.Println("Error retrieving solar panel:", err)
 		}
-		return models.HomeBattery{}
+		return energetic.HomeBattery{}
 	}
 	hb.Device = device
 	return hb

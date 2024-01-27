@@ -3,26 +3,27 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
-	"smarthome-back/dto"
+	"smarthome-back/controllers"
+	"smarthome-back/dtos"
 	"smarthome-back/mqtt_client"
-	"smarthome-back/services"
+	"smarthome-back/services/devices/inside"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AirConditionerController struct {
-	service services.AirConditionerService
+	service inside.AirConditionerService
 	mqtt    *mqtt_client.MQTTClient
 }
 
 func NewAirConditionerController(db *sql.DB, mqtt *mqtt_client.MQTTClient) AirConditionerController {
-	return AirConditionerController{service: services.NewAirConditionerService(db), mqtt: mqtt}
+	return AirConditionerController{service: inside.NewAirConditionerService(db), mqtt: mqtt}
 }
 
 func (uc AirConditionerController) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	CheckIfError(err, c)
+	controllers.CheckIfError(err, c)
 	device := uc.service.Get(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Device not found"})
@@ -32,7 +33,7 @@ func (uc AirConditionerController) Get(c *gin.Context) {
 }
 
 func (ac AirConditionerController) GetHistoryData(c *gin.Context) {
-	var data dto.ActionGraphRequest
+	var data dtos.ActionGraphRequest
 	// convert json object to model device
 	if err := c.BindJSON(&data); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid JSON"})

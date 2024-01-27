@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/repositories"
-	"smarthome-back/services"
+	"smarthome-back/services/devices/energetic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -97,7 +97,7 @@ func SendConsumptionValues(db *sql.DB, influxDb influxdb2.Client, w http.Respons
 
 	fmt.Println("Client Successfully Connected...")
 	realEstateRepository := repositories.NewRealEstateRepository(db)
-	homeBatteryService := services.NewHomeBatteryService(db, influxDb)
+	homeBatteryService := energetic.NewHomeBatteryService(db, influxDb)
 
 	ticker := time.NewTicker(60 * time.Second)
 	defer ticker.Stop()

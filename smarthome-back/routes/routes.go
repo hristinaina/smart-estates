@@ -16,9 +16,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	userRoutes := r.Group("/api/users")
 	{
 		userController := controllers.NewUserController(db)
-		userRoutes.GET("/", userController.ListUsers)
-		userRoutes.GET("/:id", userController.GetUser)
-		userRoutes.GET("/test", userController.TestGetMethod)
 		userRoutes.POST("/verify-email", userController.SendResetPasswordEmail)
 		userRoutes.POST("/reset-password", userController.ResetPassword)
 
@@ -50,7 +47,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 
 	deviceRoutes := r.Group("/api/devices")
 	{
-		deviceController := controllers.NewDeviceController(db, mqtt, influxDb)
+		deviceController := devicesController.NewDeviceController(db, mqtt, influxDb)
 		middleware := middleware.NewMiddleware(db)
 		deviceRoutes.GET("/:id", deviceController.Get)
 		deviceRoutes.GET("/", deviceController.GetAll)
@@ -60,14 +57,14 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	}
 	airConditionerRoutes := r.Group("/api/ac")
 	{
-		airConditionerController := controllers.NewAirConditionerController(db, mqtt)
+		airConditionerController := devicesController.NewAirConditionerController(db, mqtt)
 		airConditionerRoutes.GET("/:id", airConditionerController.Get)
 		airConditionerRoutes.PUT("history", airConditionerController.GetHistoryData)
 	}
 	solarPanelRoutes := r.Group("/api/sp")
 	{
 		middleware := middleware.NewMiddleware(db)
-		SolarPanelController := controllers.NewSolarPanelController(db, influxDb)
+		SolarPanelController := devicesController.NewSolarPanelController(db, influxDb)
 		solarPanelRoutes.GET("/:id", SolarPanelController.Get)
 		solarPanelRoutes.PUT("/graphData", middleware.RequireAuth, SolarPanelController.GetGraphData)
 		solarPanelRoutes.GET("/lastValue/:id", middleware.RequireAuth, SolarPanelController.GetValueFromLastMinute)
@@ -75,7 +72,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	homeBatteryRoutes := r.Group("/api/hb")
 	{
 		middleware := middleware.NewMiddleware(db)
-		HomeBatteryController := controllers.NewHomeBatteryController(db, influxDb)
+		HomeBatteryController := devicesController.NewHomeBatteryController(db, influxDb)
 		homeBatteryRoutes.GET("/:id", middleware.RequireAuth, HomeBatteryController.Get)
 		homeBatteryRoutes.GET("/last-hour/:id", middleware.RequireAuth, HomeBatteryController.GetConsumptionForLastHour)
 		homeBatteryRoutes.POST("/selected-time/:id", middleware.RequireAuth, HomeBatteryController.GetConsumptionForSelectedTime)
@@ -90,7 +87,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 
 	ambientSensor := r.Group("/api/ambient")
 	{
-		ambientSensorController := controllers.NewAmbientSensorController(db, mqtt)
+		ambientSensorController := devicesController.NewAmbientSensorController(db, mqtt)
 		ambientSensor.GET("/:id", ambientSensorController.Get)
 		ambientSensor.GET("/last-hour/:id", ambientSensorController.GetValueForHour)
 		ambientSensor.POST("/selected-time/:id", ambientSensorController.GetValueForSelectedTime)

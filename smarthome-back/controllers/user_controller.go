@@ -13,32 +13,12 @@ import (
 )
 
 type UserController struct {
-	service      services.UserService
 	mail_service services.MailService
 	repo         repositories.UserRepository
 }
 
 func NewUserController(db *sql.DB) UserController {
-	return UserController{service: services.NewUserService(db), mail_service: services.NewMailService(db), repo: repositories.NewUserRepository(db)}
-}
-
-func (uc UserController) ListUsers(c *gin.Context) {
-	users := uc.service.ListUsers()
-	c.JSON(http.StatusOK, users)
-}
-
-func (uc UserController) GetUser(c *gin.Context) {
-	id := c.Param("id")
-	user, err := uc.service.GetUser(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
-	c.JSON(http.StatusOK, user)
-}
-
-func (uc UserController) TestGetMethod(c *gin.Context) {
-	uc.service.TestGetMethod()
+	return UserController{mail_service: services.NewMailService(db), repo: repositories.NewUserRepository(db)}
 }
 
 var user = models.User{}

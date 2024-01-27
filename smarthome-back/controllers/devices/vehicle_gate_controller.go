@@ -5,10 +5,9 @@ import (
 	"github.com/gin-gonic/gin"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"smarthome-back/controllers"
-	dto2 "smarthome-back/dto"
 	"smarthome-back/dtos"
 	"smarthome-back/dtos/vehicle_gate_graph"
-	services "smarthome-back/services/devices"
+	services "smarthome-back/services/devices/outside"
 	"strconv"
 )
 
@@ -90,7 +89,7 @@ func (controller VehicleGateController) ToPublic(c *gin.Context) {
 }
 
 func (controller VehicleGateController) Add(c *gin.Context) {
-	var dto dto2.DeviceDTO
+	var dto dtos.DeviceDTO
 
 	if err := c.BindJSON(&dto); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})

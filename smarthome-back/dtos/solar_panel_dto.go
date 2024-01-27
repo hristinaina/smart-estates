@@ -1,4 +1,4 @@
-package dto
+package dtos
 
 type SolarPanelDTO struct {
 	IsOn      bool

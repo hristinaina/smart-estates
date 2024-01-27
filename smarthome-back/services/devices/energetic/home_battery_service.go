@@ -1,4 +1,4 @@
-package services
+package energetic
 
 import (
 	"context"
@@ -9,16 +9,16 @@ import (
 	_ "github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"smarthome-back/dto"
-	"smarthome-back/models/devices"
-	"smarthome-back/repositories"
+	"smarthome-back/dtos"
+	"smarthome-back/models/devices/energetic"
+	"smarthome-back/repositories/devices"
 	"time"
 )
 
 type HomeBatteryService interface {
-	Add(estate dto.DeviceDTO) models.HomeBattery
-	GetAllByEstateId(id int) ([]models.HomeBattery, error)
-	Get(id int) models.HomeBattery
+	Add(estate dtos.DeviceDTO) energetic.HomeBattery
+	GetAllByEstateId(id int) ([]energetic.HomeBattery, error)
+	Get(id int) energetic.HomeBattery
 	GetConsumptionFromLastMinute(id int) (interface{}, error)
 	GetConsumptionForLastHour(id int) interface{}
 	GetConsumptionForSelectedTime(selectedTime string, estateId int) interface{}
@@ -35,15 +35,15 @@ func NewHomeBatteryService(db *sql.DB, influxDb influxdb2.Client) HomeBatterySer
 	return &HomeBatteryServiceImpl{db: db, repository: repositories.NewHomeBatteryRepository(db), influxDb: influxDb}
 }
 
-func (s *HomeBatteryServiceImpl) GetAllByEstateId(id int) ([]models.HomeBattery, error) {
+func (s *HomeBatteryServiceImpl) GetAllByEstateId(id int) ([]energetic.HomeBattery, error) {
 	return s.repository.GetAllByEstateId(id)
 }
 
-func (s *HomeBatteryServiceImpl) Add(dto dto.DeviceDTO) models.HomeBattery {
+func (s *HomeBatteryServiceImpl) Add(dto dtos.DeviceDTO) energetic.HomeBattery {
 	return s.repository.Add(dto)
 }
 
-func (s *HomeBatteryServiceImpl) Get(id int) models.HomeBattery {
+func (s *HomeBatteryServiceImpl) Get(id int) energetic.HomeBattery {
 	return s.repository.Get(id)
 }
 
