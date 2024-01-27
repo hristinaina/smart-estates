@@ -20,7 +20,7 @@ type LampService interface {
 	SetLightning(id int, level int) (models.Lamp, error)
 	Add(dto dto.DeviceDTO) (models.Lamp, error)
 	Delete(id int) (bool, error)
-	GetGraphData(id int, from, to string) ([]dtos.GraphData, error)
+	GetGraphData(id int, from, to string) ([]dtos.LampCountGraphData, error)
 }
 
 type LampServiceImpl struct {
@@ -155,15 +155,15 @@ func (ls *LampServiceImpl) Delete(id int) (bool, error) {
 	return true, nil
 }
 
-func (ls *LampServiceImpl) GetGraphData(id int, from, to string) ([]dtos.GraphData, error) {
+func (ls *LampServiceImpl) GetGraphData(id int, from, to string) ([]dtos.LampCountGraphData, error) {
 	values := make(map[float64]int)
 	results := ls.repository.GetLampData(id, from, to)
 
 	for results.Next() {
 		if results.Record().Value() != nil {
 			key := results.Record().Value().(float64)
-			if isPresentInMap(values, key) {
-				currentCount := getValueFromMap(values, key)
+			if ls.isPresentInMap(values, key) {
+				currentCount := ls.getValueFromMap(values, key)
 				currentCount++
 				values[key] = currentCount
 			} else {
@@ -171,14 +171,14 @@ func (ls *LampServiceImpl) GetGraphData(id int, from, to string) ([]dtos.GraphDa
 			}
 		}
 	}
-	var graphData []dtos.GraphData
+	var graphData []dtos.LampCountGraphData
 	var keys []float64
 	for k := range values {
 		keys = append(keys, k)
 	}
 	sort.Float64s(keys)
 	for _, k := range keys {
-		g := dtos.GraphData{
+		g := dtos.LampCountGraphData{
 			Count: values[k],
 			Value: k,
 		}
@@ -187,17 +187,17 @@ func (ls *LampServiceImpl) GetGraphData(id int, from, to string) ([]dtos.GraphDa
 	return graphData, nil
 }
 
-func isPresentInMap(mapValues map[float64]int, key float64) bool {
+func (ls *LampServiceImpl) isPresentInMap(mapValues map[float64]int, key float64) bool {
 	if _, ok := mapValues[key]; ok {
 		return true
 	}
 	return false
 }
 
-func getValueFromMap(mapValues map[float64]int, key float64) int {
+func (ls *LampServiceImpl) getValueFromMap(mapValues map[float64]int, key float64) int {
 	if value, ok := mapValues[key]; ok {
 		return value
 	}
-	// TODO: think about this
+	// TODO: think about returning -1
 	return -1
 }

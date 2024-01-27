@@ -28,7 +28,7 @@ func SendAmbientValues(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	fmt.Println("Client Successfully Connected...")
+	fmt.Println("Client Successfully Connected... 1")
 
 	// _, p, err := ws.ReadMessage()
 	// if err != nil {

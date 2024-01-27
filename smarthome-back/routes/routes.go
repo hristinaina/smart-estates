@@ -109,4 +109,21 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		lampRoutes.DELETE("/:id", lampController.Delete)
 		lampRoutes.GET("/graph/:id/:from/:to", lampController.GetGraphData)
 	}
+
+	vehicleGateRoutes := r.Group("api/vehicle-gate")
+	{
+		vehicleGateController := devicesController.NewVehicleGateController(db, influxDb)
+		vehicleGateRoutes.GET("/:id", vehicleGateController.Get)
+		vehicleGateRoutes.GET("/", vehicleGateController.GetAll)
+		vehicleGateRoutes.PUT("/open/:id", vehicleGateController.Open)
+		vehicleGateRoutes.PUT("/close/:id", vehicleGateController.Close)
+		vehicleGateRoutes.PUT("/private/:id", vehicleGateController.ToPrivate)
+		vehicleGateRoutes.PUT("/public/:id", vehicleGateController.ToPublic)
+		vehicleGateRoutes.POST("/", vehicleGateController.Add)
+		vehicleGateRoutes.DELETE("/:id", vehicleGateController.Delete)
+		vehicleGateRoutes.GET("/license-plate/:id", vehicleGateController.GetLicensePlates)
+		vehicleGateRoutes.POST("/license-plate", vehicleGateController.AddLicensePlate)
+		vehicleGateRoutes.GET("/license-plate", vehicleGateController.GetAllLicensePlates)
+		vehicleGateRoutes.GET("/count/:id/:from/:to/:license-plate", vehicleGateController.GetLicencePlatesCount)
+	}
 }

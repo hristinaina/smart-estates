@@ -145,6 +145,5 @@ func ScanRows(rows *sql.Rows) ([]devices.Lamp, error) {
 		lamp.ConsumptionDevice = consDevice
 		lamps = append(lamps, lamp)
 	}
-
 	return lamps, nil
 }

@@ -73,3 +73,14 @@ func (rec DeviceController) GetConsumptionDeviceDto(c *gin.Context) {
 
 	c.JSON(200, dto)
 }
+
+func (rec DeviceController) GetConsumptionDevice(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	CheckIfError(err, c)
+	dto, err := rec.service.GetConsumptionDevice(id)
+	if CheckIfError(err, c) {
+		return
+	}
+
+	c.JSON(200, dto)
+}

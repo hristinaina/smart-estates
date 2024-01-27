@@ -69,7 +69,7 @@ func (mc *MQTTClient) PostNewLampValue(lamp models.Lamp, percentage float32) {
 		"DeviceName": lamp.ConsumptionDevice.Device.Name,
 	}
 	fields := map[string]interface{}{
-		"Value": percentage,
+		"LicensePlate": percentage,
 	}
 	// measurement == table in relation db
 	point := write.NewPoint("lamps", tags, fields, time.Now())
@@ -77,8 +77,6 @@ func (mc *MQTTClient) PostNewLampValue(lamp models.Lamp, percentage float32) {
 	if err := writeAPI.WritePoint(context.Background(), point); err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println("Posted to influx db...")
 	// printing values from influx
 	//mc.GetLampsFromInfluxDb("2023-01-01T00:00:00Z", "2023-12-31T00:00:00Z")
 

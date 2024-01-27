@@ -19,9 +19,9 @@ const (
 )
 
 type LampSimulator struct {
-	switchOn          bool
-	client            mqtt.Client
-	device            models.Device
+	switchOn bool
+	client   mqtt.Client
+	device   models.Device
 	consumptionDevice models.ConsumptionDevice
 }
 
@@ -37,11 +37,10 @@ func NewLampSimulator(client mqtt.Client, device models.Device) *LampSimulator {
 			switchOn: false,
 		}
 	}
-
 	return &LampSimulator{
-		client:            client,
-		device:            device,
-		switchOn:          false,
+		client:   client,
+		device:   device,
+		switchOn: false,
 		consumptionDevice: consumptionDevice,
 	}
 }

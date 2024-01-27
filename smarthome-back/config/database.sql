@@ -68,10 +68,17 @@ CREATE TABLE evCharger (
 );
 
 CREATE TABLE lamp (
-	DeviceId INT PRIMARY KEY,
-    IsOn bool,
-    LightningLevel int,
-    FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
+                            DeviceId INT PRIMARY KEY,
+                            IsOn bool,
+                            LightningLevel int,
+                            FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
+);
+
+CREATE TABLE vehicleGate (
+                            DeviceId INT PRIMARY KEY,
+                            IsOpen bool,
+                            Mode int,
+                            FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
 );
 
 CREATE TABLE homeBattery (
@@ -88,6 +95,12 @@ CREATE TABLE solarPanel (
     NumberOfPanels INT NOT NULL,
     IsOn BOOLEAN,
     FOREIGN KEY (DeviceId) REFERENCES device(Id)
+);
+
+CREATE TABLE licensePlate (
+                            DeviceId INT,
+                            PlateNumber VARCHAR(255),
+                            FOREIGN KEY (DeviceId) REFERENCES vehicleGate(DeviceId)
 );
 
 INSERT INTO user (Id, Email, Password, Name, Surname, Role)
@@ -111,9 +124,12 @@ VALUES
     (3, 'Neka klima', 1, 2, false, '2023-12-06 15:30:00', -1),
     (4, 'Panelcic', 6, 2, false, '2023-12-06 15:30:00', -1),
     (5, 'Punjac1', 8, 2, false, '2023-12-06 15:30:00', -1),
-    (6, 'Baterija1', 7, 2, false, '2023-12-06 15:30:00', -1), 
+    (6, 'Baterija1', 7, 2, false, '2023-12-06 15:30:00', -1),
 	(7, 'Lampica u sobici', 3, 1, false, '2023-12-06 15:30:00', -1),
-    (8, 'Lampetina', 3, 1, false, '2023-12-06 15:30:00', -1);
+    (8, 'Lampetina', 3, 1, false, '2023-12-06 15:30:00', -1),
+    (9, 'Kapijica', 4, 1, false, '2023-12-06 15:30:00', -1),
+    (10, 'Kapijetina', 4, 1, false, '2023-12-06 15:30:00', -1);
+
 
 INSERT INTO consumptionDevice (DeviceId, PowerSupply, PowerConsumption)
 VALUES
@@ -121,7 +137,9 @@ VALUES
     (2, 0, 0),
     (3, 1, 300),
 	(7, 0, 50),
-    (8, 1, 75);
+    (8, 1, 75),
+    (9, 1, 223),
+    (10, 0, 0);
 
 INSERT INTO airConditioner (DeviceId, MinTemperature, MaxTemperature, Mode)
 VALUES
@@ -140,6 +158,11 @@ VALUES
 	(7, false, 0),
     (8, true, 2);
 
+INSERT INTO vehicleGate(DeviceId, IsOpen, Mode)
+VALUES
+    (9, false, 0),
+    (10, false, 1);
+
 INSERT INTO solarPanel (DeviceId, SurfaceArea, Efficiency, NumberOfPanels, IsOn)
 VALUES
     (4, 2.3, 30, 3, true);
@@ -148,4 +171,9 @@ INSERT INTO homeBattery (DeviceId, Size, CurrentValue)
 VALUES
     (6, 10, 2);
 
-    
+INSERT INTO licensePlate(DeviceId, PlateNumber)
+VALUES
+    (9, 'NS-123-45'),
+    (9, 'NS-456-22'),
+    (9, 'NS-222-34'),
+    (10, 'NS-123-45');

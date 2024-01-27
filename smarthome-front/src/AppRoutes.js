@@ -15,6 +15,7 @@ import { AmbientSensor } from './components/Devices/AmbientSensor/AmbientSensor'
 import { SolarPanel } from './components/Devices/SolarPanel/SolarPanel';
 import { AirConditioner } from './components/Devices/AirConditioner/AirConditioner';
 import { HomeBattery } from './components/Devices/HomeBattery/HomeBattery';
+import { VehicleGate } from './components/Devices/VehicleGate/VehicleGate';
 
 const AppRoutes = [
   {
@@ -72,6 +73,10 @@ const AppRoutes = [
   {
     path: "/air-conditioner/:id",
     element: <AirConditioner />
+  },
+  {
+    path: "/vehicle-gate/:id",
+    element: <VehicleGate/>
   },
   {
     path: "/sp/:id",

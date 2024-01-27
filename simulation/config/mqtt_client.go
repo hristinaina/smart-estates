@@ -11,6 +11,8 @@ const (
 	TopicPayload     = "device/data/"   //device/data/{deviceId}
 	TopicNewDevice   = "device/new/"    //device/data/{deviceId}
 	TopicConsumption = "device/consumption/"
+	TopicApproached = "device/approached/"  //vehcile-gate/approached/{deviceId}
+	TopicVGOpenClose = "vg/open/" // vg/open/{deviceId} -> this is to know who entered
 )
 
 func CreateConnection() mqtt.Client {

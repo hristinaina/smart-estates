@@ -17,7 +17,6 @@ type DeviceRepository interface {
 	Update(device models.Device) bool
 	UpdateLastValue(id int, value float32) (bool, error)
 	GetConsumptionDevicesByEstateId(userID int) ([]models.ConsumptionDevice, error)
-	GetConsumptionDevice(id int) (models.ConsumptionDevice, error)
 	GetConsumptionDeviceDto(id int) (dtos.ConsumptionDeviceDto, error)
 }
 
