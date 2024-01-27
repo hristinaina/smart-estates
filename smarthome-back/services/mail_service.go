@@ -13,7 +13,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
-	"gopkg.in/gomail.v2"
 )
 
 type MailService interface {
@@ -22,8 +21,8 @@ type MailService interface {
 	GenerateToken(email string, expiration time.Time) (string, error)
 	CreateAdminLoginRequest(name, surname, email, password string)
 	SendVerifyEmail(email, token string)
-	Send(toAddress, subject, content string) error
-	DiscardRealEstate(estate models.RealEstate) error
+	// Send(toAddress, subject, content string) error
+	DiscardRealEstate(estate models.RealEstate, email, name string)
 	ApproveRealEstate(estate models.RealEstate, email, name string)
 }
 
@@ -172,54 +171,7 @@ func (ms *MailServiceImpl) SendVerifyEmail(email, token string) {
 	}
 }
 
-func (ms *MailServiceImpl) Send(to, subject, body string) error {
-	appPass, err := NewConfigService().GetAppPassword("config/config.json")
-
-	if err != nil {
-		return err
-	}
-
-	var emailConfig = map[string]string{
-		"host":     "smtp.gmail.com",
-		"port":     "587",
-		"username": "kacorinav@gmail.com",
-		"password": appPass,
-	}
-
-	m := gomail.NewMessage()
-	m.SetHeader("From", emailConfig["username"])
-	m.SetHeader("To", to)
-	m.SetHeader("Subject", subject)
-	m.SetBody("text/html", body)
-
-	d := gomail.NewDialer(emailConfig["host"], 587, emailConfig["username"], emailConfig["password"])
-
-	if err := d.DialAndSend(m); err != nil {
-		fmt.Println("Error: ", err)
-		return err
-	}
-
-	return nil
-}
-
 func (ms *MailServiceImpl) ApproveRealEstate(estate models.RealEstate, email, name string) {
-	// TODO : use this after A&A is implemented
-	// user := ms.service.GetUser(estate.User)
-	// toAddress := user.Email
-
-	// toAddress := "anastasijas557@gmail.com"
-	// subject := "New Real Estate State"
-	// // TODO : change parameter name in content
-	// content := fmt.Sprintf("<h1>Hi %s,</h1> <br/> We have some good news. Your real estate request has been approved!"+
-	// 	"<br/>Real Estate Name: %s. <br/> Smart Home Support Team", "User", estate.Name)
-
-	// err := ms.Send(toAddress, subject, content)
-	// if err != nil {
-	// 	fmt.Println("Error: ", err)
-	// 	return err
-	// }
-	// return nil
-
 	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
 	subject := "Approved real estate"
 	to := mail.NewEmail(name, email)
@@ -242,21 +194,26 @@ func (ms *MailServiceImpl) ApproveRealEstate(estate models.RealEstate, email, na
 	}
 }
 
-func (ms *MailServiceImpl) DiscardRealEstate(estate models.RealEstate) error {
-	// TODO : use this after user is implemented
-	// user := ms.service.GetUser(estate.User)
-	// toAddress := user.Email
-	toAddress := "kacorinav@gmail.com"
-	subject := "New Real Estate State"
-	// TODO : change parameter name in content
-	content := fmt.Sprintf("<h1>Hi %s,</h1> <br/> We are very sorry, but your new real estate request has been rejected."+
-		"<br/>Real Estate Name: %s. <br/>Reason for rejection: %s.<br/> Stay safe!<br/> Smart Home Support Team",
-		"User", estate.Name, estate.DiscardReason)
+func (ms *MailServiceImpl) DiscardRealEstate(estate models.RealEstate, email, name string) {
+	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
+	subject := "Discarded real estate"
+	to := mail.NewEmail(name, email)
+	plainTextContent := fmt.Sprintf("Hi %s, We are very sorry, but Your new real estate request has been rejected. Real Estate Name: %s. Reason for rejection: %s.", name, estate.Name, estate.DiscardReason)
+	htmlContent := fmt.Sprintf("Hi %s, We are very sorry, but Your new real estate request has been rejected. Real Estate Name: %s. Reason for rejection: %s.", name, estate.Name, estate.DiscardReason)
+	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
 
-	err := ms.Send(toAddress, subject, content)
-	if err != nil {
-		fmt.Println("Error: ", err)
-		return err
+	if isDomainSupportingHTML(strings.Split(email, "@")[1]) {
+		message.SetTemplateID("d-62230654a73b491ab95606c15f96734f")
+		message.Personalizations[0].SetDynamicTemplateData("user_name", name)
+		message.Personalizations[0].SetDynamicTemplateData("real_estate_name", estate.Name)
+		message.Personalizations[0].SetDynamicTemplateData("reason", estate.DiscardReason)
 	}
-	return nil
+
+	client := sendgrid.NewSendClient(readFromEnvFile())
+	response, err := client.Send(message)
+	if err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println(response.StatusCode)
+	}
 }

@@ -62,17 +62,17 @@ func (res *RealEstateServiceImpl) ChangeState(id int, state int, reason string) 
 	if CheckIfError(err) {
 		return models.RealEstate{}, err
 	}
+
+	user, e := res.userRepository.GetUserById(realEstate.User)
+	err = e
+
 	if state == 0 {
 		realEstate.State = enumerations.ACCEPTED
-
-		// todo aync
-		user, e := res.userRepository.GetUserById(realEstate.User)
-		err = e
 		go res.mailService.ApproveRealEstate(realEstate, user.Email, user.Name)
 	} else {
 		realEstate.State = enumerations.DECLINED
 		realEstate.DiscardReason = reason
-		err = res.mailService.DiscardRealEstate(realEstate)
+		go res.mailService.DiscardRealEstate(realEstate, user.Email, user.Name)
 	}
 	realEstate, err = res.repository.UpdateState(realEstate)
 
