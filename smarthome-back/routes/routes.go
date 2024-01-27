@@ -19,7 +19,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		userRoutes.POST("/verify-email", userController.SendResetPasswordEmail)
 		userRoutes.POST("/reset-password", userController.ResetPassword)
 
-		// todo promeni middleware
 		authController := controllers.NewAuthController(db)
 		middleware := middleware.NewMiddleware(db)
 		userRoutes.POST("/login", authController.Login)

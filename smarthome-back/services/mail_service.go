@@ -55,6 +55,7 @@ func isDomainSupportingHTML(domain string) bool {
 	return domainsSupportingHTML[domain]
 }
 
+// async done
 func (ms *MailServiceImpl) CreateVarificationMail(email, name, surname, token string) {
 	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
 	subject := "You're almost done! Activate your account now"
@@ -123,6 +124,7 @@ func (ms *MailServiceImpl) IsValidToken(tokenString string) bool {
 	return true
 }
 
+// async done - add new admin
 func (ms *MailServiceImpl) CreateAdminLoginRequest(name, surname, email, password string) {
 	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
 	subject := "Join our team!"
@@ -148,6 +150,7 @@ func (ms *MailServiceImpl) CreateAdminLoginRequest(name, surname, email, passwor
 	}
 }
 
+// todo async done - not imeplemented
 func (ms *MailServiceImpl) SendVerifyEmail(email, token string) {
 	from := mail.NewEmail("SMART HOME SUPPORT", "savic.sv7.2020@uns.ac.rs")
 	subject := "Verify email!"
