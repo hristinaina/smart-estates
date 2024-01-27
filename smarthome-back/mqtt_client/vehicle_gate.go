@@ -94,18 +94,19 @@ func (mc *MQTTClient) CheckApproachedVehicle(gate models.VehicleGate, licensePla
 		if repositories.CheckIfError(err) {
 			return
 		}
-		select {
-		case <-time.After(6 * time.Second):
-			err = mc.Publish(TopicVGOpenClose+strconv.Itoa(gate.ConsumptionDevice.Device.Id), "leave_open+"+licensePlate)
-			if repositories.CheckIfError(err) {
-				return
+		go func() {
+			select {
+			case <-time.After(6 * time.Second):
+				err = mc.Publish(TopicVGOpenClose+strconv.Itoa(gate.ConsumptionDevice.Device.Id), "leave_open+"+licensePlate)
+				if repositories.CheckIfError(err) {
+					return
+				}
+				mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, true, licensePlate)
+				//setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, true)
+
 			}
-			mc.vehicleGateRepository.PostNewVehicleGateValue(gate, action, true, licensePlate)
-			//setData(gate.ConsumptionDevice.Device.Id, licensePlate, action, true)
-
-		}
+		}()
 	}
-
 	//mc.vehicleGateRepository.GetFromInfluxDb("-30m")
 }
 
