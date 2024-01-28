@@ -1,10 +1,15 @@
 import { Component } from "react";
 import authService from "../../../services/AuthService";
 import DeviceService from "../../../services/DeviceService";
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControl, InputLabel, MenuItem, Select, Snackbar, Switch, TextField, Typography, Button } from "@mui/material";
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControl, InputLabel, MenuItem, Select, Snackbar, Switch, TextField, Typography, Button, Table, TableHead,
+    TableBody,
+    TableRow,
+    TableCell,
+    IconButton, } from "@mui/material";
 import LogTable from "../AirConditioner/LogTable";
 import { Navigation } from "../../Navigation/Navigation";
 import WashingMachineService from "../../../services/WashingMachineService";
+import { Close } from "@mui/icons-material";
 
 export class WashingMachine extends Component {
     constructor(props) {
@@ -25,6 +30,8 @@ export class WashingMachine extends Component {
             currentTemp: "Loading...",
             wmName: "",
             isDialogOpen: false,
+            isAllScheduledModeOpen: false,
+            scheduledModes: [],
             selectedMode: '',
             selectedDateTime: '',
         };
@@ -137,10 +144,36 @@ export class WashingMachine extends Component {
 
         this.handleCloseDialog();
     };
+
+    handleShowScheduleModes = async () => {
+        this.setState({ isAllScheduledModeOpen: true });
+        
+        const scheduledModes = await WashingMachineService.getScheduledMode(this.state.device.Device.Device.Id);
+        this.setState({ scheduledModes: scheduledModes })
+        console.log(this.state.device)
+        console.log(scheduledModes)
+
+        // Prvo napravite mapiranje između Id moda i njegovog naziva
+        const modeIdToNameMap = {};
+        this.state.device.Mode.forEach(mode => {
+            modeIdToNameMap[mode.Id] = mode.Name;
+        });
+
+        // Zatim, prilikom postavljanja stanja, konvertujte ModeId u naziv moda
+        const scheduledModesWithNames = scheduledModes.map(mode => ({
+            ...mode,
+            ModeName: modeIdToNameMap[mode.ModeId]
+        }));
+
+        // Postavite stanje sa listom zakazanih termina sa nazivima moda
+        this.setState({ scheduledModes: scheduledModesWithNames });
+
+        console.log(scheduledModesWithNames)
+    };    
     
     
     render() {
-        const { wmName, isDialogOpen, selectedMode, selectedDateTime, device, logData, mode, email, startDate, endDate, currentTemp, pickedValue } = this.state;
+        const { wmName, isDialogOpen, selectedMode, scheduledModes, selectedDateTime, device, logData, mode, email, startDate, endDate, currentTemp, pickedValue } = this.state;
 
         return (
             <div>
@@ -198,20 +231,54 @@ export class WashingMachine extends Component {
                         />
                         </DialogContent>
                         <DialogActions>
-                        <div>
-                    <Button onClick={this.handleCloseDialog} color="primary">
-                        Close
-                    </Button>
-                </div>
-                <div>
-                    <Button variant="contained" onClick={this.handleSave} color="primary">
-                        Save
-                    </Button>
-                </div>
-                        {/* <Button onClick={this.handleCloseDialog}>Cancel</Button>
-                        <Button onClick={this.handleSave}>Save</Button> */}
+                            <div>
+                                <Button onClick={this.handleCloseDialog} color="primary">
+                                    Close
+                                </Button>
+                            </div>
+                            <div>
+                                <Button variant="contained" onClick={this.handleSave} color="primary">
+                                    Save
+                                </Button>
+                            </div>
                         </DialogActions>
                     </Dialog>
+
+                    <Button id='sp-data-button' style={{marginLeft: "15px"}} onClick={this.handleShowScheduleModes}>Show schedule modes</Button>
+                    <Dialog open={this.state.isAllScheduledModeOpen} onClose={() => this.setState({ isAllScheduledModeOpen: false })}>
+                        <div style={{ backgroundColor: "white", padding: "20px", width: "400px" }}>
+                            <DialogTitle variant="h6">Scheduled Modes</DialogTitle>
+                            <IconButton
+                                aria-label="close"
+                                onClick={() => this.setState({ isAllScheduledModeOpen: false })}
+                                sx={{ position: 'absolute', right: 8, top: 8, color: 'gray' }}>
+                                <Close />
+                            </IconButton>
+                            <DialogContent>
+                                {scheduledModes.length === 0 ? (
+                                    <Typography variant="body1">There are no scheduled modes</Typography>
+                                ) : (
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Start Time</TableCell>
+                                                <TableCell>Mode</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {scheduledModes.map((mode, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell>{mode.StartTime}</TableCell>
+                                                    <TableCell>{mode.ModeName}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </DialogContent>
+                        </div>
+                    </Dialog>
+
                     </div>
 
                     <div id='sp-right-card'>

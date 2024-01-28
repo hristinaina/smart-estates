@@ -53,3 +53,14 @@ func (uc WashingMachineController) AddScheduledMode(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "You have successfully scheduled the mode"})
 }
+
+func (uc WashingMachineController) GetScheduledModes(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	controllers.CheckIfError(err, c)
+	device := uc.service.GetAllScheduledModesForDevice(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Device not found"})
+		return
+	}
+	c.JSON(http.StatusOK, device)
+}

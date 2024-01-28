@@ -13,6 +13,7 @@ type WashingMachineService interface {
 	Add(estate dtos.DeviceDTO) inside.WashingMachine
 	Get(id int) inside.WashingMachine
 	AddScheduledMode(deviceId, modeId int, startTime string) error
+	GetAllScheduledModesForDevice(deviceId int) []inside.ScheduledMode
 }
 
 type WashingMachineServiceImpl struct {
@@ -207,6 +208,31 @@ func (s *WashingMachineServiceImpl) AddScheduledMode(deviceId, modeId int, start
 func (res *WashingMachineServiceImpl) getAllScheduledModes() []inside.ScheduledMode {
 	query := "SELECT * FROM machineScheduledMode"
 	rows, err := res.db.Query(query)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	var modes []inside.ScheduledMode
+	for rows.Next() {
+		var (
+			mode inside.ScheduledMode
+		)
+
+		if err := rows.Scan(&mode.Id, &mode.DeviceId, &mode.StartTime, &mode.ModeId); err != nil {
+			fmt.Println("Error: ", err.Error())
+			return []inside.ScheduledMode{}
+		}
+		modes = append(modes, mode)
+	}
+
+	return modes
+}
+
+func (res *WashingMachineServiceImpl) GetAllScheduledModesForDevice(deviceId int) []inside.ScheduledMode {
+	// todo proveri da li su vec prosli ako jesu, ne prosledjuj ih
+	query := "SELECT * FROM machineScheduledMode WHERE DeviceId = ?"
+	rows, err := res.db.Query(query, deviceId)
 	if err != nil {
 		return nil
 	}

@@ -22,6 +22,28 @@ class WashingMachineService {
             throw error;
         }
     }
+
+    async getScheduledMode(deviceId) {
+        try {
+            const response = await fetch('http://localhost:8081/api/wm/schedule/' + deviceId, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            });
+            const data = await response.json();
+
+            if (data != null)
+                return data;
+            else return [];
+        } 
+        
+        catch (error) {
+            console.error('Error fetching data:', error);
+            throw error;
+        }
+    }
 }
 
 export default new WashingMachineService();
