@@ -4,8 +4,9 @@ import models "smarthome-back/models/devices"
 
 // WashingMachine inherits ConsumptionDevice declared as Device attribute
 type WashingMachine struct {
-	Device models.ConsumptionDevice
-	Mode   []Mode
+	Device   models.ConsumptionDevice
+	Mode     []Mode
+	ModeName string
 }
 
 func NewWashingMachine(device models.ConsumptionDevice, mode []Mode) WashingMachine {

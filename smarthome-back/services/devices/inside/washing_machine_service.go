@@ -3,13 +3,14 @@ package inside
 import (
 	"database/sql"
 	"fmt"
+	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
 	"smarthome-back/models/devices/inside"
 	"strings"
 )
 
 type WashingMachineService interface {
-	// Add(estate dtos.DeviceDTO) inside.WashingMachine
+	Add(estate dtos.DeviceDTO) inside.WashingMachine
 	Get(id int) inside.WashingMachine
 }
 
@@ -97,11 +98,7 @@ func (s *WashingMachineServiceImpl) Get(id int) inside.WashingMachine {
 		consDevice.Device = device
 		wm.Device = consDevice
 
-		fmt.Println(modeNames.String)
-		fmt.Println(startTime)
-		fmt.Println(name)
-		fmt.Println(duration)
-		fmt.Println(temperature)
+		wm.ModeName = modeNames.String
 
 		modes := s.findModeBasedOnName(modeNames.String)
 		wm.Mode = modes
@@ -143,75 +140,58 @@ func (s *WashingMachineServiceImpl) findModeBasedOnName(names string) []inside.M
 	return modes
 }
 
-// func (s *WashingMachineServiceImpl) Add(dto dtos.DeviceDTO) inside.WashingMachine {
-// 	device := dto.ToWashingMachine()
-// 	tx, err := s.db.Begin()
-// 	if err != nil {
-// 		return inside.WashingMachine{}
-// 	}
-// 	defer tx.Rollback()
+func (s *WashingMachineServiceImpl) Add(dto dtos.DeviceDTO) inside.WashingMachine {
+	device := dto.ToWashingMachine()
+	tx, err := s.db.Begin()
+	if err != nil {
+		return inside.WashingMachine{}
+	}
+	defer tx.Rollback()
 
-// 	// Insert the new device into the Device table
-// 	result, err := tx.Exec(`
-// 		INSERT INTO Device (Name, Type, RealEstate, IsOnline)
-// 		VALUES (?, ?, ?, ?)
-// 	`, device.Device.Device.Name, device.Device.Device.Type, device.Device.Device.RealEstate,
-// 		device.Device.Device.IsOnline)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		return inside.WashingMachine{}
-// 	}
+	// Insert the new device into the Device table
+	result, err := tx.Exec(`
+		INSERT INTO Device (Name, Type, RealEstate, IsOnline)
+		VALUES (?, ?, ?, ?)
+	`, device.Device.Device.Name, device.Device.Device.Type, device.Device.Device.RealEstate,
+		device.Device.Device.IsOnline)
+	if err != nil {
+		fmt.Println(err)
+		return inside.WashingMachine{}
+	}
 
-// 	// Get the last inserted device ID
-// 	deviceID, err := result.LastInsertId()
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		return inside.WashingMachine{}
-// 	}
+	// Get the last inserted device ID
+	deviceID, err := result.LastInsertId()
+	if err != nil {
+		fmt.Println(err)
+		return inside.WashingMachine{}
+	}
 
-// 	// Insert the new consumption device into the ConsumptionDevice table
-// 	_, err = tx.Exec(`
-// 		INSERT INTO ConsumptionDevice (DeviceId, PowerSupply, PowerConsumption)
-// 		VALUES (?, ?, ?)
-// 	`, deviceID, device.Device.PowerSupply, device.Device.PowerConsumption)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		return inside.WashingMachine{}
-// 	}
+	// Insert the new consumption device into the ConsumptionDevice table
+	_, err = tx.Exec(`
+		INSERT INTO ConsumptionDevice (DeviceId, PowerSupply, PowerConsumption)
+		VALUES (?, ?, ?)
+	`, deviceID, device.Device.PowerSupply, device.Device.PowerConsumption)
+	if err != nil {
+		fmt.Println(err)
+		return inside.WashingMachine{}
+	}
 
-// 	// Insert the new air conditioner into the WashingMachine table
-// 	result, err = tx.Exec(`
-// 		INSERT INTO WashingMachine (DeviceId, MinTemperature, MaxTemperature, Mode)
-// 		VALUES (?, ?, ?, ?)
-// 	`, deviceID, device.MinTemperature, device.MaxTemperature, device.Mode)
-// 	if err != nil {
-// 		fmt.Println("ovde je greska")
-// 		fmt.Println(err)
-// 		return inside.WashingMachine{}
-// 	}
-// 	fmt.Println("OVDE SAAAAAAAAM")
-// 	fmt.Println(device.SpecialMode)
-// 	if len(device.SpecialMode) != 0 {
-// 		fmt.Println(device.SpecialMode)
-// 		for _, mode := range device.SpecialMode {
-// 			result, err = tx.Exec(`
-// 			INSERT INTO specialModes (DeviceId, StartTime, EndTime, Mode, Temperature, SelectedDays)
-// 			VALUES (?, ?, ?, ?, ?, ?)
-// 		`, deviceID, mode.StartTime, mode.EndTime, mode.Mode, mode.Temperature, mode.SelectedDays)
-// 			if err != nil {
-// 				fmt.Println("ovde jeeeeeeeeeee")
-// 				fmt.Println(err)
-// 				return inside.WashingMachine{}
-// 			}
-// 		}
-// 	}
+	// Insert the new washing machine into the WashingMachine table
+	result, err = tx.Exec(`
+		INSERT INTO WashingMachine (DeviceId, Mode)
+		VALUES (?, ?)
+	`, deviceID, device.ModeName)
+	if err != nil {
+		fmt.Println(err)
+		return inside.WashingMachine{}
+	}
 
-// 	// Commit the transaction
-// 	if err := tx.Commit(); err != nil {
-// 		fmt.Println(err)
-// 		return inside.WashingMachine{}
-// 	}
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		fmt.Println(err)
+		return inside.WashingMachine{}
+	}
 
-// 	device.Device.Device.Id = int(deviceID)
-// 	return device
-//}
+	device.Device.Device.Id = int(deviceID)
+	return device
+}

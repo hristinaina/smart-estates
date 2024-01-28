@@ -31,6 +31,7 @@ type DeviceDTO struct {
 	Efficiency       float64
 	IsOn             bool
 	NumberOfPanels   int
+	WMModes          string
 }
 
 // Object conversion has been localized here:
@@ -53,6 +54,23 @@ func (dto *DeviceDTO) ToAirConditioner() inside.AirConditioner {
 		MaxTemperature: dto.MaxTemperature,
 		Mode:           dto.Mode,
 		SpecialMode:    dto.ToSpecialMode(),
+	}
+}
+
+func (dto *DeviceDTO) ToWashingMachine() inside.WashingMachine {
+	return inside.WashingMachine{
+		Device: models.ConsumptionDevice{
+			Device: models.Device{
+				Id:         dto.Id,
+				Name:       dto.Name,
+				Type:       dto.Type,
+				RealEstate: dto.RealEstate,
+				IsOnline:   dto.IsOnline,
+			},
+			PowerSupply:      dto.PowerSupply,
+			PowerConsumption: dto.PowerConsumption,
+		},
+		ModeName: dto.WMModes,
 	}
 }
 
