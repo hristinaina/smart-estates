@@ -34,6 +34,7 @@ export class WashingMachine extends Component {
             scheduledModes: [],
             selectedMode: '',
             selectedDateTime: '',
+            isSaveDisabled: true,
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl()); 
@@ -123,12 +124,25 @@ export class WashingMachine extends Component {
     };
 
     handleChange = (event) => {
-        this.setState({ selectedMode: event.target.value })
+        const value = event.target.value;
+        this.setState({ selectedMode: value }, () => {
+            this.validateInputs(); 
+        });
     };
 
     handleChangeDateTime = (event) => {
-        const selectedDateTime = event.target.value;
-        this.setState({ selectedDateTime });
+        const value = event.target.value;
+        this.setState({ selectedDateTime: value }, () => {
+            this.validateInputs(); 
+        });
+    };
+
+    validateInputs = () => {
+        const { selectedMode, selectedDateTime } = this.state;
+        const currentDate = new Date();
+        const selectedDateObject = new Date(selectedDateTime);
+        const isSaveDisabled = !(selectedMode && selectedDateTime && selectedDateObject > currentDate);
+        this.setState({ isSaveDisabled });
     };
 
     handleSave = async () => {
@@ -150,25 +164,18 @@ export class WashingMachine extends Component {
         
         const scheduledModes = await WashingMachineService.getScheduledMode(this.state.device.Device.Device.Id);
         this.setState({ scheduledModes: scheduledModes })
-        console.log(this.state.device)
-        console.log(scheduledModes)
 
-        // Prvo napravite mapiranje između Id moda i njegovog naziva
         const modeIdToNameMap = {};
         this.state.device.Mode.forEach(mode => {
             modeIdToNameMap[mode.Id] = mode.Name;
         });
 
-        // Zatim, prilikom postavljanja stanja, konvertujte ModeId u naziv moda
         const scheduledModesWithNames = scheduledModes.map(mode => ({
             ...mode,
             ModeName: modeIdToNameMap[mode.ModeId]
         }));
 
-        // Postavite stanje sa listom zakazanih termina sa nazivima moda
         this.setState({ scheduledModes: scheduledModesWithNames });
-
-        console.log(scheduledModesWithNames)
     };    
     
     
@@ -207,7 +214,7 @@ export class WashingMachine extends Component {
                         <DialogTitle>Initiate Mode</DialogTitle>
                         <DialogContent>
                         <DialogContentText>
-                            Select cycle, enter date and time, then click Save.
+                            Select mode, enter date and time, then click Save.
                         </DialogContentText>
                         <FormControl fullWidth sx={{ my: 1 }}>
                             <InputLabel id="cycle-select-label">Select Mode</InputLabel>
@@ -237,7 +244,7 @@ export class WashingMachine extends Component {
                                 </Button>
                             </div>
                             <div>
-                                <Button variant="contained" onClick={this.handleSave} color="primary">
+                                <Button variant="contained" onClick={this.handleSave} disabled={this.state.isSaveDisabled} color="primary">
                                     Save
                                 </Button>
                             </div>
