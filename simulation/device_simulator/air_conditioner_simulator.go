@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	topicACSwitch = "ac/switch/" // front salje sta se upalilo/ugasilo
+	topicACSwitch = "ac/switch/" // front salje sta se upalilo/ugasilo i ide do back-a
 	topicTemp     = "ac/temp"    // salje temp na front
 	topicAction   = "ac/action"  // slanje na front i back zakazan termin
 )
