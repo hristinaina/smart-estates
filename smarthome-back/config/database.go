@@ -25,6 +25,9 @@ func SetupMySQL() *sql.DB {
 	}
 	//defer database.Close()
 
+	database.SetMaxOpenConns(100)
+	database.SetMaxIdleConns(25)
+
 	// Test the connection
 	err = database.Ping()
 	if err != nil {

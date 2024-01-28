@@ -50,4 +50,6 @@ func main() {
 	gs.GenerateSuperadmin()
 
 	r.Run(":8081")
+
+	defer db.Close()
 }
