@@ -1,0 +1,53 @@
+.c-card{
+    margin: 2em;
+    padding: 0.3em 2em;
+    text-align: center;
+    border-radius: 10px;
+    overflow: hidden;
+    padding-bottom: 20px;
+    background-color: rgb(247, 246, 246);
+}
+
+#c-right-card, #c-left-card{
+    margin-top: 1.9em;
+    margin-bottom: 1.9em;
+    padding: 0.3em 2em;
+    text-align: center;
+    border-radius: 10px;
+    overflow: hidden;
+    padding-bottom: 20px;
+    background-color: rgb(247, 246, 246);
+    width: 45%;
+ }
+
+ .css-13cymwt-control, .css-t3ipsp-control{
+   font:inherit;
+   height: 3.4em !important;
+   border-radius: 5px;
+   width: 40em;
+   border: 1px solid rgba(0, 0, 0, 0.26);
+   padding-left: 1em;
+ }
+
+ 
+#c-select:hover{
+   border: 1px solid rgba(0, 0, 0, 0.74) !important;
+   border-radius: 5px;
+}
+
+#c-select{
+   margin-right: auto !important;
+   margin-left: 15px;
+}
+
+.css-t3ipsp-control{
+   border: 2px solid #806894 !important;
+   border-color: #806894 !important;
+   outline: #806894;
+}
+
+.c-tools-container{
+   display: flex;
+   flex-direction: row;
+   margin-bottom: 25px;
+}

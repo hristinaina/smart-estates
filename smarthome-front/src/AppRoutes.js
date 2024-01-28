@@ -16,6 +16,7 @@ import { SolarPanel } from './components/Devices/SolarPanel/SolarPanel';
 import { AirConditioner } from './components/Devices/AirConditioner/AirConditioner';
 import { HomeBattery } from './components/Devices/HomeBattery/HomeBattery';
 import { VehicleGate } from './components/Devices/VehicleGate/VehicleGate';
+import { Consumption } from './components/Admin/Consumption';
 
 const AppRoutes = [
   {
@@ -85,6 +86,10 @@ const AppRoutes = [
   {
     path: "/hb/:id",
     element: <HomeBattery />
+  },
+  {
+    path: "/consumption",
+    element: <Consumption />
   },
 ];
 

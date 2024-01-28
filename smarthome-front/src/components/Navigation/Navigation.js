@@ -58,6 +58,9 @@ export class Navigation extends Component {
                                 <NavLink tag={Link} className="text-light" to="/real-estates">Home</NavLink>
                             </NavItem>
                             <NavItem>
+                                <NavLink tag={Link} className="text-light" to="/consumption">Consumption</NavLink>
+                            </NavItem>
+                            <NavItem>
                                 <NavLink tag={Link} className="text-light" to="/account">Profile</NavLink>
                             </NavItem>
                             <NavItem>
