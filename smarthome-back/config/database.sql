@@ -75,7 +75,7 @@ CREATE TABLE machineMode (
 
 CREATE TABLE machineScheduledMode (
     DeviceId INT PRIMARY KEY,
-    StartTime TIME NOT NULL,
+    StartTime TIMESTAMP NOT NULL,
     ModeId INT NOT NULL,
     FOREIGN KEY (DeviceId) REFERENCES washingMachine(DeviceId),
     FOREIGN KEY (ModeId) REFERENCES machineMode(Id)
@@ -183,7 +183,7 @@ VALUES
 
 INSERT INTO machineScheduledMode (DeviceId, StartTime, ModeId)
 VALUES
-    (1, '08:00:00', 1);
+    (1, '2023-12-06 15:30:00', 1);
 
 INSERT INTO evCharger (DeviceId, ChargingPower, Connections)
 VALUES
