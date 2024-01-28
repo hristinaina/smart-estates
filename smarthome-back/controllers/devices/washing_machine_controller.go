@@ -30,3 +30,26 @@ func (uc WashingMachineController) Get(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, device)
 }
+
+// request body
+type ScheduledModeDTO struct {
+	DeviceId  int
+	StartTime string
+	ModeId    int
+}
+
+func (uc WashingMachineController) AddScheduledMode(c *gin.Context) {
+	var input ScheduledModeDTO
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+
+	err := uc.service.AddScheduledMode(input.DeviceId, input.ModeId, input.StartTime)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Device not found"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "You have successfully scheduled the mode"})
+}

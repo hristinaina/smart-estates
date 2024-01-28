@@ -104,6 +104,7 @@ export class AirConditioner extends Component {
     }
 
     handleSwitchToggle = (item) => {
+        console.log(item)
         console.log("uslo je i ovde")
         let i = 0
         const { mode } = this.state;

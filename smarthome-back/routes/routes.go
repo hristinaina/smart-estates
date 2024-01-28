@@ -126,7 +126,9 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 
 	washingMachineRoutes := r.Group("/api/wm")
 	{
+		middleware := middleware.NewMiddleware(db)
 		washingMachineController := devicesController.NewWashingMachineController(db, mqtt)
-		washingMachineRoutes.GET("/:id", washingMachineController.Get)
+		washingMachineRoutes.GET("/:id", middleware.RequireAuth, washingMachineController.Get)
+		washingMachineRoutes.POST("/schedule", middleware.RequireAuth, washingMachineController.AddScheduledMode)
 	}
 }

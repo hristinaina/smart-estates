@@ -1,10 +1,10 @@
 import { Component } from "react";
 import authService from "../../../services/AuthService";
 import DeviceService from "../../../services/DeviceService";
-import { FormControl, Snackbar, Switch, TextField, Typography } from "@mui/material";
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControl, InputLabel, MenuItem, Select, Snackbar, Switch, TextField, Typography, Button } from "@mui/material";
 import LogTable from "../AirConditioner/LogTable";
-import { Button, Input } from "reactstrap";
 import { Navigation } from "../../Navigation/Navigation";
+import WashingMachineService from "../../../services/WashingMachineService";
 
 export class WashingMachine extends Component {
     constructor(props) {
@@ -23,10 +23,14 @@ export class WashingMachine extends Component {
             open: false,
             temp: 20.0,
             currentTemp: "Loading...",
-            wmName: ""
+            wmName: "",
+            isDialogOpen: false,
+            selectedMode: '',
+            selectedDateTime: '',
         };
         this.mqttClient = null;
-        this.id = parseInt(this.extractDeviceIdFromUrl());    
+        this.id = parseInt(this.extractDeviceIdFromUrl()); 
+        this.currentDateTime = new Date().toISOString().slice(0, 16); 
     }
 
     extractDeviceIdFromUrl() {
@@ -39,16 +43,18 @@ export class WashingMachine extends Component {
         if (!valid) window.location.assign("/");
 
         const device = await DeviceService.getDeviceById(this.id, 'http://localhost:8081/api/wm/');
-        console.log(device.Device.Device.Name)
-        this.setState({ wmName: device.Device.Device.Name });
-        console.log(this.Name)
-        // const updatedMode = device.Mode.split(',').map((m) => ({
-        //     name: m,
-        //     switchOn: false,
-        //     temp: 20.0
-        // }));
-        // this.setState({mode: updatedMode})
-        // this.setState({device: device})
+        
+        // add switchOn attribute
+        const updatedMode = device.Mode.map(modeItem => ({
+            ...modeItem,
+            switchOn: false 
+        }));
+
+        this.setState({
+        wmName: device.Device.Device.Name,
+        mode: updatedMode,
+        device: device
+        });
 
         // const user = authService.getCurrentUser();
         // this.Name = device.Device.Device.Name;
@@ -87,25 +93,54 @@ export class WashingMachine extends Component {
         //     console.log(error);
         // }
     }
-    
-    // componentDidUpdate(prevProps, prevState) {
-    // // Logika koja se izvršava nakon ažuriranja props ili stanja
-    // }
-    
-    // componentWillUnmount() {
-    // // Logika koja se izvršava pre nego što se komponenta ukloni
-    // }
-    
-    // handleEvent = () => {
-    // // Metoda za rukovanje događajem
-    // }
+
+    handleSwitchToggle = (selectedItem) => {
+        this.setState(prevState => ({
+            mode: prevState.mode.map(item => ({
+                ...item,
+                switchOn: item === selectedItem ? !selectedItem.switchOn : false
+            }))
+        }));
+    };  
 
     handleBackArrow() {
         window.location.assign("/devices")
     }
+
+    handleOpenDialog = () => {
+        this.setState({ isDialogOpen: true });
+    };
+
+    handleCloseDialog = () => {
+        this.setState({ isDialogOpen: false });
+    };
+
+    handleChange = (event) => {
+        this.setState({ selectedMode: event.target.value })
+    };
+
+    handleChangeDateTime = (event) => {
+        const selectedDateTime = event.target.value;
+        this.setState({ selectedDateTime });
+    };
+
+    handleSave = async () => {
+        const selectedMode = this.state.mode.find(mode => mode.Name === this.state.selectedMode);
+
+        const requestData = {
+            DeviceId: this.state.device.Device.Device.Id,
+            StartTime: this.state.selectedDateTime,
+            ModeId: selectedMode.Id           
+        };
+
+        await WashingMachineService.scheduledMode(requestData);
+
+        this.handleCloseDialog();
+    };
+    
     
     render() {
-        const { wmName, device, logData, mode, email, startDate, endDate, currentTemp, pickedValue } = this.state;
+        const { wmName, isDialogOpen, selectedMode, selectedDateTime, device, logData, mode, email, startDate, endDate, currentTemp, pickedValue } = this.state;
 
         return (
             <div>
@@ -114,17 +149,8 @@ export class WashingMachine extends Component {
                 <span className='estate-title'>{wmName}</span>
                 <div className='sp-container'>
                     <div id="ac-left-card">
-                        {/* <p className='sp-card-title'>Supported Modes</p>
-                        <div style={{marginBottom: "25px"}}>
-                            <div>
-                                <span className='ac-current-temp'>Min temp:  </span>
-                                <span><b>{device.MinTemperature}</b></span>
-                                <span style={{marginLeft: "50px"}}></span>
-                                <span className='ac-current-temp'>Max temp:  </span>
-                                <span><b>{device.MaxTemperature}</b></span>
-                            </div>
-                            <span className='ac-current-temp'>Current temp:  </span>
-                            <span><b>{ currentTemp }</b></span>                         
+                        <p className='sp-card-title'>Supported Modes</p>
+                        <div style={{marginBottom: "25px"}}>                       
                         </div>                                                 
                         {mode.map((item, index) => {
                         return (
@@ -135,25 +161,59 @@ export class WashingMachine extends Component {
                                 onChange={() => this.handleSwitchToggle(item)}
                             />
                             <Typography style={{ fontSize: '1.1em' }}>On</Typography>
-                            <span style={{ flex: 1 }}>{item.name}</span>                            
-                                <FormControl style={{ width: '80px' }}>
-                                {item.name !== 'Ventilation' && (
-                                    <Input
-                                        type="number"
-                                        value={item.temp}
-                                        onChange={(event) => this.handleTemperatureChange(item, event)}
-                                        inputProps={{
-                                            min: device.MinTemperature, 
-                                            max: device.MaxTemperature,
-                                        }}
-                                    />
-                                    )}
-                                </FormControl>                          
+                            <span style={{ flex: 1, fontWeight: "600", marginLeft: "15px" }}>{item.Name}</span> 
+                            <span style={{ flex: 1 }}>{item.Duration} min</span> 
+                            <span style={{ flex: 1 }}>{item.Temperature}</span>                          
                         </div>
                         )
-                    })} */}
+                    })}
 
+                    <Button id='sp-data-button' onClick={this.handleOpenDialog}>Initiate Mode</Button>
+
+                    <Dialog open={isDialogOpen} onClose={this.handleCloseDialog}>
+                        <DialogTitle>Initiate Mode</DialogTitle>
+                        <DialogContent>
+                        <DialogContentText>
+                            Select cycle, enter date and time, then click Save.
+                        </DialogContentText>
+                        <FormControl fullWidth sx={{ my: 1 }}>
+                            <InputLabel id="cycle-select-label">Select Mode</InputLabel>
+                            <Select labelId="cycle-select-label" id="cycle-select" value={selectedMode} onChange={this.handleChange}>
+                                {mode.map((item) => (
+                                    <MenuItem key={item.Name} value={item.Name}>
+                                        {item.Name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <TextField
+                            fullWidth
+                            margin="normal"
+                            label="Enter Date and Time"
+                            type="datetime-local"
+                            InputLabelProps={{ shrink: true }}
+                            inputProps={{ min: this.currentDateTime }}
+                            value={selectedDateTime} 
+                            onChange={this.handleChangeDateTime} 
+                        />
+                        </DialogContent>
+                        <DialogActions>
+                        <div>
+                    <Button onClick={this.handleCloseDialog} color="primary">
+                        Close
+                    </Button>
+                </div>
+                <div>
+                    <Button variant="contained" onClick={this.handleSave} color="primary">
+                        Save
+                    </Button>
+                </div>
+                        {/* <Button onClick={this.handleCloseDialog}>Cancel</Button>
+                        <Button onClick={this.handleSave}>Save</Button> */}
+                        </DialogActions>
+                    </Dialog>
                     </div>
+
                     <div id='sp-right-card'>
                         <p className='sp-card-title'>Switch History</p>
                         <form onSubmit={this.handleFormSubmit} className='sp-container'>

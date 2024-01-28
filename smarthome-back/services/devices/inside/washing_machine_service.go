@@ -12,6 +12,7 @@ import (
 type WashingMachineService interface {
 	Add(estate dtos.DeviceDTO) inside.WashingMachine
 	Get(id int) inside.WashingMachine
+	AddScheduledMode(deviceId, modeId int, startTime string) error
 }
 
 type WashingMachineServiceImpl struct {
@@ -52,7 +53,6 @@ func (s *WashingMachineServiceImpl) Get(id int) inside.WashingMachine {
 		Device.Id = ?;
 	`
 
-	fmt.Println("PROSLOOOOOOOOOOO")
 	// Execute the query
 	rows, err := s.db.Query(query, id)
 	if err != nil {
@@ -65,14 +65,11 @@ func (s *WashingMachineServiceImpl) Get(id int) inside.WashingMachine {
 	var device models.Device
 	var consDevice models.ConsumptionDevice
 
-	fmt.Println("STIGLI SMO OVDE")
-
 	for rows.Next() {
-		fmt.Println("USLI SMO OVDEEEEEEEEEEEEE")
 		var startTime sql.NullString
 		var name sql.NullString
 		var duration sql.NullFloat64
-		var temperature sql.NullFloat64
+		var temperature sql.NullString
 		var modeNames sql.NullString
 
 		err := rows.Scan(
@@ -115,7 +112,7 @@ func (s *WashingMachineServiceImpl) findModeBasedOnName(names string) []inside.M
 	for _, part := range parts {
 		var id int
 		var duration int
-		var temp int
+		var temp string
 		var modeName string
 
 		query := "SELECT Id, Name, Duration, Temp FROM machineMode WHERE Name = ?"
@@ -194,4 +191,51 @@ func (s *WashingMachineServiceImpl) Add(dto dtos.DeviceDTO) inside.WashingMachin
 
 	device.Device.Device.Id = int(deviceID)
 	return device
+}
+
+func (s *WashingMachineServiceImpl) AddScheduledMode(deviceId, modeId int, startTime string) error {
+	query := "INSERT INTO machineScheduledMode (Id, DeviceId, StartTime, ModeId) VALUES (?, ?, ?, ?);"
+	_, err := s.db.Exec(query, s.generateId(), deviceId, startTime, modeId)
+	if err != nil {
+		fmt.Println(err)
+		return fmt.Errorf("Failed to save mode: %v", err)
+
+	}
+	return nil
+}
+
+func (res *WashingMachineServiceImpl) getAllScheduledModes() []inside.ScheduledMode {
+	query := "SELECT * FROM machineScheduledMode"
+	rows, err := res.db.Query(query)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	var modes []inside.ScheduledMode
+	for rows.Next() {
+		var (
+			mode inside.ScheduledMode
+		)
+
+		if err := rows.Scan(&mode.Id, &mode.DeviceId, &mode.StartTime, &mode.ModeId); err != nil {
+			fmt.Println("Error: ", err.Error())
+			return []inside.ScheduledMode{}
+		}
+		modes = append(modes, mode)
+	}
+
+	return modes
+}
+
+func (s *WashingMachineServiceImpl) generateId() int {
+	id := 0
+	modes := s.getAllScheduledModes()
+
+	for _, mode := range modes {
+		if mode.Id > id {
+			id = mode.Id
+		}
+	}
+	return id + 1
 }

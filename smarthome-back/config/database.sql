@@ -70,11 +70,12 @@ CREATE TABLE machineMode (
     Id INT PRIMARY KEY,
     Name VARCHAR(255) NOT NULL,
     Duration FLOAT(32) NOT NULL,
-    Temp FLOAT(32) NOT NULL
+    Temp VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE machineScheduledMode (
-    DeviceId INT PRIMARY KEY,
+	Id INT PRIMARY KEY,
+    DeviceId INT NOT NULL,
     StartTime TIMESTAMP NOT NULL,
     ModeId INT NOT NULL,
     FOREIGN KEY (DeviceId) REFERENCES washingMachine(DeviceId),
@@ -140,7 +141,7 @@ VALUES
 
 INSERT INTO device (Id, Name, Type, RealEstate, IsOnline, StatusTimeStamp, LastValue)
 VALUES
-    (1, 'Masina Sladja', 2,  1, false, '2023-12-06 15:30:00', -1),
+    (1, 'Masina Sladja', 2,  2, false, '2023-12-06 15:30:00', -1),
     (2, 'Prsk prsk', 5, 1, false, '2023-12-06 15:30:00', -1),
     (3, 'Neka klima', 1, 2, false, '2023-12-06 15:30:00', -1),
     (4, 'Panelcic', 6, 2, false, '2023-12-06 15:30:00', -1),
@@ -172,18 +173,19 @@ VALUES
 
 INSERT INTO washingMachine (DeviceId, Mode)
 VALUES
-    (1, 'Cootton,Synthetic,Quick,Delicate');
+    (1, 'Cotton,Synthetic,Quick,Delicate');
 
 INSERT INTO machineMode (Id, Name, Duration, Temp)
 VALUES
-    (1, "Cotton", 120, 60),
-    (2, "Synthetic", 60, 40),
-    (3, "Quick", 30, 30),
-    (4, "Delicate", 90, 30);
+    (1, "Cotton", 120, "60°C"),
+    (2, "Synthetic", 60, "40°C"),
+    (3, "Quick", 30, "30°C"),
+    (4, "Delicate", 90, "30°C");
 
-INSERT INTO machineScheduledMode (DeviceId, StartTime, ModeId)
+INSERT INTO machineScheduledMode (Id, DeviceId, StartTime, ModeId)
 VALUES
-    (1, '2023-12-06 15:30:00', 1);
+    (1, 1, '2023-12-06 15:30:00', 1),
+    (2, 1, '2024-01-28 23:00:00', 1);
 
 INSERT INTO evCharger (DeviceId, ChargingPower, Connections)
 VALUES
