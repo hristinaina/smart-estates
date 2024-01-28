@@ -7,6 +7,7 @@ import (
 	models "smarthome-back/models/devices"
 	"smarthome-back/models/devices/inside"
 	"strings"
+	"time"
 )
 
 type WashingMachineService interface {
@@ -230,7 +231,6 @@ func (res *WashingMachineServiceImpl) getAllScheduledModes() []inside.ScheduledM
 }
 
 func (res *WashingMachineServiceImpl) GetAllScheduledModesForDevice(deviceId int) []inside.ScheduledMode {
-	// todo proveri da li su vec prosli ako jesu, ne prosledjuj ih
 	query := "SELECT * FROM machineScheduledMode WHERE DeviceId = ?"
 	rows, err := res.db.Query(query, deviceId)
 	if err != nil {
@@ -239,19 +239,32 @@ func (res *WashingMachineServiceImpl) GetAllScheduledModesForDevice(deviceId int
 	defer rows.Close()
 
 	var modes []inside.ScheduledMode
+	currentTime := time.Now() // Trenutno vreme
 	for rows.Next() {
 		var (
-			mode inside.ScheduledMode
+			mode         inside.ScheduledMode
+			startTimeStr string
 		)
 
-		if err := rows.Scan(&mode.Id, &mode.DeviceId, &mode.StartTime, &mode.ModeId); err != nil {
+		if err := rows.Scan(&mode.Id, &mode.DeviceId, &startTimeStr, &mode.ModeId); err != nil {
 			fmt.Println("Error: ", err.Error())
 			return []inside.ScheduledMode{}
 		}
-		modes = append(modes, mode)
+
+		startTime, err := time.Parse("2006-01-02 15:04:05", startTimeStr)
+		if err != nil {
+			fmt.Println("Error parsing start time: ", err.Error())
+			return []inside.ScheduledMode{}
+		}
+
+		if !startTime.Before(currentTime) {
+			mode.StartTime = startTimeStr
+			modes = append(modes, mode)
+		}
 	}
 
 	return modes
+
 }
 
 func (s *WashingMachineServiceImpl) generateId() int {
