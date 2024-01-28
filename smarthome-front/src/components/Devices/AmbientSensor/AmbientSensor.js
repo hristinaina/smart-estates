@@ -298,16 +298,70 @@ export class AmbientSensor extends Component {
         return (
             <div>
                 <Navigation />
-                <span style={{float: "left", marginRight: "250px"}}>
+                <div style={{marginRight: "250px"}}>
                 <img src='/images/arrow.png' id='arrow' alt='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer"}} onClick={this.handleBackArrow} />
                 <span className='ambient-sensor-title'>{this.Name}</span>
-                </span>
+                </div>
                 
-                <span className='buttons'>
-                    <span onClick={() => this.setActiveGraph(1)} className={this.state.activeGraph === 1 ? 'active-button' : 'non-active-button'}>Real Time</span>
-                    <span onClick={() => { this.setActiveGraph(2); this.updateGraph(this.state.selectedOption.value) }} className={this.state.activeGraph === 2 ? 'active-button' : 'non-active-button'}>History</span>
-                </span>
-                {this.state.activeGraph === 2 && 
+    
+                <div className='card'>
+                    <div className='buttons'>
+                        <span onClick={() => this.setActiveGraph(1)} className={this.state.activeGraph === 1 ? 'active-button' : 'non-active-button'}>Real Time</span>
+                        <span onClick={() => { this.setActiveGraph(2); this.updateGraph(this.state.selectedOption.value) }} className={this.state.activeGraph === 2 ? 'active-button' : 'non-active-button'}>History</span>
+                    </div>
+
+                    {this.state.activeGraph === 1 && <Line ref={(ref) => (this.chartInstance = ref)} data={this.state.data} options={this.options} />}
+                    {this.state.activeGraph === 2 && 
+                        <div className="history-container">
+                        <div className="history-controls">
+                            <Autocomplete
+                                value={selectedOption}
+                                onChange={this.handleOptionChange}
+                                options={options}
+                                getOptionLabel={(option) => option.label}
+                                style={{ width: '100%', marginBottom: '10px' }}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Select Time Range"
+                                        InputLabelProps={{ shrink: true }}
+                                    />
+                                )}
+                                isOptionEqualToValue={(option, value) => option.value === value.value}
+                                renderOption={(props, option, { selected }) => (
+                                    <li {...props}>
+                                        <span>{option.label}</span>
+                                    </li>
+                                )}
+                                disableClearable
+                            />
+                            <TextField
+                                label="Start Date"
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => this.handleDateChange('startDate', e)}
+                                InputLabelProps={{ shrink: true }}
+                                style={{ width: '100%', marginBottom: '10px' }}
+                                inputProps={{ max: new Date().toISOString().split('T')[0] }}
+                            />
+                            <TextField
+                                label="End Date"
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => this.handleDateChange('endDate', e)}
+                                InputLabelProps={{ shrink: true }}
+                                style={{ width: '100%', marginBottom: '10px' }}
+                                inputProps={{ max: new Date().toISOString().split('T')[0] }}
+                            />
+                            <Button variant="contained" color="primary" onClick={this.handleButtonClick} style={{ width: '100%' }}>Apply</Button>
+                        </div>
+                        <div className="history-chart">
+                            <Line ref={(ref) => (this.chartInstance = ref)} data={this.state.data} options={this.options} />
+                        </div>
+                    </div>}
+                </div>
+
+                {/* {this.state.activeGraph === 2 && 
                 <div>
                     <Grid container spacing={2}>
                         <Grid item xs={2}></Grid>
@@ -368,7 +422,7 @@ export class AmbientSensor extends Component {
                     </Grid>
                     </Grid>
 
-        </div>}
+        </div>} */}
         <Snackbar
         open={this.state.open}
         autoHideDuration={3000}
@@ -376,10 +430,6 @@ export class AmbientSensor extends Component {
         message={this.state.snackbarMessage}
         action={action}/>
 
-                <div className='canvas'>
-                    {this.state.activeGraph === 1 && <Line ref={(ref) => (this.chartInstance = ref)} id='graph' data={this.state.data} options={this.options} />}
-                    {this.state.activeGraph === 2 && <Line ref={(ref) => (this.chartInstance = ref)} id='graph' data={this.state.data} options={this.options} />}
-                </div>
             </div>
         )
     }
