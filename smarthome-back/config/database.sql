@@ -26,13 +26,13 @@ CREATE TABLE realestate (
 );
 
 CREATE TABLE device (
-                        Id INT PRIMARY KEY AUTO_INCREMENT,
-                        Name VARCHAR(255) NOT NULL,
-                        Type INT NOT NULL,
-                        RealEstate INT NOT NULL,
-                        IsOnline BOOLEAN,
-                        StatusTimeStamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        LastValue DOUBLE DEFAULT -1
+    Id INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(255) NOT NULL,
+    Type INT NOT NULL,
+    RealEstate INT NOT NULL,
+    IsOnline BOOLEAN,
+    StatusTimeStamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    LastValue DOUBLE DEFAULT -1
 );
 
 CREATE TABLE consumptionDevice (
@@ -60,6 +60,27 @@ CREATE TABLE specialModes (
     FOREIGN KEY (DeviceId) REFERENCES airConditioner(DeviceId)
 );
 
+CREATE TABLE washingMachine (
+    DeviceId INT PRIMARY KEY,
+    Mode VARCHAR(255) NOT NULL,
+    FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
+);
+
+CREATE TABLE machineMode (
+    Id INT PRIMARY KEY,
+    Name VARCHAR(255) NOT NULL,
+    Duration FLOAT(32) NOT NULL,
+    Temp FLOAT(32) NOT NULL
+);
+
+CREATE TABLE machineScheduledMode (
+    DeviceId INT PRIMARY KEY,
+    StartTime TIME NOT NULL,
+    ModeId INT NOT NULL,
+    FOREIGN KEY (DeviceId) REFERENCES washingMachine(DeviceId),
+    FOREIGN KEY (ModeId) REFERENCES machineMode(Id)
+);
+
 CREATE TABLE evCharger (
     DeviceId INT PRIMARY KEY,
     ChargingPower DOUBLE NOT NULL,
@@ -68,24 +89,24 @@ CREATE TABLE evCharger (
 );
 
 CREATE TABLE lamp (
-                            DeviceId INT PRIMARY KEY,
-                            IsOn bool,
-                            LightningLevel int,
-                            FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
+    DeviceId INT PRIMARY KEY,
+    IsOn bool,
+    LightningLevel int,
+    FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
 );
 
 CREATE TABLE vehicleGate (
-                            DeviceId INT PRIMARY KEY,
-                            IsOpen bool,
-                            Mode int,
-                            FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
+    DeviceId INT PRIMARY KEY,
+    IsOpen bool,
+    Mode int,
+    FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
 );
 
 CREATE TABLE homeBattery (
-                             DeviceId INT PRIMARY KEY,
-                             Size DOUBLE NOT NULL,
-                             CurrentValue DOUBLE  DEFAULT 0.0,
-                             FOREIGN KEY (DeviceId) REFERENCES device(Id)
+    DeviceId INT PRIMARY KEY,
+    Size DOUBLE NOT NULL,
+    CurrentValue DOUBLE  DEFAULT 0.0,
+    FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
 
 CREATE TABLE solarPanel (
@@ -98,9 +119,9 @@ CREATE TABLE solarPanel (
 );
 
 CREATE TABLE licensePlate (
-                            DeviceId INT,
-                            PlateNumber VARCHAR(255),
-                            FOREIGN KEY (DeviceId) REFERENCES vehicleGate(DeviceId)
+    DeviceId INT,
+    PlateNumber VARCHAR(255),
+    FOREIGN KEY (DeviceId) REFERENCES vehicleGate(DeviceId)
 );
 
 INSERT INTO user (Id, Email, Password, Name, Surname, Role)
@@ -148,6 +169,21 @@ VALUES
 INSERT INTO specialModes (DeviceId, StartTime, EndTime, Mode, Temperature, SelectedDays)
 VALUES
     (3, '08:00:00', '16:00:00', 'Ventilation', 22, 'Monday,Tuesday,Wednesday');
+
+INSERT INTO washingMachine (DeviceId, Mode)
+VALUES
+    (1, 'Cootton,Synthetic,Quick,Delicate');
+
+INSERT INTO machineMode (Id, Name, Duration, Temp)
+VALUES
+    (1, "Cotton", 120, 60),
+    (2, "Synthetic", 60, 40),
+    (3, "Quick", 30, 30),
+    (4, "Delicate", 90, 30);
+
+INSERT INTO machineScheduledMode (DeviceId, StartTime, ModeId)
+VALUES
+    (1, '08:00:00', 1);
 
 INSERT INTO evCharger (DeviceId, ChargingPower, Connections)
 VALUES
