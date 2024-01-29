@@ -67,9 +67,7 @@ export class WashingMachine extends Component {
         user: user
         });
 
-        // todo change
         const logData = await WashingMachineService.getWMHistoryData(this.id, 'none', "", "");  
-        console.log(logData)    
         this.setState({ 
             logData: logData.result,
             pickedValue: "none",
@@ -81,21 +79,20 @@ export class WashingMachine extends Component {
             if (!this.connected) {
                 this.connected = true;
                 this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
-                    clientId: "react-front-nvt-2023-ac",
+                    clientId: "react-front-nvt-2023-wm",
                     clean: false,
                     keepalive: 60
                 });
 
                 // Subscribe to the MQTT topic
-                // this.mqttClient.on('connect', () => {
-                //     this.mqttClient.subscribe('ac/temp');
-                //     this.mqttClient.subscribe('ac/action');
-                // });
+                this.mqttClient.on('connect', () => {
+                    this.mqttClient.subscribe('wm/schedule');
+                });
 
                 // Handle incoming MQTT messages
-                // this.mqttClient.on('message', (topic, message) => {
-                //     this.handleMqttMessage(topic, message);
-                // });
+                this.mqttClient.on('message', (topic, message) => {
+                    this.handleMqttMessageForWM(topic, message);
+                });
             }
         } catch (error) {
             console.log("Error trying to connect to broker");
@@ -104,23 +101,12 @@ export class WashingMachine extends Component {
     }
 
     // Handle incoming MQTT messages
-    // handleMqttMessage(topic, message) {
-    //     console.log(topic)
-    //     const result = JSON.parse(message.toString())
-    //     if (result.id === this.id) {
-    //         this.setState({
-    //             currentTemp: result.temp
-    //         });
-    //         if(result.mode != null) {
-    //             console.log("ovde saaaaaaaaaaam")
-    //             this.handleScheduledToggle({
-    //                 name: result.mode,
-    //                 switchOn: !result.switch,
-    //                 temp: result.temp,
-    //             })
-    //         }
-    //     }
-    // }
+    handleMqttMessageForWM(topic, message) {
+        console.log(topic)
+        console.log(message)
+        const result = JSON.parse(message.toString())
+        console.log(result)
+    }
 
     sendDataToSimulation = (mode, previous, isSwitchOn, user) => {
         const topic = "wm/switch/" + this.id;
@@ -139,9 +125,6 @@ export class WashingMachine extends Component {
         const userName = user.Name + " " + user.Surname
 
         const currentlyActiveMode = mode.find(item => item.switchOn);
-
-        console.log(selectedItem)
-        console.log(currentlyActiveMode)
     
         if (currentlyActiveMode) {
             if (selectedItem.Name === currentlyActiveMode.Name) {
@@ -166,6 +149,7 @@ export class WashingMachine extends Component {
     }
 
     handleOpenDialog = () => {
+        this.validateInputs();
         this.setState({ isDialogOpen: true });
     };
 
@@ -195,6 +179,18 @@ export class WashingMachine extends Component {
         this.setState({ isSaveDisabled });
     };
 
+    isAlreadyScheduleForSelectedDate = () => {
+        let isAlreadyScheduled = false
+        this.state.scheduledModes.some(mode => {
+            const modeDateObject = new Date(mode.StartTime);
+            const selectedDateObject = new Date(this.state.selectedDateTime);
+            if (modeDateObject.getTime() === selectedDateObject.getTime()) {
+                isAlreadyScheduled = true
+            }
+        });
+        return isAlreadyScheduled
+    }
+
     handleSave = async () => {
         const selectedMode = this.state.mode.find(mode => mode.Name === this.state.selectedMode);
 
@@ -204,23 +200,30 @@ export class WashingMachine extends Component {
             ModeId: selectedMode.Id           
         };
 
-        await WashingMachineService.scheduledMode(requestData);
+        if(!this.isAlreadyScheduleForSelectedDate()) {
+            await WashingMachineService.scheduledMode(requestData);
+
+            const scheduledModes = await WashingMachineService.getScheduledMode(this.state.device.Device.Device.Id);
+            console.log(scheduledModes)
+            this.setState({ scheduledModes: scheduledModes })
+        }         
+        else {
+            this.setState({ snackbarMessage: "Scheduled mode already exists at the selected time" });
+            this.handleClick();
+        }
 
         this.handleCloseDialog();
     };
 
     handleShowScheduleModes = async () => {
         this.setState({ isAllScheduledModeOpen: true });
-        
-        const scheduledModes = await WashingMachineService.getScheduledMode(this.state.device.Device.Device.Id);
-        this.setState({ scheduledModes: scheduledModes })
 
         const modeIdToNameMap = {};
         this.state.device.Mode.forEach(mode => {
             modeIdToNameMap[mode.Id] = mode.Name;
         });
 
-        const scheduledModesWithNames = scheduledModes.map(mode => ({
+        const scheduledModesWithNames = this.state.scheduledModes.map(mode => ({
             ...mode,
             ModeName: modeIdToNameMap[mode.ModeId]
         }));

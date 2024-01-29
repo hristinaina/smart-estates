@@ -1,9 +1,10 @@
 package models
 
 type WashingMachine struct {
-	Device   ConsumptionDevice
-	Mode     []SupportMode
-	ModeName string
+	Device        ConsumptionDevice
+	Mode          []SupportMode
+	ModeName      string
+	ScheduledMode []ScheduledMode
 }
 
 type SupportMode struct {

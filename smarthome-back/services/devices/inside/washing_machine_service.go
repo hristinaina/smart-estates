@@ -239,7 +239,7 @@ func (res *WashingMachineServiceImpl) GetAllScheduledModesForDevice(deviceId int
 	defer rows.Close()
 
 	var modes []inside.ScheduledMode
-	currentTime := time.Now() // Trenutno vreme
+	// currentTime := time.Now() // Trenutno vreme
 	for rows.Next() {
 		var (
 			mode         inside.ScheduledMode
@@ -251,11 +251,15 @@ func (res *WashingMachineServiceImpl) GetAllScheduledModesForDevice(deviceId int
 			return []inside.ScheduledMode{}
 		}
 
-		startTime, err := time.Parse("2006-01-02 15:04:05", startTimeStr)
+		loc, _ := time.LoadLocation("Europe/Belgrade")
+
+		startTime, err := time.ParseInLocation("2006-01-02 15:04:05", startTimeStr, loc)
 		if err != nil {
-			fmt.Println("Error parsing start time: ", err.Error())
+			fmt.Printf("Error parsing start time: %v\n", err)
 			return []inside.ScheduledMode{}
 		}
+
+		currentTime := time.Now().In(loc)
 
 		if !startTime.Before(currentTime) {
 			mode.StartTime = startTimeStr
