@@ -40,7 +40,9 @@ func (uc UserController) SendResetPasswordEmail(c *gin.Context) {
 	// send mail
 	expiration := time.Now().Add(time.Minute * 30)
 	token, _ := uc.mail_service.GenerateToken(input.Email, expiration)
-	uc.mail_service.SendVerifyEmail(input.Email, token)
+
+	// aync send mail
+	go uc.mail_service.SendVerifyEmail(input.Email, token)
 
 	// respond
 	c.JSON(http.StatusOK, gin.H{"message": "A verification email has been sent"})
