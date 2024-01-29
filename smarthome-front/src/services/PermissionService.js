@@ -20,6 +20,29 @@ class PermissionService {
             return { result: false, error: 'Network error' };
         }
     }
+
+    async verifyAccount() {
+        try {
+            const queryParams = new URLSearchParams(window.location.search);
+            const token = queryParams.get('token');
+
+            const response = await fetch('http://localhost:8081/api/permission/verify', {
+                method: 'POST',
+                body: JSON.stringify({token})
+            })
+            
+            if (response.ok) {
+                return { success: true };
+            } else {
+                const data = await response.json();
+                return { success: false, error: data.error };
+            }
+        } 
+        catch (error) {
+            console.error('Greška :', error);
+            return { success: false, error: 'Network error' };
+        }
+    }
 }
 
 export default new PermissionService();

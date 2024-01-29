@@ -44,6 +44,10 @@ const AppRoutes = [
     element: <ActivationPage />
   },
   {
+    path: '/activate-permission',
+    element: <ActivationPage />
+  },
+  {
     path: '/new-device',
     element: <NewDevice />
   },

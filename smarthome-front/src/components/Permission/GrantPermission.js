@@ -105,11 +105,11 @@ export class GrantPermission extends Component {
     handleGrantPermission = async () => {
         const user = authService.getCurrentUser()
         const deviceIds = this.state.selectedDevices.map(device => device.Id);
-        console.log(this.state.emails)
-        console.log(deviceIds)
-        console.log(this.state.realEstate.Id)
-        console.log(this.state.realEstate.Name)
-        console.log(user.Name + " " + user.Surname)
+        // console.log(this.state.emails)
+        // console.log(deviceIds)
+        // console.log(this.state.realEstate.Id)
+        // console.log(this.state.realEstate.Name)
+        // console.log(user.Name + " " + user.Surname)
 
         await PermissionService.sendGrantValues({
             "Emails": this.state.emails,
@@ -123,7 +123,6 @@ export class GrantPermission extends Component {
 
         this.setState({ snackbarMessage: "Successfully granted permissions!" });
         this.handleClick();
-        
     }
 
     // snackbar

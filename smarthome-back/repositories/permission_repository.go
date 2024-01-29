@@ -8,6 +8,7 @@ import (
 type PermissionRepository interface {
 	IsPermissionAlreadyExist(realEstateId, deviceId int, userEmail string) bool
 	AddInactivePermission(realEstateId, deviceId int, userEmail string) error
+	SetActivePermission(email string) error
 }
 
 type PermissionRepositoryImpl struct {
@@ -45,4 +46,11 @@ func (res *PermissionRepositoryImpl) AddInactivePermission(realEstateId, deviceI
 
 	}
 	return nil
+}
+
+func (res *PermissionRepositoryImpl) SetActivePermission(email string) error {
+	updateStatement := "UPDATE permission SET IsActive=true WHERE UserEmail=? and isDeleted=false"
+
+	_, err := res.db.Exec(updateStatement, email)
+	return err
 }

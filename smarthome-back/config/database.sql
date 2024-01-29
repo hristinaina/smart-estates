@@ -104,11 +104,12 @@ CREATE TABLE licensePlate (
 );
 
 CREATE TABLE permission (
-    Id INT PRIMARY KEY,
+    Id INT PRIMARY KEY AUTO_INCREMENT,
     RealEstateId INT NOT NULL,
     DeviceId INT NOT NULL,
     UserEmail VARCHAR(255) NOT NULL,
     isActive BOOLEAN NOT NULL,
+    isDeleted BOOLEAN NOT NULL,
     FOREIGN KEY (RealEstateId) REFERENCES realestate(Id),
     FOREIGN KEY (DeviceId) REFERENCES device(Id)
 );
@@ -116,7 +117,8 @@ CREATE TABLE permission (
 INSERT INTO user (Id, Email, Password, Name, Surname, Role)
 VALUES
     (1, 'nesa@gmail.com', '$2a$10$/fbbLLHt7hEZpMq3rQiWz.oF6cJRRNdO5Vek/NIGzAIyJp99jebrO', 'Nenad', 'Peric', 0),
-    (2, 'nata@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Natasa', 'Maric', 1);
+    (2, 'nata@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Natasa', 'Maric', 1),
+    (3, 'anastasijas557@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Anastasija', 'Savic', 1);
 
 INSERT INTO realestate (Id, Name, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId, DiscardReason)
 VALUES
