@@ -80,15 +80,12 @@ func (wm *WashingMachineSimulator) ScheduleMode() {
 				fmt.Println("startTime: ", startTime)
 				fmt.Println("sada ", now)
 
-				// Proverite da li su vremena početka prvog zakazanog termina i trenutno vreme jednaki
 				if now.After(startTime) || now.Equal(startTime) {
-					// Vreme za izvršavanje zakazanog termina, poslati vrednost na front
-					// Ovde pozovite funkciju ili metod koji šalje vrednost na front
 					fmt.Println("Time to execute scheduled mode!")
 					data := map[string]interface{}{
-						"id":     wm.device.Device.Device.ID,
-						"mode":   first.ModeId,
-						"switch": true,
+						"id":       wm.device.Device.Device.ID,
+						"mode":     first.ModeId,
+						"switchOn": true,
 					}
 					jsonString, err := json.Marshal(data)
 					if err != nil {

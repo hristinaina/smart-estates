@@ -35,6 +35,8 @@ export class WashingMachine extends Component {
             isSaveDisabled: true,
             user: null,
             open: false,
+            remainingTime: "00:00:00",
+            intervalId: null
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl()); 
@@ -60,11 +62,14 @@ export class WashingMachine extends Component {
 
         const user = authService.getCurrentUser();
 
+        const scheduledModes = await WashingMachineService.getScheduledMode(device.Device.Device.Id);
+
         this.setState({
         wmName: device.Device.Device.Name,
         mode: updatedMode,
         device: device,
-        user: user
+        user: user,
+        scheduledModes: scheduledModes
         });
 
         const logData = await WashingMachineService.getWMHistoryData(this.id, 'none', "", "");  
@@ -106,6 +111,12 @@ export class WashingMachine extends Component {
         console.log(message)
         const result = JSON.parse(message.toString())
         console.log(result)
+        
+        if(result.id == this.state.device.Device.Device.Id) {
+            console.log("prosao je idijeve")
+            const selectedMode = this.state.mode.find(item => item.Id === result.mode);
+            this.handleSwitchToggle(selectedMode, "mqtt")
+        }    
     }
 
     sendDataToSimulation = (mode, previous, isSwitchOn, user) => {
@@ -120,20 +131,28 @@ export class WashingMachine extends Component {
         this.mqttClient.publish(topic, JSON.stringify(message));
     }
 
-    handleSwitchToggle = (selectedItem) => {
+    handleSwitchToggle = (selectedItem, source) => {
+        console.log("usao je ovde u toggle")
         const { mode, user } = this.state;
         const userName = user.Name + " " + user.Surname
+
+        if (source === "mqtt") {
+            userName = "auto";
+        }
 
         const currentlyActiveMode = mode.find(item => item.switchOn);
     
         if (currentlyActiveMode) {
             if (selectedItem.Name === currentlyActiveMode.Name) {
                 this.sendDataToSimulation(selectedItem.Name, '', !selectedItem.switchOn, userName);
+                this.updateRemainingTime(0);
             } else {
                 this.sendDataToSimulation(selectedItem.Name, currentlyActiveMode.Name, !selectedItem.switchOn, userName);
+                this.updateRemainingTime(selectedItem.Duration);
             }
         } else {
             this.sendDataToSimulation(selectedItem.Name, '', !selectedItem.switchOn, userName);
+            this.updateRemainingTime(selectedItem.Duration);
         }
     
         this.setState(prevState => ({
@@ -257,9 +276,52 @@ export class WashingMachine extends Component {
         }
         this.setState({ open: false });
     };
+
+    updateRemainingTime = (duration) => {
+        const { intervalId } = this.state;
+
+        if (intervalId) {
+            clearInterval(intervalId); 
+        }
+        
+        if (duration == 0) {
+            console.log("nema nista")
+            this.setState({ remainingTime: "00:00:00" }); 
+            return;
+        }
+        
+        console.log("ipak ima")
+        const durationInSeconds = duration * 60; 
+        let remainingTime = durationInSeconds;
+        
+        const newIntervalId = setInterval(() => {
+            remainingTime -= 1;
+            if (remainingTime <= 0) {
+                clearInterval(newIntervalId); 
+                remainingTime = 0;
+            }
+            this.setState({ remainingTime: this.formatTime(remainingTime), intervalId: newIntervalId }); // Postavi novi intervalId u stanje komponente
+        }, 1000);
+
+        this.setState({ intervalId: newIntervalId }); 
+    };
+
+    formatTime(seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = seconds % 60;
+    
+        // Formatiranje vremena
+        const formattedHours = String(hours).padStart(2, '0');
+        const formattedMinutes = String(minutes).padStart(2, '0');
+        const formattedSeconds = String(remainingSeconds).padStart(2, '0');
+    
+        return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+    }
+
     
     render() {
-        const { wmName, isDialogOpen, selectedMode, scheduledModes, selectedDateTime, logData, mode, email, startDate, endDate, pickedValue } = this.state;
+        const { wmName, remainingTime, isDialogOpen, selectedMode, scheduledModes, selectedDateTime, logData, mode, email, startDate, endDate, pickedValue } = this.state;
 
         return (
             <div>
@@ -270,14 +332,17 @@ export class WashingMachine extends Component {
                     <div id="ac-left-card">
                         <p className='sp-card-title'>Supported Modes</p>
                         <div style={{marginBottom: "25px"}}>                       
-                        </div>                                                 
+                        </div>  
+                        <div>
+                            <p>Remaining Time: {remainingTime}</p>
+                        </div>                                               
                         {mode.map((item, index) => {
                         return (
                         <div key={`${item.name}-${index}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography style={{ fontSize: '1.1em' }}>Off</Typography>
                             <Switch
                                 checked={item.switchOn}
-                                onChange={() => this.handleSwitchToggle(item)}
+                                onChange={() => this.handleSwitchToggle(item, "user")}
                             />
                             <Typography style={{ fontSize: '1.1em' }}>On</Typography>
                             <span style={{ flex: 1, fontWeight: "600", marginLeft: "15px" }}>{item.Name}</span> 
