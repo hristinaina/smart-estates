@@ -60,6 +60,20 @@ CREATE TABLE specialModes (
     FOREIGN KEY (DeviceId) REFERENCES airConditioner(DeviceId)
 );
 
+CREATE TABLE sprinkler (
+    DeviceId INT PRIMARY KEY,
+    IsOn BOOL,
+    FOREIGN KEY (DeviceId) REFERENCES consumptiondevice(DeviceId)
+);
+
+CREATE TABLE sprinklerSpecialMode(
+    DeviceId INT PRIMARY KEY,
+    StartTime TIME NOT NULL,
+    EndTiME TIME NOT NULL,
+    SelectedDays VARCHAR(255) NOT NULL,
+    FOREIGN KEY (DeviceId) REFERENCES sprinkler(DeviceId)
+);
+
 CREATE TABLE evCharger (
     DeviceId INT PRIMARY KEY,
     ChargingPower DOUBLE NOT NULL,
@@ -69,8 +83,8 @@ CREATE TABLE evCharger (
 
 CREATE TABLE lamp (
                             DeviceId INT PRIMARY KEY,
-                            IsOn bool,
-                            LightningLevel int,
+                            IsOn BOOL,
+                            LightningLevel INT,
                             FOREIGN KEY (DeviceId) REFERENCES consumptionDevice(DeviceId)
 );
 
@@ -128,7 +142,8 @@ VALUES
 	(7, 'Lampica u sobici', 3, 1, false, '2023-12-06 15:30:00', -1),
     (8, 'Lampetina', 3, 1, false, '2023-12-06 15:30:00', -1),
     (9, 'Kapijica', 4, 1, false, '2023-12-06 15:30:00', -1),
-    (10, 'Kapijetina', 4, 1, false, '2023-12-06 15:30:00', -1);
+    (10, 'Kapijetina', 4, 1, false, '2023-12-06 15:30:00', -1),
+    (11, 'Prskalica', 5, 1, false, '2024-01-29 15:30:00', -1);
 
 
 INSERT INTO consumptionDevice (DeviceId, PowerSupply, PowerConsumption)
@@ -139,7 +154,8 @@ VALUES
 	(7, 0, 50),
     (8, 1, 75),
     (9, 1, 223),
-    (10, 0, 0);
+    (10, 0, 0),
+    (11, 0, 0);
 
 INSERT INTO airConditioner (DeviceId, MinTemperature, MaxTemperature, Mode)
 VALUES
@@ -148,6 +164,14 @@ VALUES
 INSERT INTO specialModes (DeviceId, StartTime, EndTime, Mode, Temperature, SelectedDays)
 VALUES
     (3, '08:00:00', '16:00:00', 'Ventilation', 22, 'Monday,Tuesday,Wednesday');
+
+INSERT INTO sprinkler (DeviceId, IsOn)
+VALUES
+    (11, false);
+
+INSERT INTO sprinklerSpecialMode (DeviceId, StartTime, EndTiME, SelectedDays)
+VALUES
+    (11, '08:00:00', '10:00:00', 'Thursday,Sunday');
 
 INSERT INTO evCharger (DeviceId, ChargingPower, Connections)
 VALUES
