@@ -9,6 +9,9 @@ import (
 
 type SprinklerService interface {
 	Get(id int) (models.Sprinkler, error)
+	GetAll() ([]models.Sprinkler, error)
+	UpdateIsOn(id int, isOn bool) (bool, error)
+	Delete(id int) (bool, error)
 }
 
 type SprinklerServiceImpl struct {
@@ -23,4 +26,16 @@ func NewSprinklerService(db *sql.DB, client influxdb2.Client) SprinklerService {
 
 func (service *SprinklerServiceImpl) Get(id int) (models.Sprinkler, error) {
 	return service.repository.Get(id)
+}
+
+func (service *SprinklerServiceImpl) GetAll() ([]models.Sprinkler, error) {
+	return service.repository.GetAll()
+}
+
+func (service *SprinklerServiceImpl) UpdateIsOn(id int, isOn bool) (bool, error) {
+	return service.repository.UpdateIsOn(id, isOn)
+}
+
+func (service *SprinklerServiceImpl) Delete(id int) (bool, error) {
+	return service.repository.Delete(id)
 }

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"log"
 	models2 "smarthome-back/models/devices"
 	models "smarthome-back/models/devices/outside"
 	"smarthome-back/repositories"
@@ -12,9 +13,9 @@ import (
 type SprinklerRepository interface {
 	Get(id int) (models.Sprinkler, error)
 	GetAll() ([]models.Sprinkler, error)
-	UpdateIsOn(isOn bool) (bool, error)
+	UpdateIsOn(id int, isOn bool) (bool, error)
 	Delete(id int) (bool, error)
-	AddSpecialMode(mode models.SprinklerSpecialMode) (models.Sprinkler, error)
+	AddSpecialMode(id int, mode models.SprinklerSpecialMode) (models.Sprinkler, error)
 }
 
 type SprinklerRepositoryImpl struct {
@@ -51,18 +52,80 @@ func (repo *SprinklerRepositoryImpl) Get(id int) (models.Sprinkler, error) {
 }
 
 func (repo *SprinklerRepositoryImpl) GetAll() ([]models.Sprinkler, error) {
-	return nil, nil
+	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
+       		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, s.IsOn
+			  FROM Sprinkler s 
+    		  JOIN ConsumptionDevice ON s.DeviceId = ConsumptionDevice.DeviceId
+   			  JOIN Device ON ConsumptionDevice.DeviceId = Device.Id`
+
+	rows, err := repo.db.Query(query)
+	if repositories.IsError(err) {
+		return nil, err
+	}
+	defer rows.Close()
+
+	sprinklers, err := repo.scanRows(rows)
+	if err != nil {
+		return nil, err
+	}
+	return sprinklers, nil
 }
 
-func (repo *SprinklerRepositoryImpl) UpdateIsOn(isOn bool) (bool, error) {
-	return false, nil
+func (repo *SprinklerRepositoryImpl) UpdateIsOn(id int, isOn bool) (bool, error) {
+	query := `UPDATE Sprinkler s
+			  JOIN ConsumptionDevice cd ON s.DeviceId = cd.DeviceId
+			  JOIN Device d ON cd.DeviceId = d.Id
+			  SET s.IsOn = ?
+			  WHERE d.Id = ?`
+	_, err := repo.db.Query(query, isOn, id)
+	if repositories.IsError(err) {
+		return false, err
+	}
+	return true, nil
 }
 
 func (repo *SprinklerRepositoryImpl) Delete(id int) (bool, error) {
-	return false, nil
+	_, err := repo.Get(id)
+	if err != nil {
+		return false, err
+	}
+
+	tx, err := repo.db.Begin()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			log.Fatal(err)
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}()
+
+	_, err = tx.Exec("DELETE FROM SprinklerSpecialMode WHERE DeviceId = ?", id)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = tx.Exec("DELETE FROM Sprinkler WHERE DeviceId = ?", id)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = tx.Exec("DELETE FROM ConsumptionDevice WHERE DeviceId = ?", id)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = tx.Exec("DELETE FROM Device WHERE Id = ?", id)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
-func (repo *SprinklerRepositoryImpl) AddSpecialMode(mode models.SprinklerSpecialMode) (models.Sprinkler, error) {
+func (repo *SprinklerRepositoryImpl) AddSpecialMode(id int, mode models.SprinklerSpecialMode) (models.Sprinkler, error) {
 	return models.Sprinkler{}, nil
 }
 

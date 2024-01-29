@@ -30,3 +30,54 @@ func (controller SprinklerController) Get(c *gin.Context) {
 	}
 	c.JSON(200, sprinkler)
 }
+
+func (controller SprinklerController) GetAll(c *gin.Context) {
+	sprinklers, err := controller.service.GetAll()
+	if err != nil {
+		c.JSON(400, gin.H{"error": err})
+		return
+	}
+	c.JSON(200, sprinklers)
+}
+
+func (controller SprinklerController) TurnOn(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+
+	sprinkler, err := controller.service.UpdateIsOn(id, true)
+	if err != nil {
+		c.JSON(404, gin.H{"error": err})
+		return
+	}
+	c.JSON(204, sprinkler)
+}
+
+func (controller SprinklerController) TurnOff(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+
+	sprinkler, err := controller.service.UpdateIsOn(id, false)
+	if err != nil {
+		c.JSON(404, gin.H{"error": err})
+		return
+	}
+	c.JSON(204, sprinkler)
+}
+
+func (controller SprinklerController) Delete(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+
+	isDeleted, err := controller.service.Delete(id)
+	if (isDeleted == false) || (err != nil) {
+		c.JSON(404, gin.H{"error": err})
+		return
+	}
+	c.JSON(204, isDeleted)
+}

@@ -127,5 +127,9 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	{
 		sprinklerController := devicesController.NewSprinklerController(db, influxDb)
 		SprinklerRoutes.GET("/:id", sprinklerController.Get)
+		SprinklerRoutes.GET("/", sprinklerController.GetAll)
+		SprinklerRoutes.PUT("/:id/on", sprinklerController.TurnOn)
+		SprinklerRoutes.PUT("/:id/off", sprinklerController.TurnOff)
+		SprinklerRoutes.DELETE("/:id", sprinklerController.Delete)
 	}
 }
