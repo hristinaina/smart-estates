@@ -22,7 +22,6 @@ export class WashingMachine extends Component {
             switchOn: false,
             logData: [],
             startDate: '',
-            endDate: '',
             pickedValue: '',
             snackbarMessage: '',
             showSnackbar: false,
@@ -36,7 +35,8 @@ export class WashingMachine extends Component {
             user: null,
             open: false,
             remainingTime: "00:00:00",
-            intervalId: null
+            intervalId: null,
+            email: ""
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl()); 
@@ -65,11 +65,12 @@ export class WashingMachine extends Component {
         const scheduledModes = await WashingMachineService.getScheduledMode(device.Device.Device.Id);
 
         this.setState({
-        wmName: device.Device.Device.Name,
-        mode: updatedMode,
-        device: device,
-        user: user,
-        scheduledModes: scheduledModes
+            wmName: device.Device.Device.Name,
+            mode: updatedMode,
+            device: device,
+            user: user,
+            email: user.Name + " " + user.Surname,
+            scheduledModes: scheduledModes
         });
 
         const logData = await WashingMachineService.getWMHistoryData(this.id, 'none', "", "");  
