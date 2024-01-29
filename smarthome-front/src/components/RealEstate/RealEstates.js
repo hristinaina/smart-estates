@@ -9,7 +9,6 @@ import Button from '@mui/material/Button';
 
 
 export class RealEstates extends Component {
-
     constructor(props) {
         super(props);
 
@@ -24,10 +23,6 @@ export class RealEstates extends Component {
             selectedRealEstate: -1,
             realEstates: [],
             realEstateImages: {},
-            // for permissions
-            showDropdown: false,
-            selectedRealEstateId: null,
-            showDropdownIndex: null,
         };
     }
 
@@ -115,26 +110,12 @@ export class RealEstates extends Component {
         }
     }
 
-    // just for users not admins
-    handleOptionsClick = (realEstateId) => {
-        this.setState({
-            showDropdown: true,
-            selectedRealEstateId: realEstateId
-        });
+    handleGrantPermission = (realEstateId) => {
+        window.location.assign("/grant-permission/" + realEstateId)
     }
 
-    // Funkcija za rukovanje klikom na opciju "grant permission"
-    handleGrantPermission = () => {
-        // Implementirati logiku za dodelu dozvole
-        // ...
-        this.setState({ showDropdown: false });
-    }
-
-    // Funkcija za rukovanje klikom na opciju "deny permission"
     handleDenyPermission = () => {
-        // Implementirati logiku za odbijanje dozvole
-        // ...
-        this.setState({ showDropdown: false });
+        
     }
 
     render() {
@@ -154,13 +135,12 @@ export class RealEstates extends Component {
                 
                 <div id='real-estates-container'>
                     {this.state.realEstates !== null  ? (
-                    this.state.realEstates.map((realEstate, index) => (
+                    this.state.realEstates.map((realEstate) => (
                         <div 
                             key={realEstate.Id}
-                            className={`real-estate-card ${(realEstate.Id !== this.state.selectedRealEstate && this.state.isAdmin === true) ? 'not-selected-card' : 'selected-card'}`} 
-                            onClick={() => this.handleCardClick(realEstate.Id)}>                           
-                            <img alt='real-estate' src={this.state.realEstateImages[realEstate.Id]} className='real-estate-img' />
-                            <div className='real-estate-info'>
+                            className={`real-estate-card ${(realEstate.Id !== this.state.selectedRealEstate && this.state.isAdmin === true) ? 'not-selected-card' : 'selected-card'}`} >                           
+                            <img alt='real-estate' src={this.state.realEstateImages[realEstate.Id]} className='real-estate-img'  onClick={() => this.handleCardClick(realEstate.Id)} />
+                            <div className='real-estate-info'  onClick={() => this.handleCardClick(realEstate.Id)}>
                                 <p className='real-estate-title'>{realEstate.Name}</p>
                                 <p className='real-estate-text'>
                                 Type: {realEstate.Type === 0 ? 'HOME' : realEstate.Type === 1 ? 'APARTMENT' : 'VILLA'} </p>
@@ -170,16 +150,17 @@ export class RealEstates extends Component {
                                 <p className={`real-estate-text ${realEstate.State === 1 ? 'accepted' : realEstate.State === 0 ? 'pending' : 'declined'}`}>
                                     {realEstate.State === 1 ? 'Accepted' : realEstate.State === 0 ? 'Pending' : 'Declined'}
                                 </p>
-
-                                {realEstate.State === 1 && !this.state.isAdmin && ( 
-                                    <div className="permission-buttons">
-                                        <Button variant='outlined' onClick={() => this.handleGrantPermission(realEstate.Id)} style={{ width: '100px', height:'50px' }}>Deny Permission</Button>
-                                        <Button variant="contained" onClick={() => this.handleDenyPermission(realEstate.Id)} style={{ width: '100px', float: "right", marginRight: "18px", height:'50px' }}>Grant Permission</Button>
-                                    </div>
-                                )}
                             </div>
+
+                            {realEstate.State === 1 && !this.state.isAdmin && ( 
+                                <div className="permission-buttons">
+                                    <Button variant='outlined' onClick={() => this.handleDenyPermission(realEstate.Id)} style={{ marginLeft: "18px", width: '100px', height:'50px' }}>Deny Permission</Button>
+                                    <Button variant="contained" onClick={() => this.handleGrantPermission(realEstate.Id)} style={{ width: '100px', float: "right", marginRight: "18px", height:'50px' }}>Grant Permission</Button>
+                                </div>
+                            )} 
                         </div>
-                    ))): (<p id="nothing-available">No real estates available.</p>)}
+                            
+                        ))): (<p id="nothing-available">No real estates available.</p>)}
                 </div>
 
                 {this.state.isAdmin && (
