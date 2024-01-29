@@ -82,7 +82,6 @@ func (ac *AirConditionerSimulator) GenerateAirConditionerData() {
 	for {
 		select {
 		case <-ticker.C:
-			fmt.Println(ac.off_on)
 			if ac.off_on.Switch {
 				switch ac.off_on.Mode {
 				case "Heating":

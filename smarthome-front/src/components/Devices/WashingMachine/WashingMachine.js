@@ -10,6 +10,8 @@ import LogTable from "../AirConditioner/LogTable";
 import { Navigation } from "../../Navigation/Navigation";
 import WashingMachineService from "../../../services/WashingMachineService";
 import { Close } from "@mui/icons-material";
+import mqtt from 'mqtt';
+
 
 export class WashingMachine extends Component {
     constructor(props) {
@@ -19,15 +21,11 @@ export class WashingMachine extends Component {
             mode: [],
             switchOn: false,
             logData: [],
-            email: '',
             startDate: '',
             endDate: '',
             pickedValue: '',
             snackbarMessage: '',
             showSnackbar: false,
-            open: false,
-            temp: 20.0,
-            currentTemp: "Loading...",
             wmName: "",
             isDialogOpen: false,
             isAllScheduledModeOpen: false,
@@ -35,6 +33,8 @@ export class WashingMachine extends Component {
             selectedMode: '',
             selectedDateTime: '',
             isSaveDisabled: true,
+            user: null,
+            open: false,
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl()); 
@@ -58,51 +58,101 @@ export class WashingMachine extends Component {
             switchOn: false 
         }));
 
+        const user = authService.getCurrentUser();
+
         this.setState({
         wmName: device.Device.Device.Name,
         mode: updatedMode,
-        device: device
+        device: device,
+        user: user
         });
 
-        // const user = authService.getCurrentUser();
-        // this.Name = device.Device.Device.Name;
-        // const logData = await DeviceService.getACHistoryData(this.id, 'none', "", "");      
-        // const data = this.setAction(logData.result)
-        // this.setState({ 
-        //     logData: data,
-        //     email: user.Email,
-        //     pickedValue: "none",
-        //     startDate: "",
-        //     endDate: "",
-        // });
+        // todo change
+        const logData = await WashingMachineService.getWMHistoryData(this.id, 'none', "", "");  
+        console.log(logData)    
+        this.setState({ 
+            logData: logData.result,
+            pickedValue: "none",
+            startDate: "",
+            endDate: "",
+        });
 
-        // try {
-        //     if (!this.connected) {
-        //         this.connected = true;
-        //         this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
-        //             clientId: "react-front-nvt-2023-ac",
-        //             clean: false,
-        //             keepalive: 60
-        //         });
+        try {
+            if (!this.connected) {
+                this.connected = true;
+                this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
+                    clientId: "react-front-nvt-2023-ac",
+                    clean: false,
+                    keepalive: 60
+                });
 
-        //         // Subscribe to the MQTT topic
-        //         this.mqttClient.on('connect', () => {
-        //             this.mqttClient.subscribe('ac/temp');
-        //             this.mqttClient.subscribe('ac/action');
-        //         });
+                // Subscribe to the MQTT topic
+                // this.mqttClient.on('connect', () => {
+                //     this.mqttClient.subscribe('ac/temp');
+                //     this.mqttClient.subscribe('ac/action');
+                // });
 
-        //         // Handle incoming MQTT messages
-        //         this.mqttClient.on('message', (topic, message) => {
-        //             this.handleMqttMessage(topic, message);
-        //         });
-        //     }
-        // } catch (error) {
-        //     console.log("Error trying to connect to broker");
-        //     console.log(error);
-        // }
+                // Handle incoming MQTT messages
+                // this.mqttClient.on('message', (topic, message) => {
+                //     this.handleMqttMessage(topic, message);
+                // });
+            }
+        } catch (error) {
+            console.log("Error trying to connect to broker");
+            console.log(error);
+        }
+    }
+
+    // Handle incoming MQTT messages
+    // handleMqttMessage(topic, message) {
+    //     console.log(topic)
+    //     const result = JSON.parse(message.toString())
+    //     if (result.id === this.id) {
+    //         this.setState({
+    //             currentTemp: result.temp
+    //         });
+    //         if(result.mode != null) {
+    //             console.log("ovde saaaaaaaaaaam")
+    //             this.handleScheduledToggle({
+    //                 name: result.mode,
+    //                 switchOn: !result.switch,
+    //                 temp: result.temp,
+    //             })
+    //         }
+    //     }
+    // }
+
+    sendDataToSimulation = (mode, previous, isSwitchOn, user) => {
+        const topic = "wm/switch/" + this.id;
+
+        var message = {
+            "Mode": mode,
+            "Switch": isSwitchOn,
+            "Previous": previous,
+            "UserEmail": user,
+        }
+        this.mqttClient.publish(topic, JSON.stringify(message));
     }
 
     handleSwitchToggle = (selectedItem) => {
+        const { mode, user } = this.state;
+        const userName = user.Name + " " + user.Surname
+
+        const currentlyActiveMode = mode.find(item => item.switchOn);
+
+        console.log(selectedItem)
+        console.log(currentlyActiveMode)
+    
+        if (currentlyActiveMode) {
+            if (selectedItem.Name === currentlyActiveMode.Name) {
+                this.sendDataToSimulation(selectedItem.Name, '', !selectedItem.switchOn, userName);
+            } else {
+                this.sendDataToSimulation(selectedItem.Name, currentlyActiveMode.Name, !selectedItem.switchOn, userName);
+            }
+        } else {
+            this.sendDataToSimulation(selectedItem.Name, '', !selectedItem.switchOn, userName);
+        }
+    
         this.setState(prevState => ({
             mode: prevState.mode.map(item => ({
                 ...item,
@@ -178,9 +228,35 @@ export class WashingMachine extends Component {
         this.setState({ scheduledModes: scheduledModesWithNames });
     };    
     
+    handleFormSubmit = async (e) => {
+        e.preventDefault();
+
+        const { startDate, endDate, pickedValue } = this.state;
+        if(new Date(startDate) > new Date(endDate)) {
+            this.setState({ snackbarMessage: "Start date must be before end date" });
+            this.handleClick();
+            return 
+        }
+        const logData = await WashingMachineService.getWMHistoryData(this.id, pickedValue, startDate, endDate);
+        this.setState({
+            logData: logData.result,
+        });
+    };
+
+    // snackbar
+    handleClick = () => {
+        this.setState({ open: true });
+    };
+
+    handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        this.setState({ open: false });
+    };
     
     render() {
-        const { wmName, isDialogOpen, selectedMode, scheduledModes, selectedDateTime, device, logData, mode, email, startDate, endDate, currentTemp, pickedValue } = this.state;
+        const { wmName, isDialogOpen, selectedMode, scheduledModes, selectedDateTime, logData, mode, email, startDate, endDate, pickedValue } = this.state;
 
         return (
             <div>

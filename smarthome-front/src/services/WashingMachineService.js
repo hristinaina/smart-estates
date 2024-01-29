@@ -44,6 +44,31 @@ class WashingMachineService {
             throw error;
         }
     }
+
+    async getWMHistoryData(deviceId, email, startDate, endDate) {
+        const hdata = {
+            "DeviceId": deviceId,
+            "UserEmail": email,
+            "StartDate": startDate,
+            "EndDate": endDate
+        }
+        try {
+                const response = await fetch('http://localhost:8081/api/wm/history', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(hdata),
+                credentials: 'include',
+            });
+            const data = await response.json();
+            return data;
+        } 
+        catch (error) {
+            console.error('Error fetching data:', error);
+            throw error;
+        }
+    }
 }
 
 export default new WashingMachineService();

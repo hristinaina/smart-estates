@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 	"smarthome-back/controllers"
+	"smarthome-back/dtos"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/services/devices/inside"
 	"strconv"
@@ -63,4 +64,15 @@ func (uc WashingMachineController) GetScheduledModes(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, device)
+}
+
+func (uc WashingMachineController) GetHistoryData(c *gin.Context) {
+	var data dtos.ActionGraphRequest
+	// convert json object to model device
+	if err := c.BindJSON(&data); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid JSON"})
+		return
+	}
+	results := mqtt_client.GetWMHistory(uc.mqtt.GetInflux(), data)
+	c.JSON(http.StatusOK, gin.H{"result": results})
 }

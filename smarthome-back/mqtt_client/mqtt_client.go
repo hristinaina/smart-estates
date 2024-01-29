@@ -25,6 +25,7 @@ const (
 	TopicSPData        = "sp/data/"
 	TopicACAction      = "ac/action/"
 	TopicACSwitch      = "ac/switch/"
+	TopicWMSwitch      = "wm/switch/"
 	TopicConsumption   = "device/consumption/"
 	TopicApproached    = "device/approached/"
 	TopicVGOpenClose   = "vg/open/"
@@ -68,6 +69,7 @@ func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicSPSwitch+"+", mc.HandleSPSwitch)
 	mc.SubscribeToTopic(TopicSPData+"+", mc.HandleSPData)
 	mc.SubscribeToTopic(TopicACSwitch+"+", mc.HandleActionChange)
+	mc.SubscribeToTopic(TopicWMSwitch+"+", mc.HandleWMAction)
 	mc.SubscribeToTopic(TopicPayload+"+", mc.HandleValueChange)
 	mc.SubscribeToTopic(TopicConsumption+"+", mc.HandleHBData)
 	mc.SubscribeToTopic(TopicApproached+"+", mc.HandleVehicleApproached)

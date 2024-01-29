@@ -131,5 +131,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		washingMachineRoutes.GET("/:id", washingMachineController.Get)
 		washingMachineRoutes.POST("/schedule", middleware.RequireAuth, washingMachineController.AddScheduledMode)
 		washingMachineRoutes.GET("/schedule/:id", middleware.RequireAuth, washingMachineController.GetScheduledModes)
+		washingMachineRoutes.PUT("history", middleware.RequireAuth, washingMachineController.GetHistoryData)
 	}
 }

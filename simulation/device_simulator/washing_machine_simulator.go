@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	topicWMSwitch = "ac/switch/" // front salje sta se upalilo/ugasilo i ide do back-a
+	topicWMSwitch = "wm/switch/" // front salje sta se upalilo/ugasilo i ide do back-a uopste ne ide do simulacije
 )
 
 type WashingMachineSimulator struct {
@@ -39,7 +39,7 @@ func NewWashingMachineSimulator(client mqtt.Client, device models.Device) *Washi
 
 func (wm *WashingMachineSimulator) ConnectWashingMachine() {
 	go SendHeartBeat(wm.client, wm.device.Device.Device.ID, wm.device.Device.Device.Name)
-	config.SubscribeToTopic(wm.client, topicWMSwitch+strconv.Itoa(wm.device.Device.Device.ID), wm.HandleSwitchChange)
+	//config.SubscribeToTopic(wm.client, topicWMSwitch+strconv.Itoa(wm.device.Device.Device.ID), wm.HandleSwitchChange)
 }
 
 func (wm *WashingMachineSimulator) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
@@ -48,8 +48,8 @@ func (wm *WashingMachineSimulator) HandleSwitchChange(client mqtt.Client, msg mq
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	var washing_machine models.WMReceiveValue
-	// Unmarshal the JSON string into the struct
 	err = json.Unmarshal([]byte(msg.Payload()), &washing_machine)
 	if err != nil {
 		fmt.Println("Error unmarshaling JSON:", err)
