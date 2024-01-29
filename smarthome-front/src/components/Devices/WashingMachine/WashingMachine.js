@@ -120,6 +120,7 @@ export class WashingMachine extends Component {
     }
 
     sendDataToSimulation = (mode, previous, isSwitchOn, user) => {
+        console.log("saljiiiiii")
         const topic = "wm/switch/" + this.id;
 
         var message = {
@@ -133,8 +134,9 @@ export class WashingMachine extends Component {
 
     handleSwitchToggle = (selectedItem, source) => {
         console.log("usao je ovde u toggle")
+        console.log(selectedItem)
         const { mode, user } = this.state;
-        const userName = user.Name + " " + user.Surname
+        let userName = user.Name + " " + user.Surname
 
         if (source === "mqtt") {
             userName = "auto";
@@ -144,6 +146,7 @@ export class WashingMachine extends Component {
     
         if (currentlyActiveMode) {
             if (selectedItem.Name === currentlyActiveMode.Name) {
+                // user turn off
                 this.sendDataToSimulation(selectedItem.Name, '', !selectedItem.switchOn, userName);
                 this.updateRemainingTime(0);
             } else {
@@ -151,6 +154,7 @@ export class WashingMachine extends Component {
                 this.updateRemainingTime(selectedItem.Duration);
             }
         } else {
+            console.log("ovde smooooo")
             this.sendDataToSimulation(selectedItem.Name, '', !selectedItem.switchOn, userName);
             this.updateRemainingTime(selectedItem.Duration);
         }
