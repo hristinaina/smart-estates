@@ -14,14 +14,16 @@ import (
 )
 
 const (
-	topicWMSwitch  = "wm/switch/"  // front salje sta se upalilo/ugasilo i ide do back-a uopste ne ide do simulacije
-	topicScheduled = "wm/schedule" // slanje na front da se upali zakazan rezim
+	topicWMSwitch    = "wm/switch/"  // front salje sta se upalilo/ugasilo i ide do back-a uopste ne ide do simulacije
+	topicScheduled   = "wm/schedule" // slanje na front da se upali zakazan rezim
+	topicGetSchedule = "wm/get/"     // prima sa fronta da li je nesto novo zakazano
 )
 
 type WashingMachineSimulator struct {
-	client mqtt.Client
-	device models.WashingMachine
-	off_on models.WMReceiveValue
+	client       mqtt.Client
+	device       models.WashingMachine
+	off_on       models.WMReceiveValue
+	stopSchedule chan struct{}
 }
 
 func NewWashingMachineSimulator(client mqtt.Client, device models.Device) *WashingMachineSimulator {
@@ -30,14 +32,6 @@ func NewWashingMachineSimulator(client mqtt.Client, device models.Device) *Washi
 		fmt.Println(err)
 		return nil
 	}
-
-	scheduledMode, err := config.GetWashingMachineScheduledMode(device.ID)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-
-	wm.ScheduledMode = scheduledMode
 
 	off_on := models.WMReceiveValue{}
 
@@ -51,7 +45,7 @@ func NewWashingMachineSimulator(client mqtt.Client, device models.Device) *Washi
 func (wm *WashingMachineSimulator) ConnectWashingMachine() {
 	go SendHeartBeat(wm.client, wm.device.Device.Device.ID, wm.device.Device.Device.Name)
 	go wm.ScheduleMode()
-	//config.SubscribeToTopic(wm.client, topicWMSwitch+strconv.Itoa(wm.device.Device.Device.ID), wm.HandleSwitchChange)
+	config.SubscribeToTopic(wm.client, topicGetSchedule+strconv.Itoa(wm.device.Device.Device.ID), wm.HandleSwitchChange)
 }
 
 func (wm *WashingMachineSimulator) ScheduleMode() {
@@ -67,7 +61,6 @@ func (wm *WashingMachineSimulator) ScheduleMode() {
 		for {
 			select {
 			case <-ticker.C:
-				fmt.Println("usao je ovde imamo danas")
 				now := time.Now().In(loc)
 
 				startTime, err := time.ParseInLocation("2006-01-02 15:04:05", first.StartTime, loc)
@@ -75,10 +68,6 @@ func (wm *WashingMachineSimulator) ScheduleMode() {
 					fmt.Printf("Error parsing start time: %v\n", err)
 					continue
 				}
-
-				fmt.Println("ovo je start time")
-				fmt.Println("startTime: ", startTime)
-				fmt.Println("sada ", now)
 
 				if now.After(startTime) || now.Equal(startTime) {
 					fmt.Println("Time to execute scheduled mode!")
@@ -89,18 +78,29 @@ func (wm *WashingMachineSimulator) ScheduleMode() {
 					}
 					jsonString, err := json.Marshal(data)
 					if err != nil {
-						fmt.Println("greska")
+						fmt.Println(err)
 					}
 					config.PublishToTopic(wm.client, topicScheduled, string(jsonString))
 					return
 				}
+
+			case <-wm.stopSchedule:
+				fmt.Println("ScheduleMode interrupted")
+				return
 			}
 		}
 	}
-
 }
 
 func (wm *WashingMachineSimulator) getFirstScheduledToday() *models.ScheduledMode {
+	scheduledMode, err := config.GetWashingMachineScheduledMode(wm.device.Device.Device.ID)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	wm.device.ScheduledMode = scheduledMode
+
 	today := time.Now().Format("2006-01-02")
 
 	// Sortirajte listu zakazanih termina po vremenu početka
@@ -140,8 +140,14 @@ func (wm *WashingMachineSimulator) HandleSwitchChange(client mqtt.Client, msg mq
 		return
 	}
 
-	// set values
-	wm.off_on = washing_machine
-	fmt.Println("PRIMLJENA PORUKA u ves masini")
-	fmt.Println(wm.off_on)
+	if washing_machine.Get {
+		fmt.Println("PRIMLJENA PORUKA u ves masini")
+
+		if wm.stopSchedule != nil {
+			close(wm.stopSchedule)
+		}
+		wm.stopSchedule = make(chan struct{})
+		go wm.ScheduleMode()
+	}
+
 }

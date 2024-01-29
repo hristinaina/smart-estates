@@ -107,20 +107,15 @@ export class WashingMachine extends Component {
 
     // Handle incoming MQTT messages
     handleMqttMessageForWM(topic, message) {
-        console.log(topic)
-        console.log(message)
         const result = JSON.parse(message.toString())
-        console.log(result)
         
         if(result.id == this.state.device.Device.Device.Id) {
-            console.log("prosao je idijeve")
             const selectedMode = this.state.mode.find(item => item.Id === result.mode);
             this.handleSwitchToggle(selectedMode, "mqtt")
         }    
     }
 
     sendDataToSimulation = (mode, previous, isSwitchOn, user) => {
-        console.log("saljiiiiii")
         const topic = "wm/switch/" + this.id;
 
         var message = {
@@ -132,9 +127,16 @@ export class WashingMachine extends Component {
         this.mqttClient.publish(topic, JSON.stringify(message));
     }
 
+    sendDataToGetScheduleMode = () => {
+        const topic = "wm/get/" + this.id;
+
+        var message = {
+            "Get": true,
+        }
+        this.mqttClient.publish(topic, JSON.stringify(message));
+    }
+
     handleSwitchToggle = (selectedItem, source) => {
-        console.log("usao je ovde u toggle")
-        console.log(selectedItem)
         const { mode, user } = this.state;
         let userName = user.Name + " " + user.Surname
 
@@ -154,7 +156,6 @@ export class WashingMachine extends Component {
                 this.updateRemainingTime(selectedItem.Duration);
             }
         } else {
-            console.log("ovde smooooo")
             this.sendDataToSimulation(selectedItem.Name, '', !selectedItem.switchOn, userName);
             this.updateRemainingTime(selectedItem.Duration);
         }
@@ -202,17 +203,30 @@ export class WashingMachine extends Component {
         this.setState({ isSaveDisabled });
     };
 
-    isAlreadyScheduleForSelectedDate = () => {
-        let isAlreadyScheduled = false
-        this.state.scheduledModes.some(mode => {
-            const modeDateObject = new Date(mode.StartTime);
-            const selectedDateObject = new Date(this.state.selectedDateTime);
-            if (modeDateObject.getTime() === selectedDateObject.getTime()) {
-                isAlreadyScheduled = true
+    isAlreadyScheduleForSelectedDate = (duration) => {
+        const selectedDateTime = new Date(this.state.selectedDateTime);
+    
+        const programDurationInMilliseconds = duration * 60 * 1000;
+    
+        const startTimeOfNewProgram = selectedDateTime.getTime();
+        const endTimeOfNewProgram = startTimeOfNewProgram + programDurationInMilliseconds;
+    
+        return this.state.scheduledModes.some(mode => {
+            const modeStartTime = new Date(mode.StartTime).getTime();
+            let modeDuration = 60
+            if(mode.ModeId == 1) modeDuration = 120
+            else if (mode.ModeId == 3) modeDuration = 30
+            else if (mode.ModeId == 4) modeDuration = 90
+            const modeEndTime = modeStartTime + (modeDuration * 60 * 1000); 
+    
+            if (startTimeOfNewProgram === modeStartTime) {
+                return true;
             }
+    
+            return ((startTimeOfNewProgram < modeEndTime && endTimeOfNewProgram > modeStartTime) || (startTimeOfNewProgram < modeEndTime && startTimeOfNewProgram > modeStartTime) || (startTimeOfNewProgram < modeStartTime && endTimeOfNewProgram > modeStartTime));
         });
-        return isAlreadyScheduled
     }
+    
 
     handleSave = async () => {
         const selectedMode = this.state.mode.find(mode => mode.Name === this.state.selectedMode);
@@ -223,12 +237,14 @@ export class WashingMachine extends Component {
             ModeId: selectedMode.Id           
         };
 
-        if(!this.isAlreadyScheduleForSelectedDate()) {
+        if(!this.isAlreadyScheduleForSelectedDate(selectedMode.Duration)) {
             await WashingMachineService.scheduledMode(requestData);
 
             const scheduledModes = await WashingMachineService.getScheduledMode(this.state.device.Device.Device.Id);
             console.log(scheduledModes)
             this.setState({ scheduledModes: scheduledModes })
+
+            this.sendDataToGetScheduleMode()
         }         
         else {
             this.setState({ snackbarMessage: "Scheduled mode already exists at the selected time" });

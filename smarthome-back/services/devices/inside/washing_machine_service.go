@@ -239,7 +239,6 @@ func (res *WashingMachineServiceImpl) GetAllScheduledModesForDevice(deviceId int
 	defer rows.Close()
 
 	var modes []inside.ScheduledMode
-	// currentTime := time.Now() // Trenutno vreme
 	for rows.Next() {
 		var (
 			mode         inside.ScheduledMode

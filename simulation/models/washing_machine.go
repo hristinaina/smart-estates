@@ -22,8 +22,5 @@ type ScheduledMode struct {
 }
 
 type WMReceiveValue struct {
-	Mode      string
-	Switch    bool
-	Previous  string
-	UserEmail string
+	Get bool
 }
