@@ -122,4 +122,14 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		vehicleGateRoutes.GET("/license-plate", vehicleGateController.GetAllLicensePlates)
 		vehicleGateRoutes.GET("/count/:id/:from/:to/:license-plate", vehicleGateController.GetLicencePlatesCount)
 	}
+
+	washingMachineRoutes := r.Group("/api/wm")
+	{
+		middleware := middleware.NewMiddleware(db)
+		washingMachineController := devicesController.NewWashingMachineController(db, mqtt)
+		washingMachineRoutes.GET("/:id", washingMachineController.Get)
+		washingMachineRoutes.POST("/schedule", middleware.RequireAuth, washingMachineController.AddScheduledMode)
+		washingMachineRoutes.GET("/schedule/:id", washingMachineController.GetScheduledModes)
+		washingMachineRoutes.PUT("history", middleware.RequireAuth, washingMachineController.GetHistoryData)
+	}
 }
