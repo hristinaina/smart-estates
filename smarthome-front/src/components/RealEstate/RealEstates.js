@@ -14,7 +14,7 @@ export class RealEstates extends Component {
 
         this.state = {
             showNewRealEstate: false,
-            user : null,
+            user : {},
             isAdmin: false,
             userId: -1,
             isDisabled: true,
@@ -37,8 +37,8 @@ export class RealEstates extends Component {
             await this.setState({isAdmin: false});
         }
         
-        await this.setState({user: currentUser, userId: currentUser.Id, });
-        console.log("comp did mount");
+        this.setState({user: currentUser, userId: currentUser.Id, });
+        
         try {
             if (!this.state.isAdmin) {
                 const result = await RealEstateService.getAllByUserId(currentUser.Id);
@@ -115,11 +115,11 @@ export class RealEstates extends Component {
     }
 
     handleDenyPermission = () => {
-        
+        // todo
     }
 
     render() {
-        const { user, realEstates, showDropdown, selectedRealEstateId } = this.state;
+        const { user, userId, realEstates, showDropdown, selectedRealEstateId } = this.state;
 
         if (!user) return null;
         
@@ -152,7 +152,7 @@ export class RealEstates extends Component {
                                 </p>
                             </div>
 
-                            {realEstate.State === 1 && !this.state.isAdmin && ( 
+                            {realEstate.State === 1 && !this.state.isAdmin && realEstate.User == userId && ( 
                                 <div className="permission-buttons">
                                     <Button variant='outlined' onClick={() => this.handleDenyPermission(realEstate.Id)} style={{ marginLeft: "18px", width: '100px', height:'50px' }}>Deny Permission</Button>
                                     <Button variant="contained" onClick={() => this.handleGrantPermission(realEstate.Id)} style={{ width: '100px', float: "right", marginRight: "18px", height:'50px' }}>Grant Permission</Button>

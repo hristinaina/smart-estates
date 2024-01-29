@@ -3,13 +3,15 @@ import { Component } from "react";
 import { Navigation } from "../Navigation/Navigation";
 import RealEstateService from "../../services/RealEstateService";
 import DeviceService from "../../services/DeviceService";
+import authService from "../../services/AuthService";
+import PermissionService from "../../services/PermissionService";
 
 export class GrantPermission extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            realEstateName: "",
+            realEstate: {},
             devices: [],
 
             emails: [],
@@ -18,15 +20,24 @@ export class GrantPermission extends Component {
 
             selectedDevices: [],
             selectAll: false,
+
+            grantPermissionDisabled: true,
+
+            snackbarMessage: '',
+            showSnackbar: false,
+            open: false,
         };
     }
 
     async componentDidMount() {
+        const valid = authService.validateUser();
+        if (!valid) window.location.assign("/");
+
         const parts = window.location.href.split('/');
         const id = parts[parts.length - 1];
 
         const realEstate = await RealEstateService.getById(id)
-        this.setState({ realEstateName: realEstate.Name })
+        this.setState({ realEstate: realEstate })
 
         const devices = await DeviceService.getDevices(id)
         this.setState({ devices: devices})
@@ -42,7 +53,9 @@ export class GrantPermission extends Component {
 
         if (event.key === 'Enter' && newEmail.trim() !== '') {
             if (emails.length < maxEmails) {
-                this.setState({ emails: [...emails, newEmail], newEmail: '' });
+                this.setState({ emails: [...emails, newEmail], newEmail: '' }, () => {
+                    this.setState({ grantPermissionDisabled: this.checkGrantPermissionDisabled() }); 
+                });
             }
         } 
     }
@@ -58,11 +71,15 @@ export class GrantPermission extends Component {
         const { devices } = this.state;
         const isChecked = event.target.checked;
 
-        if (isChecked)
-            this.setState({ selectedDevices: devices, selectAll: true });
-
-        else 
-        this.setState({ selectedDevices: [], selectAll: false });
+        if (isChecked) {
+            this.setState({ selectedDevices: devices, selectAll: true }, () => {
+                this.setState({ grantPermissionDisabled: this.checkGrantPermissionDisabled() }); 
+            });
+        } else {
+            this.setState({ selectedDevices: [], selectAll: false }, () => {
+                this.setState({ grantPermissionDisabled: this.checkGrantPermissionDisabled() }); 
+            });
+        }
     }
 
     handleDeviceChange = (event, deviceId) => {
@@ -70,18 +87,56 @@ export class GrantPermission extends Component {
         const isChecked = event.target.checked;
 
         if (isChecked) {
-            
-            this.setState({ selectedDevices: [...selectedDevices, deviceId] });
+            this.setState({ selectedDevices: [...selectedDevices, deviceId] }, () => {
+                this.setState({ grantPermissionDisabled: this.checkGrantPermissionDisabled() }); 
+            });
         } else {
-            this.setState({ selectedDevices: selectedDevices.filter(id => id !== deviceId) });
+            this.setState({ selectedDevices: selectedDevices.filter(id => id !== deviceId) }, () => {
+                this.setState({ grantPermissionDisabled: this.checkGrantPermissionDisabled() }); 
+            });
         }
-
-        console.log(selectedDevices)
     }
 
-    handleGrantPermission = () => {
-        // todo
+    checkGrantPermissionDisabled = () => {
+        const { emails, selectedDevices } = this.state;
+        return !(emails.length > 0 && selectedDevices.length > 0);
+    };
+
+    handleGrantPermission = async () => {
+        const user = authService.getCurrentUser()
+        const deviceIds = this.state.selectedDevices.map(device => device.Id);
+        console.log(this.state.emails)
+        console.log(deviceIds)
+        console.log(this.state.realEstate.Id)
+        console.log(this.state.realEstate.Name)
+        console.log(user.Name + " " + user.Surname)
+
+        await PermissionService.sendGrantValues({
+            "Emails": this.state.emails,
+            "Devices": deviceIds,
+            "RealEstateId": this.state.realEstate.Id,
+            "RealEstateName": this.state.realEstate.Name,
+            "User": user.Name + " " + user.Surname
+        })
+
+        this.setState({ selectedDevices: [], selectAll: false, newEmail: "", emails: [], grantPermissionDisabled: true })
+
+        this.setState({ snackbarMessage: "Successfully granted permissions!" });
+        this.handleClick();
+        
     }
+
+    // snackbar
+    handleClick = () => {
+        this.setState({ open: true });
+    };
+
+    handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        this.setState({ open: false });
+    };
 
 
     render() {
@@ -102,11 +157,6 @@ export class GrantPermission extends Component {
                                 fullWidth
                                 variant="outlined"
                                 placeholder="Enter email addresses"
-                                // InputProps={{
-                                //     startAdornment: (
-                                //         <Chip variant="outlined" />
-                                //     ),
-                                // }}
                             />
                             <div>
                                 {emails.map((email, index) => (
@@ -131,7 +181,6 @@ export class GrantPermission extends Component {
                                 label={<span style={{ fontWeight: 'bold' }}>Select All</span>}
                             />
                             {devices.map(device => (
-                                // <div>
                                 <FormControlLabel
                                     key={device.Id}
                                     control={
@@ -142,14 +191,13 @@ export class GrantPermission extends Component {
                                     }
                                     label={device.Name}
                                 />
-                                // </div>
                             ))}
                         </div>
-                        <Button onClick={this.handleGrantPermission} variant="contained" color="primary">Grant Permission</Button>
+                        <Button onClick={this.handleGrantPermission} variant="contained" color="primary" disabled={this.state.grantPermissionDisabled}>Grant Permission</Button>
                     </div>
 
                     <div id='sp-right-card'>
-                        <p className='sp-card-title'>All permissions for {this.state.realEstateName} </p>
+                        <p className='sp-card-title'>All permissions for {this.state.realEstate.Name} </p>
                         {/* <form onSubmit={this.handleFormSubmit} className='sp-container'>
                             <label>
                                 Email:

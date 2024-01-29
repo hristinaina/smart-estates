@@ -123,4 +123,11 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		vehicleGateRoutes.GET("/license-plate", vehicleGateController.GetAllLicensePlates)
 		vehicleGateRoutes.GET("/count/:id/:from/:to/:license-plate", vehicleGateController.GetLicencePlatesCount)
 	}
+
+	permissionRoutes := r.Group("/api/permission")
+	{
+		middleware := middleware.NewMiddleware(db)
+		permissionController := controllers.NewPermissionController(db)
+		permissionRoutes.POST("", middleware.RequireAuth, permissionController.ReceiveGrantPermission)
+	}
 }

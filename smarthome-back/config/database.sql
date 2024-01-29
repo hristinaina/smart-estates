@@ -103,6 +103,16 @@ CREATE TABLE licensePlate (
                             FOREIGN KEY (DeviceId) REFERENCES vehicleGate(DeviceId)
 );
 
+CREATE TABLE permission (
+    Id INT PRIMARY KEY,
+    RealEstateId INT NOT NULL,
+    DeviceId INT NOT NULL,
+    UserEmail VARCHAR(255) NOT NULL,
+    isActive BOOLEAN NOT NULL,
+    FOREIGN KEY (RealEstateId) REFERENCES realestate(Id),
+    FOREIGN KEY (DeviceId) REFERENCES device(Id)
+);
+
 INSERT INTO user (Id, Email, Password, Name, Surname, Role)
 VALUES
     (1, 'nesa@gmail.com', '$2a$10$/fbbLLHt7hEZpMq3rQiWz.oF6cJRRNdO5Vek/NIGzAIyJp99jebrO', 'Nenad', 'Peric', 0),
