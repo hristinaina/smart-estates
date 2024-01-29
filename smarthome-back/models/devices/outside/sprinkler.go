@@ -5,14 +5,14 @@ import models "smarthome-back/models/devices"
 type Sprinkler struct {
 	ConsumptionDevice models.ConsumptionDevice
 	IsOn              bool
-	SpecialModel      SprinklerSpecialMode
+	SpecialMode       SprinklerSpecialMode
 }
 
 func NewSprinkler(device models.ConsumptionDevice, isOn bool, specialMode SprinklerSpecialMode) Sprinkler {
 	return Sprinkler{
 		ConsumptionDevice: device,
 		IsOn:              isOn,
-		SpecialModel:      specialMode,
+		SpecialMode:       specialMode,
 	}
 }
 

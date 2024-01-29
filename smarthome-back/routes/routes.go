@@ -122,4 +122,10 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		vehicleGateRoutes.GET("/license-plate", vehicleGateController.GetAllLicensePlates)
 		vehicleGateRoutes.GET("/count/:id/:from/:to/:license-plate", vehicleGateController.GetLicencePlatesCount)
 	}
+
+	SprinklerRoutes := r.Group("api/sprinkler")
+	{
+		sprinklerController := devicesController.NewSprinklerController(db, influxDb)
+		SprinklerRoutes.GET("/:id", sprinklerController.Get)
+	}
 }
