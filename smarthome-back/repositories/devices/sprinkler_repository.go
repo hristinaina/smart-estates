@@ -16,6 +16,7 @@ type SprinklerRepository interface {
 	UpdateIsOn(id int, isOn bool) (bool, error)
 	Delete(id int) (bool, error)
 	AddSpecialMode(id int, mode models.SprinklerSpecialMode) (models.Sprinkler, error)
+	Add(sprinkler models.Sprinkler) (models.Sprinkler, error)
 }
 
 type SprinklerRepositoryImpl struct {
@@ -149,4 +150,46 @@ func (repo *SprinklerRepositoryImpl) scanRows(rows *sql.Rows) ([]models.Sprinkle
 	}
 
 	return sprinklers, nil
+}
+
+func (repo *SprinklerRepositoryImpl) Add(device models.Sprinkler) (models.Sprinkler, error) {
+	tx, err := repo.db.Begin()
+	if err != nil {
+		return models.Sprinkler{}, err
+	}
+	defer tx.Rollback()
+	result, err := tx.Exec(`
+		INSERT INTO Device (Name, Type, RealEstate, IsOnline)
+		VALUES (?, ?, ?, ?)
+	`, device.ConsumptionDevice.Device.Name, device.ConsumptionDevice.Device.Type,
+		device.ConsumptionDevice.Device.RealEstate, device.ConsumptionDevice.Device.IsOnline)
+	if err != nil {
+		return models.Sprinkler{}, err
+	}
+
+	deviceID, err := result.LastInsertId()
+	if err != nil {
+		return models.Sprinkler{}, err
+	}
+
+	result, err = tx.Exec(`
+							INSERT INTO ConsumptionDevice(DeviceId, PowerSupply, PowerConsumption)
+							VALUES (?, ?, ?)`, deviceID, device.ConsumptionDevice.PowerSupply,
+		device.ConsumptionDevice.PowerConsumption)
+	if err != nil {
+		return models.Sprinkler{}, err
+	}
+
+	result, err = tx.Exec(`
+							INSERT INTO Sprinkler(DeviceId, IsOn)
+							VALUES (?, ?)`, deviceID, device.IsOn)
+	if err != nil {
+		return models.Sprinkler{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return models.Sprinkler{}, err
+	}
+	device.ConsumptionDevice.Device.Id = int(deviceID)
+
+	return device, nil
 }

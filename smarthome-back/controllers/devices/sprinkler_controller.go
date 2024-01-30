@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"smarthome-back/controllers"
+	"smarthome-back/dtos"
 	services "smarthome-back/services/devices/outside"
 	"strconv"
 )
@@ -80,4 +81,20 @@ func (controller SprinklerController) Delete(c *gin.Context) {
 		return
 	}
 	c.JSON(204, isDeleted)
+}
+
+func (controller SprinklerController) Add(c *gin.Context) {
+	var dto dtos.DeviceDTO
+
+	if err := c.BindJSON(&dto); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	sprinkler, err := controller.service.Add(dto)
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+
+	c.JSON(200, sprinkler)
 }

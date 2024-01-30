@@ -39,6 +39,7 @@ type DeviceServiceImpl struct {
 	ambientSensorService  inside.AmbientSensorService
 	lampService           outside.LampService
 	vehicleGateService    outside.VehicleGateService
+	sprinklerService      outside.SprinklerService
 	mqtt                  *mqtt_client.MQTTClient
 	deviceRepository      repositories.DeviceRepository
 }
@@ -46,8 +47,8 @@ type DeviceServiceImpl struct {
 func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceService {
 	return &DeviceServiceImpl{db: db, airConditionerService: inside.NewAirConditionerService(db), evChargerService: energetic.NewEVChargerService(db),
 		homeBatteryService: energetic.NewHomeBatteryService(db, influxDb), lampService: outside.NewLampService(db, influxDb),
-		vehicleGateService: outside.NewVehicleGateService(db, influxDb),
-		mqtt:               mqtt, deviceRepository: repositories.NewDeviceRepository(db),
+		vehicleGateService: outside.NewVehicleGateService(db, influxDb), sprinklerService: outside.NewSprinklerService(db, influxDb),
+		mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db),
 		solarPanelService: energetic.NewSolarPanelService(db, influxDb), ambientSensorService: inside.NewAmbientSensorService(db)}
 }
 
@@ -94,6 +95,12 @@ func (res *DeviceServiceImpl) Add(dto dtos.DeviceDTO) (models.Device, error) {
 			return models.Device{}, err
 		}
 		device = gate.ToDevice()
+	} else if dto.Type == 5 {
+		sprinkler, err := res.sprinklerService.Add(dto)
+		if err != nil {
+			return models.Device{}, err
+		}
+		device = sprinkler.ToDevice()
 	} else if dto.Type == 8 {
 		device = res.evChargerService.Add(dto).ToDevice()
 	} else if dto.Type == 7 {

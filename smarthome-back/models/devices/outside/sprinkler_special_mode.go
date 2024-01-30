@@ -3,7 +3,7 @@ package models
 import "smarthome-back/enumerations"
 
 type SprinklerSpecialMode struct {
-	// TODO: vidjeti sa tasijom da njena SpecialMode naslijedi ovu klasu
+	// TODO: vidjeti sa tasijom da njena SpecialModes naslijedi ovu klasu
 	StartTime    string
 	EndTime      string
 	SelectedDays []enumerations.Days
