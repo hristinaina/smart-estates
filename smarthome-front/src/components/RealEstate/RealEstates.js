@@ -151,14 +151,14 @@ export class RealEstates extends Component {
                                 <p className='real-estate-text'>Address: {realEstate.Address}</p>
                                 <p className='real-estate-text'>Square Footage: {realEstate.SquareFootage}</p>
                                 <p className='real-estate-text'>Number of Floors: {realEstate.NumberOfFloors}</p>
-                                <p className={`real-estate-text ${realEstate.State === 1 ? 'accepted' : realEstate.State === 0 ? 'pending' : 'declined'}`}>
+                                <p style={{float: "left"}} className={`real-estate-text ${realEstate.State === 1 ? 'accepted' : realEstate.State === 0 ? 'pending' : 'declined'}`}>
                                     {realEstate.State === 1 ? 'Accepted' : realEstate.State === 0 ? 'Pending' : 'Declined'}
                                 </p>
                             </div>
 
                             {realEstate.State === 1 && !this.state.isAdmin && realEstate.User == userId && ( 
                                 <div className="permission-buttons">
-                                    <Button variant="contained" onClick={() => this.handleGrantPermission(realEstate.Id)} style={{ width: '100px', float: "right", marginRight: "18px", height:'50px' }}>Grant Permission</Button>
+                                    <Button variant="contained" onClick={() => this.handleGrantPermission(realEstate.Id)} style={{ width: '120px', float: "right", marginRight: "18px", height:'30px', marginTop: "15px" }}>Permissions</Button>
                                 </div>
                             )} 
                         </div>
@@ -178,10 +178,13 @@ export class RealEstates extends Component {
                                 <p className='real-estate-text'>Address: {realEstate.Address}</p>
                                 <p className='real-estate-text'>Square Footage: {realEstate.SquareFootage}</p>
                                 <p className='real-estate-text'>Number of Floors: {realEstate.NumberOfFloors}</p>
-                                <p className={`real-estate-text ${realEstate.State === 1 ? 'accepted' : realEstate.State === 0 ? 'pending' : 'declined'}`}>
+                                <p style={{float: "left"}} className={`real-estate-text ${realEstate.State === 1 ? 'accepted' : realEstate.State === 0 ? 'pending' : 'declined'}`}>
                                     {realEstate.State === 1 ? 'Accepted' : realEstate.State === 0 ? 'Pending' : 'Declined'}
                                 </p>
                             </div> 
+                            <div className="permission-buttons">
+                                <p style={{ float: "right", color: "#806894", fontWeight: "bold", fontSize:"25px", margin: "8px 15px 0 10px"}}>Shared</p>
+                            </div>
                         </div>      
                         )))}
 
