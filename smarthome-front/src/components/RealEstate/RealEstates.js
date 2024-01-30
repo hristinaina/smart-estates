@@ -99,10 +99,11 @@ export class RealEstates extends Component {
         window.location.href = '/new-real-estate';
     }
 
-    handleCardClick = (id) => {
-        this.setState({selectedRealEstate: id, isDisabled: false});
+    handleCardClick = (realEstate) => {
+        this.setState({selectedRealEstate: realEstate.Id, isDisabled: false});
         if (!this.state.isAdmin){
-            localStorage.setItem("real-estate", id);
+            localStorage.setItem("real-estate", realEstate.Id);
+            localStorage.setItem("owner", realEstate.User);
             window.location.assign("/devices")
         }
     }
@@ -143,7 +144,7 @@ export class RealEstates extends Component {
                             key={realEstate.Id}
                             className={`real-estate-card ${(realEstate.Id !== this.state.selectedRealEstate && this.state.isAdmin === true) ? 'not-selected-card' : 'selected-card'}`} >                           
                             <img alt='real-estate' src={this.state.realEstateImages[realEstate.Id]} className='real-estate-img'  onClick={() => this.handleCardClick(realEstate.Id)} />
-                            <div className='real-estate-info'  onClick={() => this.handleCardClick(realEstate.Id)}>
+                            <div className='real-estate-info'  onClick={() => this.handleCardClick(realEstate)}>
                                 <p className='real-estate-title'>{realEstate.Name}</p>
                                 <p className='real-estate-text'>
                                 Type: {realEstate.Type === 0 ? 'HOME' : realEstate.Type === 1 ? 'APARTMENT' : 'VILLA'} </p>
@@ -170,7 +171,7 @@ export class RealEstates extends Component {
                             key={realEstate.Id}
                             className={`real-estate-card ${(realEstate.Id !== this.state.selectedRealEstate && this.state.isAdmin === true) ? 'not-selected-card' : 'selected-card'}`} >                           
                             <img alt='real-estate' src={this.state.realEstateImages[realEstate.Id]} className='real-estate-img'  onClick={() => this.handleCardClick(realEstate.Id)} />
-                            <div className='real-estate-info'  onClick={() => this.handleCardClick(realEstate.Id)}>
+                            <div className='real-estate-info'  onClick={() => this.handleCardClick(realEstate)}>
                                 <p className='real-estate-title'>{realEstate.Name}</p>
                                 <p className='real-estate-text'>
                                 Type: {realEstate.Type === 0 ? 'HOME' : realEstate.Type === 1 ? 'APARTMENT' : 'VILLA'} </p>

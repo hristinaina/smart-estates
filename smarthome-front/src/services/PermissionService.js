@@ -1,3 +1,5 @@
+import DeviceService from "./DeviceService";
+
 class PermissionService {
 
     async sendGrantValues(request) {
@@ -97,10 +99,31 @@ class PermissionService {
                 },
                 credentials: 'include',
             })
-            
+
             const data = await response.json();
             if (data != null)
                 return data;
+            else 
+                return [];
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            throw error;
+        }
+    }
+
+    async getDevices(id, userId) {
+        try {
+            const response = await fetch('http://localhost:8081/api/permission/get-devices/'+id+"/"+userId, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            })
+            
+            const data = await response.json();
+            if (data != null)
+                return DeviceService.replaceTypeWithString(data);
             else 
                 return [];
         } catch (error) {

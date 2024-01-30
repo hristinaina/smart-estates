@@ -17,6 +17,7 @@ type PermissionRepository interface {
 	GetPermissionByRealEstate(realEstateId int) []dtos.PermissionDTO
 	DeletePermission(realEstateId int, permission dtos.PermissionDTO) error
 	GetPermitRealEstateByEmail(email string) []models.RealEstate
+	GetDeviceForSharedRealEstate(email string, realEstateId int) []PermissionDevice
 }
 
 type PermissionRepositoryImpl struct {
@@ -126,7 +127,6 @@ func (res *PermissionRepositoryImpl) GetPermitRealEstateByEmail(email string) []
 
 	rows, err := res.db.Query(query, email)
 	if err != nil {
-		fmt.Println("greska1")
 		return nil
 	}
 	defer rows.Close()
@@ -141,11 +141,40 @@ func (res *PermissionRepositoryImpl) GetPermitRealEstateByEmail(email string) []
 		if err := rows.Scan(
 			&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address, &realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors, &realEstate.Picture, &realEstate.State, &realEstate.User, &realEstate.DiscardReason,
 		); err != nil {
-			fmt.Println("greska2")
 			return []models.RealEstate{}
 		}
 		realEstates = append(realEstates, realEstate)
 	}
 
 	return realEstates
+}
+
+func (res *PermissionRepositoryImpl) GetDeviceForSharedRealEstate(email string, realEstateId int) []PermissionDevice {
+	query := `SELECT d.*
+	FROM permission p
+	JOIN device d ON p.DeviceId = d.Id
+	WHERE p.UserEmail = ? AND p.RealEstateId = ? AND p.isActive = true AND p.isDeleted = false`
+
+	rows, err := res.db.Query(query, email, realEstateId)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	var devices []PermissionDevice
+
+	for rows.Next() {
+		var (
+			device PermissionDevice
+		)
+
+		if err := rows.Scan(
+			&device.Id, &device.Name, &device.Type, &device.RealEstate, &device.IsOnline, &device.StatusTimeStamp, &device.LastValue,
+		); err != nil {
+			return []PermissionDevice{}
+		}
+		devices = append(devices, device)
+	}
+
+	return devices
 }

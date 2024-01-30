@@ -155,3 +155,24 @@ func (pc PermissionController) GetPermitRealEstate(c *gin.Context) {
 
 	c.JSON(http.StatusOK, realEstates)
 }
+
+func (pc PermissionController) GetDeviceForRealEstate(c *gin.Context) {
+	userId, err := strconv.Atoi(c.Param("userId"))
+	if err != nil {
+		return
+	}
+
+	user, e := pc.userRepository.GetUserById(userId)
+	if e != nil {
+		return
+	}
+
+	realEstateId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
+
+	devices := pc.permissionRepository.GetDeviceForSharedRealEstate(user.Email, realEstateId)
+
+	c.JSON(http.StatusOK, devices)
+}
