@@ -15,6 +15,7 @@ type PermissionRepository interface {
 	AddInactivePermission(realEstateId, deviceId int, userEmail string) error
 	SetActivePermission(email string) error
 	GetPermissionByRealEstate(realEstateId int) []dtos.PermissionDTO
+	DeletePermission(realEstateId int, permission dtos.PermissionDTO) error
 }
 
 type PermissionRepositoryImpl struct {
@@ -79,8 +80,6 @@ func (res *PermissionRepositoryImpl) GetPermissionByRealEstate(realEstateId int)
 	}
 	defer rows.Close()
 
-	var permissions []models.Permission
-
 	var permissionsDTO []dtos.PermissionDTO
 
 	for rows.Next() {
@@ -101,13 +100,19 @@ func (res *PermissionRepositoryImpl) GetPermissionByRealEstate(realEstateId int)
 			fmt.Println("Error: ", err.Error())
 			return []dtos.PermissionDTO{}
 		}
-		permissions = append(permissions, permission)
-
 		permissionDTO.RealEstate = realEstate.Name
 		permissionDTO.UserEmail = permission.UserEmail
 		permissionDTO.Device = device.Name
+		permissionDTO.DeviceId = device.Id
 		permissionsDTO = append(permissionsDTO, permissionDTO)
 	}
 
 	return permissionsDTO
+}
+
+func (res *PermissionRepositoryImpl) DeletePermission(realEstateId int, permission dtos.PermissionDTO) error {
+	updateStatement := "UPDATE permission SET IsDeleted=true WHERE UserEmail=? and isActive=true and RealEstateId=? and DeviceId=?"
+
+	_, err := res.db.Exec(updateStatement, permission.UserEmail, realEstateId, permission.DeviceId)
+	return err
 }

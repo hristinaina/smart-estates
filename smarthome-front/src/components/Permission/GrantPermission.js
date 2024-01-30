@@ -1,4 +1,4 @@
-import { Button, Checkbox, Chip, FormControlLabel, Paper, Snackbar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from "@mui/material";
+import { Button, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, Snackbar, Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField } from "@mui/material";
 import { Component } from "react";
 import { Navigation } from "../Navigation/Navigation";
 import RealEstateService from "../../services/RealEstateService";
@@ -23,6 +23,9 @@ export class GrantPermission extends Component {
             grantPermissionDisabled: true,
 
             selectedRows: [],
+            page: 0,
+            rowsPerPage: 5,
+            dialogOpen: false,
 
             snackbarMessage: '',
             showSnackbar: false,
@@ -44,7 +47,6 @@ export class GrantPermission extends Component {
         this.setState({ devices: devices})
 
         const grantedPermissions = await PermissionService.getPermissionsByRealEstateId(id)
-        console.log(grantedPermissions)
         this.setState({ tableData: grantedPermissions})
     }
 
@@ -155,6 +157,41 @@ export class GrantPermission extends Component {
         return this.state.selectedRows.indexOf(index) !== -1;
     };
 
+    handleChangePage = (event, newPage) => {
+        console.log(newPage)
+        this.setState({ page: newPage })
+    };
+    
+    handleChangeRowsPerPage = (event) => {
+        console.log(event.target.value)
+        this.setState({ rowsPerPage: event.target.value})
+        this.setState({ page: 0 })
+    };
+
+    handleDenyPermission = async () => {
+        const selectedData = this.state.selectedRows.map(index => this.state.tableData[index]);
+        console.log(selectedData)
+        await PermissionService.deletePermit(this.state.realEstate.Id, selectedData);
+
+        this.setState({ dialogOpen: false });
+
+        this.setState({ snackbarMessage: "Successfully denied permissions!" });
+        this.handleClick();
+
+        const grantedPermissions = await PermissionService.getPermissionsByRealEstateId(this.state.realEstate.Id)
+        this.setState({ tableData: grantedPermissions})
+
+        this.setState({ selectedRows: [] })
+    };
+    
+    handleOpenDialog = () => {
+        this.setState({ dialogOpen: true });
+    };
+    
+    handleCloseDialog = () => {
+        this.setState({ dialogOpen: false });
+    };
+
     // snackbar
     handleClick = () => {
         this.setState({ open: true });
@@ -169,7 +206,11 @@ export class GrantPermission extends Component {
 
 
     render() {
-        const { emails, newEmail, selectAll, devices, selectedDevices, tableData } = this.state;
+        const { emails, newEmail, selectAll, devices, selectedDevices, selectedRows, dialogOpen, tableData, page, rowsPerPage } = this.state;
+
+        const startIndex = page * rowsPerPage;
+        const endIndex = Math.min(startIndex + rowsPerPage, tableData.length);
+        const slicedData = tableData.slice(startIndex, endIndex);
 
         return (
             <div>
@@ -226,9 +267,8 @@ export class GrantPermission extends Component {
                     </div>
 
                     <div id='sp-right-card'>
-                        <p className='sp-card-title'>All permissions for {this.state.realEstate.Name} </p>
-                        <TableContainer >
-                            <Table>
+                        <p className='sp-card-title'>Deny permissions for {this.state.realEstate.Name} </p>
+                        <Table>
                             <TableHead>
                                 <TableRow>
                                 <TableCell>User</TableCell>
@@ -238,7 +278,7 @@ export class GrantPermission extends Component {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                            {tableData.map((item, index) => {
+                            {slicedData.map((item, index) => {
                                 const isItemSelected = this.isSelected(index);
                                 return (
                                     <TableRow
@@ -261,8 +301,36 @@ export class GrantPermission extends Component {
                                 );
                                 })}
                             </TableBody>
-                            </Table>
-                        </TableContainer>
+                        </Table>
+
+                        <TablePagination
+                            rowsPerPageOptions={[5, 10, 25, 50]}
+                            component="div"
+                            count={tableData.length}
+                            rowsPerPage={rowsPerPage}
+                            page={page}
+                            onPageChange={this.handleChangePage}
+                            onRowsPerPageChange={this.handleChangeRowsPerPage}
+                            />
+
+                        <Button style={{marginTop: "20px"}} onClick={this.handleOpenDialog} variant="contained" color="primary" disabled={selectedRows.length === 0}>Deny Permission</Button>
+                        <Dialog
+                            open={dialogOpen}
+                            onClose={this.handleCloseDialog}
+                            aria-labelledby="alert-dialog-title"
+                            aria-describedby="alert-dialog-description"
+                            >
+                            <DialogTitle id="alert-dialog-title">{"Are you sure you want to deny permission?"}</DialogTitle>
+                            <DialogContent>
+                                <DialogContentText id="alert-dialog-description">
+                                You are about to deny permission for {selectedRows.length} selected rows.
+                                </DialogContentText>
+                            </DialogContent>
+                            <DialogActions>
+                                <Button onClick={this.handleCloseDialog} color="primary">Cancel</Button>
+                                <Button onClick={this.handleDenyPermission} color="primary" variant="contained">Deny</Button>
+                            </DialogActions>
+                        </Dialog>
                     </div>
                 </div>
                 <Snackbar

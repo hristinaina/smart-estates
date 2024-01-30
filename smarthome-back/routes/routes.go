@@ -131,5 +131,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		permissionRoutes.POST("", middleware.RequireAuth, permissionController.ReceiveGrantPermission)
 		permissionRoutes.POST("/verify", permissionController.VerifyAccount)
 		permissionRoutes.GET("/:id", middleware.RequireAuth, permissionController.GetPermissionForRealEstate)
+		permissionRoutes.POST("/deny/:id", middleware.RequireAuth, permissionController.DeletePermit)
 	}
 }

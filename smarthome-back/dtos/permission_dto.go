@@ -5,4 +5,5 @@ type PermissionDTO struct {
 	User       string // ime prezime
 	UserEmail  string // email
 	Device     string // naziv uredjaja
+	DeviceId   int
 }
