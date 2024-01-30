@@ -3,12 +3,18 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"smarthome-back/dtos"
+	"smarthome-back/enumerations"
+	"smarthome-back/models"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 type PermissionRepository interface {
 	IsPermissionAlreadyExist(realEstateId, deviceId int, userEmail string) bool
 	AddInactivePermission(realEstateId, deviceId int, userEmail string) error
 	SetActivePermission(email string) error
+	GetPermissionByRealEstate(realEstateId int) []dtos.PermissionDTO
 }
 
 type PermissionRepositoryImpl struct {
@@ -53,4 +59,55 @@ func (res *PermissionRepositoryImpl) SetActivePermission(email string) error {
 
 	_, err := res.db.Exec(updateStatement, email)
 	return err
+}
+
+type PermissionDevice struct {
+	Id              int
+	Name            string
+	Type            enumerations.DeviceType
+	RealEstate      int
+	IsOnline        bool
+	StatusTimeStamp mysql.NullTime
+	LastValue       float32
+}
+
+func (res *PermissionRepositoryImpl) GetPermissionByRealEstate(realEstateId int) []dtos.PermissionDTO {
+	query := "SELECT p.*, r.*, d.* FROM permission p JOIN realEstate r ON p.RealEstateId = r.Id JOIN device d ON p.DeviceId = d.Id WHERE p.RealEstateId = ? AND p.isActive=true AND p.isDeleted=false"
+	rows, err := res.db.Query(query, realEstateId)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	var permissions []models.Permission
+
+	var permissionsDTO []dtos.PermissionDTO
+
+	for rows.Next() {
+		var (
+			permission models.Permission
+			realEstate models.RealEstate
+			device     PermissionDevice
+
+			permissionDTO dtos.PermissionDTO
+		)
+
+		if err := rows.Scan(
+			&permission.Id, &permission.RealEstateId, &permission.DeviceId,
+			&permission.UserEmail, &permission.IsActive, &permission.IsDeleted,
+			&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address, &realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors, &realEstate.Picture, &realEstate.State, &realEstate.User, &realEstate.DiscardReason,
+			&device.Id, &device.Name, &device.Type, &device.RealEstate, &device.IsOnline, &device.StatusTimeStamp, &device.LastValue,
+		); err != nil {
+			fmt.Println("Error: ", err.Error())
+			return []dtos.PermissionDTO{}
+		}
+		permissions = append(permissions, permission)
+
+		permissionDTO.RealEstate = realEstate.Name
+		permissionDTO.UserEmail = permission.UserEmail
+		permissionDTO.Device = device.Name
+		permissionsDTO = append(permissionsDTO, permissionDTO)
+	}
+
+	return permissionsDTO
 }

@@ -1,4 +1,4 @@
-import { Button, Checkbox, Chip, FormControlLabel, Snackbar, TextField } from "@mui/material";
+import { Button, Checkbox, Chip, FormControlLabel, Paper, Snackbar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from "@mui/material";
 import { Component } from "react";
 import { Navigation } from "../Navigation/Navigation";
 import RealEstateService from "../../services/RealEstateService";
@@ -13,15 +13,16 @@ export class GrantPermission extends Component {
         this.state = {
             realEstate: {},
             devices: [],
+            tableData: [],
 
             emails: [],
             newEmail: '',
             maxEmails: 5,
-
             selectedDevices: [],
             selectAll: false,
-
             grantPermissionDisabled: true,
+
+            selectedRows: [],
 
             snackbarMessage: '',
             showSnackbar: false,
@@ -41,9 +42,13 @@ export class GrantPermission extends Component {
 
         const devices = await DeviceService.getDevices(id)
         this.setState({ devices: devices})
+
+        const grantedPermissions = await PermissionService.getPermissionsByRealEstateId(id)
+        console.log(grantedPermissions)
+        this.setState({ tableData: grantedPermissions})
     }
 
-    // RIGHT SIDE
+    // LEFT SIDE
     handleEmailChange = (event) => {
         this.setState({ newEmail: event.target.value });
     }
@@ -125,6 +130,31 @@ export class GrantPermission extends Component {
         this.handleClick();
     }
 
+    // RIGHT SIDE
+    handleRowSelect = (event, index) => {
+        const { selectedRows } = this.state;
+        const selectedIndex = selectedRows.indexOf(index);
+        let newSelectedRows = [];
+    
+        if (selectedIndex === -1) {
+            newSelectedRows = newSelectedRows.concat(selectedRows, index);
+        } else if (selectedIndex === 0) {
+            newSelectedRows = newSelectedRows.concat(selectedRows.slice(1));
+        } else if (selectedIndex === selectedRows.length - 1) {
+            newSelectedRows = newSelectedRows.concat(selectedRows.slice(0, -1));
+        } else if (selectedIndex > 0) {
+            newSelectedRows = newSelectedRows.concat(
+                selectedRows.slice(0, selectedIndex),
+                selectedRows.slice(selectedIndex + 1)
+            );
+        }
+        this.setState({ selectedRows: newSelectedRows });
+    };
+    
+    isSelected = (index) => {
+        return this.state.selectedRows.indexOf(index) !== -1;
+    };
+
     // snackbar
     handleClick = () => {
         this.setState({ open: true });
@@ -139,7 +169,7 @@ export class GrantPermission extends Component {
 
 
     render() {
-        const { emails, newEmail, selectAll, devices, selectedDevices } = this.state;
+        const { emails, newEmail, selectAll, devices, selectedDevices, tableData } = this.state;
 
         return (
             <div>
@@ -197,30 +227,42 @@ export class GrantPermission extends Component {
 
                     <div id='sp-right-card'>
                         <p className='sp-card-title'>All permissions for {this.state.realEstate.Name} </p>
-                        {/* <form onSubmit={this.handleFormSubmit} className='sp-container'>
-                            <label>
-                                Email:
-                                <select style={{width: "200px", cursor: "pointer"}}
-                                    className="new-real-estate-select"
-                                    value={pickedValue}
-                                    onChange={(e) => this.setState({ pickedValue: e.target.value })}>
-                                    <option value={email}>{ email }</option>
-                                    <option value="auto">auto</option>
-                                    <option value="none">none</option>
-                                </select>
-                            </label>
-                            <label>
-                                Start Date:
-                                <TextField style={{ backgroundColor: "white" }} type="date" value={startDate} onChange={(e) => this.setState({ startDate: e.target.value })} />
-                            </label>
-                            <label>
-                                End Date:
-                                <TextField style={{ backgroundColor: "white" }} type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
-                            </label>
-                            <br />
-                            <Button type="submit" id='sp-data-button'>Filter</Button>
-                        </form>
-                        <LogTable logData={logData} /> */}
+                        <TableContainer >
+                            <Table>
+                            <TableHead>
+                                <TableRow>
+                                <TableCell>User</TableCell>
+                                <TableCell>User Email</TableCell>
+                                <TableCell>Device Name</TableCell>
+                                <TableCell>Delete</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                            {tableData.map((item, index) => {
+                                const isItemSelected = this.isSelected(index);
+                                return (
+                                    <TableRow
+                                    style={{cursor: "pointer"}}
+                                    key={index}
+                                    selected={isItemSelected}
+                                    onClick={(event) => this.handleRowSelect(event, index)}
+                                    hover>
+                                
+                                    <TableCell>{item.User}</TableCell>
+                                    <TableCell>{item.UserEmail}</TableCell>
+                                    <TableCell>{item.Device}</TableCell>
+                                    <TableCell>
+                                        <Checkbox
+                                        checked={isItemSelected}
+                                        onChange={(event) => this.handleRowSelect(event, index)}
+                                        />
+                                    </TableCell>
+                                    </TableRow>
+                                );
+                                })}
+                            </TableBody>
+                            </Table>
+                        </TableContainer>
                     </div>
                 </div>
                 <Snackbar

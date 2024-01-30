@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"smarthome-back/dtos"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
 	"smarthome-back/services"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -91,4 +93,26 @@ func (pc PermissionController) VerifyAccount(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid token!"})
 	}
+}
+
+func (pc PermissionController) GetPermissionForRealEstate(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
+	permissionsDTO := pc.permissionRepository.GetPermissionByRealEstate(id)
+	var permissions []dtos.PermissionDTO
+
+	for _, permission := range permissionsDTO {
+		user, _ := pc.userRepository.GetUserByEmail(permission.UserEmail)
+		fmt.Println(user.Name + " " + user.Surname)
+		permission.User = user.Name + " " + user.Surname
+		permissions = append(permissions, permission)
+	}
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, permissions)
 }
