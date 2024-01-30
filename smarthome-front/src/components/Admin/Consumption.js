@@ -10,6 +10,7 @@ import "./Consumption.css"
 import SearchSelect from './SearchSelect';
 import { auto } from '@popperjs/core';
 import ConsumptionService from '../../services/ConsumptionService';
+import AdminGraph from './AdminGraph';
 
 export class Consumption extends Component {
     constructor(props) {
@@ -55,6 +56,7 @@ export class Consumption extends Component {
     updateGraph = async (value) => {
         const result = await ConsumptionService.getConsumptionGraphDataForDropdownSelect(this.state.selectedTypeOption.value, this.selectedOptions, value);
         const graphData = this.convertResultToGraphData(result.result.result)
+        //console.log(graphData)
         this.setState({
             data: graphData,
         });
@@ -65,6 +67,12 @@ export class Consumption extends Component {
     };
 
     handleOptionChange = async (event, value) => {
+        if (this.selectedOptions.length === 0)
+        {
+            this.setState({ snackbarMessage: "You haven't selected any subjects" });
+            this.handleClick();
+            return;
+        }
         this.setState({ selectedOption: value });
         await this.updateGraph(value.value)
     };
@@ -74,6 +82,12 @@ export class Consumption extends Component {
     };
 
     handleButtonClick = async () => {
+        if (this.selectedOptions.length === 0)
+        {
+            this.setState({ snackbarMessage: "You haven't selected any subjects" });
+            this.handleClick();
+            return;
+        }
         if (this.state.startDate === '' || this.state.endDate === '') {
             this.setState({ snackbarMessage: "Please enter dates" });
             this.handleClick();
@@ -101,18 +115,37 @@ export class Consumption extends Component {
         });
     }
 
+    getRandomColor() {
+        const random = () => Math.floor(Math.random() * 256);
+        const r = random();
+        const g = random();
+        const b = random();
+        const a = 1; // You can adjust the alpha (transparency) value if needed
+        return `rgba(${r},${g},${b},${a})`;
+      }
+
     convertResultToGraphData(values) {
         if (values == null) {
             return {
                 timestamps: [],
-                consumptionData: []
+                datasets: []
             }
         }
-        const timestamps = Object.keys(values);
-        const consumptionData = timestamps.map((timestamp) => values[timestamp]);
+        //values is a map["estateId"]map[timestamp]float
+
+        // Step 1: Combine timestamps from all inner maps
+        const allTimestamps = Array.from(new Set(Object.values(values).flatMap(innerMap => Object.keys(innerMap)))).sort();
+        // Step 2: Create arrays with values for each inner map
+        const keyValuesArrays = Object.entries(values).map(([key, innerMap]) => ({
+            label: key,
+            data: allTimestamps.map(timestamp => innerMap[timestamp] || 0),
+            borderColor: this.getRandomColor(),
+            borderWidth: 2,
+            fill: false,
+          }));
         const graphData = {
-            timestamps: timestamps,
-            consumptionData: consumptionData
+            timestamps: allTimestamps,
+            datasets: keyValuesArrays
         }
         return graphData
     }
@@ -229,8 +262,8 @@ export class Consumption extends Component {
                     </div>
                 </div>
                 <div className='sp-container'>
-                    <div id='c-left-card'><HBGraph data={data} /></div>
-                    <div id='c-right-card'><HBGraph data={data} /></div>
+                    <div id='c-left-card'><AdminGraph data={data} /></div>
+                    <div id='c-right-card'><AdminGraph data={data} /></div>
                 </div>
                 <Snackbar
                     open={this.state.open}

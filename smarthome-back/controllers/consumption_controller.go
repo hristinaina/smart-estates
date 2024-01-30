@@ -27,7 +27,7 @@ func (uc ConsumptionController) GetConsumptionForSelectedTime(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
 	}
-	results := uc.service.GetConsumptionForSelectedTime(input.Time, 1)
+	results := uc.service.GetConsumptionForSelectedTime(input.Time, input.Type, input.SelectedOptions)
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 

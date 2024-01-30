@@ -5,30 +5,51 @@ import (
 	"database/sql"
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"strconv"
 	"time"
 )
 
 type ConsumptionService interface {
-	GetConsumptionForSelectedTime(selectedTime string, estateId int) interface{}
+	GetConsumptionForSelectedTime(selectedTime string, inputType string, selectedOptions []string) interface{}
 	GetConsumptionForSelectedDate(startDate, endDate string, estateId int) interface{}
 }
 
 type ConsumptionServiceImpl struct {
-	db       *sql.DB
-	influxDb influxdb2.Client
+	db                *sql.DB
+	influxDb          influxdb2.Client
+	realEstateService RealEstateService
 }
 
 func NewConsumptionService(db *sql.DB, influxDb influxdb2.Client) ConsumptionService {
-	return &ConsumptionServiceImpl{db: db, influxDb: influxDb}
+	return &ConsumptionServiceImpl{db: db, influxDb: influxDb, realEstateService: NewRealEstateService(db)}
 }
 
-func (s *ConsumptionServiceImpl) GetConsumptionForSelectedTime(selectedTime string, estateId int) interface{} {
-	query := fmt.Sprintf(`from(bucket:"bucket") 
-	|> range(start: %s, stop: now())
-	|> filter(fn: (r) => r._measurement == "consumption" and r["_field"] == "electricity" and r["estate_id"] == "%d")
-	|> yield(name: "sum")`, selectedTime, estateId)
+func (s *ConsumptionServiceImpl) GetConsumptionForSelectedTime(selectedTime string, inputType string, selectedOptions []string) interface{} {
+	var results = make(map[string]map[time.Time]float64)
 
-	return s.processingQuery(query)
+	if inputType == "rs" {
+		for _, estateId := range selectedOptions {
+			estateId, _ := strconv.Atoi(estateId)
+			estate, _ := s.realEstateService.Get(estateId)
+			query := fmt.Sprintf(`from(bucket:"bucket") 
+			|> range(start: %s, stop: now())
+			|> filter(fn: (r) => r._measurement == "consumption" and r["_field"] == "electricity" and r["estate_id"] == "%d")
+			|> yield(name: "sum")`, selectedTime, estateId)
+
+			tempMap := s.processingQuery(query)
+			if len(tempMap) == 0 {
+				continue
+			}
+			results[estate.Name] = tempMap
+		}
+	} else if inputType == "city" {
+		//todo
+		fmt.Println("not implemented")
+	}
+	if len(results) == 0 {
+		return nil
+	}
+	return results
 }
 
 func (s *ConsumptionServiceImpl) GetConsumptionForSelectedDate(startDate, endDate string, estateId int) interface{} {

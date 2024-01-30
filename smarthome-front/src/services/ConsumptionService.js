@@ -4,7 +4,7 @@ class ConsumptionService {
         const options = []
         for (let i = 0; i < selectedOptions.length; i++) {
             const e = selectedOptions[i];
-            options.push(e.value);
+            options.push(String(e.value));
         }
         return options;
     }
@@ -22,7 +22,7 @@ class ConsumptionService {
 
             if (response.ok) {
                 const data = await response.json();
-                // console.log(data)
+                //console.log(data)
                 return { result: data };
             } else {
                 const data = await response.json();
@@ -36,7 +36,7 @@ class ConsumptionService {
 
     async getConsumptionGraphDataForDates(type, options, start, end) {
         const selectedOptions = this.convertOptionsToStrings(options);
-        console.log(selectedOptions);
+        //console.log(selectedOptions);
         try {
             const response = await fetch('http://localhost:8081/api/consumption/selected-date', {
                 method: 'POST',
@@ -47,7 +47,7 @@ class ConsumptionService {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log(data)
+                //console.log(data)
                 return { result: data };
             } else {
                 const data = await response.json();

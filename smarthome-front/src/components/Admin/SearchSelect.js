@@ -35,7 +35,7 @@ class SearchSelect extends React.Component {
       const options = []
       for (let i = 0; i < estates.length; i++) {
         const e = estates[i];
-        options.push({ value: e.Name, label: e.Name });
+        options.push({ value: e.Id, label: e.Name });
       }
       this.setState({ options: options, selectedOptions: [] });
     }
