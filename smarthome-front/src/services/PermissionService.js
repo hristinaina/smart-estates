@@ -87,6 +87,27 @@ class PermissionService {
             return { success: false, error: 'Network error' };
         }
     }
+
+    async getRealEstates(id) {
+        try {
+            const response = await fetch('http://localhost:8081/api/permission/get-real-estate/'+id, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            })
+            
+            const data = await response.json();
+            if (data != null)
+                return data;
+            else 
+                return [];
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            throw error;
+        }
+    }
 }
 
 export default new PermissionService();

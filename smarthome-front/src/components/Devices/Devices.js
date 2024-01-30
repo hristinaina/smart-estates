@@ -29,10 +29,13 @@ export class Devices extends Component {
     }
 
     async componentDidMount() {
+        
         const valid = await authService.validateUser();
         if (!valid) window.location.assign("/");
 
         try {
+            // todo ako je neki drugi link dobavi samo uredjaje koji taj korisnik moze da vidi
+            // todo ne pozivaj ovaj api
             const result = await DeviceService.getDevices(this.id);
             this.setState({ data: result });
 

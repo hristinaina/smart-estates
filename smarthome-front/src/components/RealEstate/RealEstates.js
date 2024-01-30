@@ -6,6 +6,7 @@ import Dialog from '../Dialog/Dialog';
 import RealEstateService from '../../services/RealEstateService';
 import ImageService from '../../services/ImageService';
 import Button from '@mui/material/Button';
+import PermissionService from '../../services/PermissionService';
 
 
 export class RealEstates extends Component {
@@ -23,6 +24,8 @@ export class RealEstates extends Component {
             selectedRealEstate: -1,
             realEstates: [],
             realEstateImages: {},
+
+            permitRealEstate: [],
         };
     }
 
@@ -53,6 +56,10 @@ export class RealEstates extends Component {
                 realEstateImages[realEstate.Id] = imageUrl;
             }
             this.setState({realEstateImages});
+
+            // todo dobavi sve nekretnine koje treba da vidi
+            const permitRealEstate = await PermissionService.getRealEstates(currentUser.Id)
+            this.setState({ permitRealEstate: permitRealEstate });
            
         } catch (error) {
             console.log("error");
@@ -114,10 +121,6 @@ export class RealEstates extends Component {
         window.location.assign("/grant-permission/" + realEstateId)
     }
 
-    handleDenyPermission = () => {
-        // todo
-    }
-
     render() {
         const { user, userId, realEstates, showDropdown, selectedRealEstateId } = this.state;
 
@@ -134,7 +137,7 @@ export class RealEstates extends Component {
                 )}
                 
                 <div id='real-estates-container'>
-                    {this.state.realEstates !== null  ? (
+                    {this.state.realEstates !== null  && (
                     this.state.realEstates.map((realEstate) => (
                         <div 
                             key={realEstate.Id}
@@ -154,13 +157,36 @@ export class RealEstates extends Component {
 
                             {realEstate.State === 1 && !this.state.isAdmin && realEstate.User == userId && ( 
                                 <div className="permission-buttons">
-                                    <Button variant='outlined' onClick={() => this.handleDenyPermission(realEstate.Id)} style={{ marginLeft: "18px", width: '100px', height:'50px' }}>Deny Permission</Button>
                                     <Button variant="contained" onClick={() => this.handleGrantPermission(realEstate.Id)} style={{ width: '100px', float: "right", marginRight: "18px", height:'50px' }}>Grant Permission</Button>
                                 </div>
                             )} 
                         </div>
                             
-                        ))): (<p id="nothing-available">No real estates available.</p>)}
+                        )))}
+
+                    {this.state.permitRealEstate.length != 0  && (
+                    this.state.permitRealEstate.map((realEstate) => (
+                        <div 
+                            key={realEstate.Id}
+                            className={`real-estate-card ${(realEstate.Id !== this.state.selectedRealEstate && this.state.isAdmin === true) ? 'not-selected-card' : 'selected-card'}`} >                           
+                            <img alt='real-estate' src={this.state.realEstateImages[realEstate.Id]} className='real-estate-img'  onClick={() => this.handleCardClick(realEstate.Id)} />
+                            <div className='real-estate-info'  onClick={() => this.handleCardClick(realEstate.Id)}>
+                                <p className='real-estate-title'>{realEstate.Name}</p>
+                                <p className='real-estate-text'>
+                                Type: {realEstate.Type === 0 ? 'HOME' : realEstate.Type === 1 ? 'APARTMENT' : 'VILLA'} </p>
+                                <p className='real-estate-text'>Address: {realEstate.Address}</p>
+                                <p className='real-estate-text'>Square Footage: {realEstate.SquareFootage}</p>
+                                <p className='real-estate-text'>Number of Floors: {realEstate.NumberOfFloors}</p>
+                                <p className={`real-estate-text ${realEstate.State === 1 ? 'accepted' : realEstate.State === 0 ? 'pending' : 'declined'}`}>
+                                    {realEstate.State === 1 ? 'Accepted' : realEstate.State === 0 ? 'Pending' : 'Declined'}
+                                </p>
+                            </div> 
+                        </div>      
+                        )))}
+
+                        {this.state.realEstates == null && this.state.permitRealEstate.length == 0 && (
+                            <p id="nothing-available">No real estates available.</p>
+                        )}
                 </div>
 
                 {this.state.isAdmin && (

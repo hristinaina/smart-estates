@@ -125,7 +125,6 @@ func (pc PermissionController) DeletePermit(c *gin.Context) {
 	var input []dtos.PermissionDTO
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		fmt.Println("greska u parsiranju")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
 	}
@@ -133,11 +132,26 @@ func (pc PermissionController) DeletePermit(c *gin.Context) {
 	for _, permission := range input {
 		err = pc.permissionRepository.DeletePermission(id, permission)
 		if err != nil {
-			fmt.Println("greska u bazi")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to delete permissions"})
 			return
 		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "successfully deleted permissions"})
+}
+
+func (pc PermissionController) GetPermitRealEstate(c *gin.Context) {
+	userId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
+
+	user, e := pc.userRepository.GetUserById(userId)
+	if e != nil {
+		return
+	}
+
+	realEstates := pc.permissionRepository.GetPermitRealEstateByEmail(user.Email)
+
+	c.JSON(http.StatusOK, realEstates)
 }

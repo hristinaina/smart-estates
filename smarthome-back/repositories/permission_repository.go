@@ -16,6 +16,7 @@ type PermissionRepository interface {
 	SetActivePermission(email string) error
 	GetPermissionByRealEstate(realEstateId int) []dtos.PermissionDTO
 	DeletePermission(realEstateId int, permission dtos.PermissionDTO) error
+	GetPermitRealEstateByEmail(email string) []models.RealEstate
 }
 
 type PermissionRepositoryImpl struct {
@@ -115,4 +116,36 @@ func (res *PermissionRepositoryImpl) DeletePermission(realEstateId int, permissi
 
 	_, err := res.db.Exec(updateStatement, permission.UserEmail, realEstateId, permission.DeviceId)
 	return err
+}
+
+func (res *PermissionRepositoryImpl) GetPermitRealEstateByEmail(email string) []models.RealEstate {
+	query := `SELECT DISTINCT r.*
+	FROM smart_home.permission p
+	JOIN smart_home.realestate r ON p.RealEstateId = r.Id
+	WHERE p.UserEmail = ? AND p.isActive=true and p.isDeleted=false`
+
+	rows, err := res.db.Query(query, email)
+	if err != nil {
+		fmt.Println("greska1")
+		return nil
+	}
+	defer rows.Close()
+
+	var realEstates []models.RealEstate
+
+	for rows.Next() {
+		var (
+			realEstate models.RealEstate
+		)
+
+		if err := rows.Scan(
+			&realEstate.Id, &realEstate.Name, &realEstate.Type, &realEstate.Address, &realEstate.City, &realEstate.SquareFootage, &realEstate.NumberOfFloors, &realEstate.Picture, &realEstate.State, &realEstate.User, &realEstate.DiscardReason,
+		); err != nil {
+			fmt.Println("greska2")
+			return []models.RealEstate{}
+		}
+		realEstates = append(realEstates, realEstate)
+	}
+
+	return realEstates
 }
