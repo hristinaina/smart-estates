@@ -16,6 +16,7 @@ import { SolarPanel } from './components/Devices/SolarPanel/SolarPanel';
 import { AirConditioner } from './components/Devices/AirConditioner/AirConditioner';
 import { HomeBattery } from './components/Devices/HomeBattery/HomeBattery';
 import { VehicleGate } from './components/Devices/VehicleGate/VehicleGate';
+import { Sprinkler } from './components/Devices/Sprinkler/Sprinkler';
 
 const AppRoutes = [
   {
@@ -86,6 +87,10 @@ const AppRoutes = [
     path: "/hb/:id",
     element: <HomeBattery />
   },
+  {
+    path: "/sprinkler/:id",
+    element: <Sprinkler/>
+  }
 ];
 
 export default AppRoutes;

@@ -131,7 +131,8 @@ export class RealEstates extends Component {
                             key={realEstate.Id}
                             className={`real-estate-card ${(realEstate.Id !== this.state.selectedRealEstate && this.state.isAdmin === true) ? 'not-selected-card' : 'selected-card'}`} 
                             onClick={() => this.handleCardClick(realEstate.Id)}>
-                            <img alt='real-estate' src={this.state.realEstateImages[realEstate.Id]} className='real-estate-img' />
+                            <img alt='real-estate' src={this.state.realEstateImages[realEstate.Id]} className='real-estate-img'
+                            style={{ width: '100%', height: '300px' }} />
                             <div className='real-estate-info'>
                                 <p className='real-estate-title'>{realEstate.Name}</p>
                                 <p className='real-estate-text'>
