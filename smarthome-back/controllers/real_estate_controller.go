@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"smarthome-back/dtos"
+	"smarthome-back/enumerations"
 	"smarthome-back/models"
 	"smarthome-back/services"
 	"strconv"
@@ -101,6 +102,11 @@ func (rec RealEstateController) Add(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, estate)
+}
+
+func (rec RealEstateController) GetAllCities(c *gin.Context) {
+	cities := enumerations.AllCities()
+	c.JSON(http.StatusOK, cities)
 }
 
 func CheckIfError(err error, c *gin.Context) bool {

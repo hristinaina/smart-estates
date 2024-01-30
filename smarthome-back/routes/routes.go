@@ -38,6 +38,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	{
 		realEstateController := controllers.NewRealEstateController(db)
 		realEstateRoutes.GET("/", realEstateController.GetAll)
+		realEstateRoutes.GET("/cities", realEstateController.GetAllCities)
 		realEstateRoutes.GET("/user/:userId", realEstateController.GetAllByUserId)
 		realEstateRoutes.GET("/:id", realEstateController.Get)
 		realEstateRoutes.GET("/pending", realEstateController.GetPending)

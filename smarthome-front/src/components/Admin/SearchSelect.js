@@ -1,5 +1,6 @@
 import React from 'react';
 import Select from 'react-select';
+import RealEstateService from '../../services/RealEstateService';
 
 class SearchSelect extends React.Component {
   state = {
@@ -20,22 +21,22 @@ class SearchSelect extends React.Component {
   updateOptions = async () => {
     const type = this.props.options;
     if (type == "city") {
-      const options = [
-        { value: 'apple', label: 'Apple' },
-        { value: 'banana', label: 'Banana' },
-        { value: 'orange', label: 'Orange' },
-        // Add more options as needed
-      ];
-      this.setState({ options: options });
+      const estates = await RealEstateService.getCities();
+      const options = []
+      for (let i = 0; i < estates.length; i++) {
+        const e = estates[i];
+        options.push({ value: e, label: e });
+      }
+      this.setState({ options: options, selectedOptions: [] });
     }
     if (type == "rs") {
-      const options = [
-        { value: 'rs1', label: 'rs1' },
-        { value: 'rs2', label: 'rs2' },
-        { value: 'rs3', label: 'rs3' },
-        // Add more options as needed
-      ];
-      this.setState({ options: options });
+      const estates = await RealEstateService.get();
+      const options = []
+      for (let i = 0; i < estates.length; i++) {
+        const e = estates[i];
+        options.push({ value: e.Name, label: e.Name });
+      }
+      this.setState({ options: options, selectedOptions: [] });
     }
   }
 
