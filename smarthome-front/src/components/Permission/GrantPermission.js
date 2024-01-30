@@ -268,7 +268,12 @@ export class GrantPermission extends Component {
 
                     <div id='sp-right-card'>
                         <p className='sp-card-title'>Deny permissions for {this.state.realEstate.Name} </p>
-                        <Table>
+                        {tableData.length == 0 &&(
+                            <p>You have not yet granted a permit for the selected real estate</p>
+                        )}
+                        {tableData.length != 0 && (
+                            <div>
+                            <Table>
                             <TableHead>
                                 <TableRow>
                                 <TableCell>User</TableCell>
@@ -331,6 +336,8 @@ export class GrantPermission extends Component {
                                 <Button onClick={this.handleDenyPermission} color="primary" variant="contained">Deny</Button>
                             </DialogActions>
                         </Dialog>
+                        </div>
+                        )}
                     </div>
                 </div>
                 <Snackbar
