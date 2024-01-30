@@ -5,6 +5,7 @@ import (
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"log"
+	"smarthome-back/enumerations"
 	models2 "smarthome-back/models/devices"
 	models "smarthome-back/models/devices/outside"
 	"smarthome-back/repositories"
@@ -17,7 +18,9 @@ type SprinklerRepository interface {
 	Delete(id int) (bool, error)
 	AddSpecialMode(id int, mode models.SprinklerSpecialMode) (models.SprinklerSpecialMode, error)
 	Add(sprinkler models.Sprinkler) (models.Sprinkler, error)
-	GetSpecialModes(id int) ([]models.SprinklerSpecialMode, error)
+	GetSpecialModes(deviceId int) ([]models.SprinklerSpecialMode, error)
+	DeleteSpecialMode(id int) (bool, error)
+	GetSpecialMode(id int) (models.SprinklerSpecialMode, error)
 }
 
 type SprinklerRepositoryImpl struct {
@@ -134,6 +137,7 @@ func (repo *SprinklerRepositoryImpl) AddSpecialMode(id int, mode models.Sprinkle
 	if repositories.CheckIfError(err) {
 		return models.SprinklerSpecialMode{}, err
 	}
+	mode.DeviceId = id
 	return mode, nil
 }
 
@@ -180,7 +184,66 @@ func (repo *SprinklerRepositoryImpl) Add(device models.Sprinkler) (models.Sprink
 }
 
 func (repo *SprinklerRepositoryImpl) GetSpecialModes(id int) ([]models.SprinklerSpecialMode, error) {
-	return nil, nil
+	query := `SELECT Id, DeviceId, StartTime, EndTime, SelectedDays
+			  FROM SprinklerSpecialMode
+              WHERE DeviceId = ?`
+	rows, err := repo.db.Query(query, id)
+	if repositories.IsError(err) {
+		return nil, err
+	}
+	defer rows.Close()
+
+	modes, err := repo.scanModeRows(rows)
+	if repositories.IsError(err) {
+		return nil, err
+	}
+	return modes, nil
+
+}
+
+func (repo *SprinklerRepositoryImpl) DeleteSpecialMode(id int) (bool, error) {
+	_, err := repo.GetSpecialMode(id)
+	if err != nil {
+		return false, err
+	}
+
+	tx, err := repo.db.Begin()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			log.Fatal(err)
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}()
+
+	_, err = tx.Exec("DELETE FROM SprinklerSpecialMode WHERE Id = ?", id)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (repo *SprinklerRepositoryImpl) GetSpecialMode(id int) (models.SprinklerSpecialMode, error) {
+	query := `SELECT * 
+			   FROM SprinklerSpecialMode
+			   WHERE Id = ?`
+
+	rows, err := repo.db.Query(query, id)
+	if err != nil {
+		return models.SprinklerSpecialMode{}, err
+	}
+	defer rows.Close()
+
+	modes, err := repo.scanModeRows(rows)
+	if repositories.IsError(err) {
+		return models.SprinklerSpecialMode{}, err
+	}
+	mode := modes[0]
+	return mode, nil
 }
 
 func (repo *SprinklerRepositoryImpl) scanRows(rows *sql.Rows) ([]models.Sprinkler, error) {
@@ -203,4 +266,26 @@ func (repo *SprinklerRepositoryImpl) scanRows(rows *sql.Rows) ([]models.Sprinkle
 	}
 
 	return sprinklers, nil
+}
+
+func (repo *SprinklerRepositoryImpl) scanModeRows(rows *sql.Rows) ([]models.SprinklerSpecialMode, error) {
+	var modes []models.SprinklerSpecialMode
+	for rows.Next() {
+		var (
+			mode         models.SprinklerSpecialMode
+			selectedDays string
+		)
+
+		if err := rows.Scan(&mode.Id, &mode.DeviceId, &mode.StartTime, &mode.EndTime, &selectedDays); err != nil {
+			fmt.Println("Error: ", err.Error())
+			return []models.SprinklerSpecialMode{}, err
+		}
+		days, err := enumerations.ConvertStringsToEnumValues(selectedDays)
+		if err != nil {
+			return []models.SprinklerSpecialMode{}, err
+		}
+		mode.SelectedDays = days
+		modes = append(modes, mode)
+	}
+	return modes, nil
 }

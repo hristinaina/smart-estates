@@ -19,10 +19,7 @@ func NewSprinklerController(db *sql.DB, client influxdb2.Client) SprinklerContro
 }
 
 func (controller SprinklerController) Get(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if controllers.CheckIfError(err, c) {
-		return
-	}
+	id := ExtractId(c)
 
 	sprinkler, err := controller.service.Get(id)
 	if err != nil {
@@ -42,10 +39,7 @@ func (controller SprinklerController) GetAll(c *gin.Context) {
 }
 
 func (controller SprinklerController) TurnOn(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if controllers.CheckIfError(err, c) {
-		return
-	}
+	id := ExtractId(c)
 
 	sprinkler, err := controller.service.UpdateIsOn(id, true)
 	if err != nil {
@@ -56,10 +50,7 @@ func (controller SprinklerController) TurnOn(c *gin.Context) {
 }
 
 func (controller SprinklerController) TurnOff(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if controllers.CheckIfError(err, c) {
-		return
-	}
+	id := ExtractId(c)
 
 	sprinkler, err := controller.service.UpdateIsOn(id, false)
 	if err != nil {
@@ -70,10 +61,7 @@ func (controller SprinklerController) TurnOff(c *gin.Context) {
 }
 
 func (controller SprinklerController) Delete(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if controllers.CheckIfError(err, c) {
-		return
-	}
+	id := ExtractId(c)
 
 	isDeleted, err := controller.service.Delete(id)
 	if (isDeleted == false) || (err != nil) {
@@ -99,11 +87,8 @@ func (controller SprinklerController) Add(c *gin.Context) {
 	c.JSON(200, sprinkler)
 }
 
-func (controller SprinklerController) AddSprinklerSpecialMode(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if controllers.CheckIfError(err, c) {
-		return
-	}
+func (controller SprinklerController) AddSpecialMode(c *gin.Context) {
+	id := ExtractId(c)
 
 	var dto dtos.SprinklerSpecialModeDTO
 
@@ -112,10 +97,51 @@ func (controller SprinklerController) AddSprinklerSpecialMode(c *gin.Context) {
 		return
 	}
 
-	mode, err := controller.service.AddSprinklerSpecialMode(id, dto)
+	mode, err := controller.service.AddSpecialMode(id, dto)
 	if controllers.CheckIfError(err, c) {
 		return
 	}
 
 	c.JSON(200, mode)
+}
+
+func (controller SprinklerController) GetSpecialModes(c *gin.Context) {
+	id := ExtractId(c)
+
+	modes, err := controller.service.GetSpecialModes(id)
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+
+	c.JSON(200, modes)
+}
+
+func (controller SprinklerController) DeleteSpecialMode(c *gin.Context) {
+	id := ExtractId(c)
+
+	isDeleted, err := controller.service.DeleteSpecialMode(id)
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+
+	c.JSON(204, isDeleted)
+}
+
+func (controller SprinklerController) GetSpecialMode(c *gin.Context) {
+	id := ExtractId(c)
+
+	mode, err := controller.service.GetSpecialMode(id)
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+
+	c.JSON(200, mode)
+}
+
+func ExtractId(c *gin.Context) int {
+	id, err := strconv.Atoi(c.Param("id"))
+	if controllers.CheckIfError(err, c) {
+		return -1
+	}
+	return id
 }

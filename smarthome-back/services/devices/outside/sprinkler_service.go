@@ -14,7 +14,10 @@ type SprinklerService interface {
 	UpdateIsOn(id int, isOn bool) (bool, error)
 	Delete(id int) (bool, error)
 	Add(dto dtos.DeviceDTO) (models.Sprinkler, error)
-	AddSprinklerSpecialMode(id int, dto dtos.SprinklerSpecialModeDTO) (models.SprinklerSpecialMode, error)
+	AddSpecialMode(deviceId int, dto dtos.SprinklerSpecialModeDTO) (models.SprinklerSpecialMode, error)
+	GetSpecialModes(deviceId int) ([]models.SprinklerSpecialMode, error)
+	DeleteSpecialMode(id int) (bool, error)
+	GetSpecialMode(id int) (models.SprinklerSpecialMode, error)
 }
 
 type SprinklerServiceImpl struct {
@@ -48,7 +51,19 @@ func (service *SprinklerServiceImpl) Add(dto dtos.DeviceDTO) (models.Sprinkler, 
 	return service.repository.Add(device)
 }
 
-func (service *SprinklerServiceImpl) AddSprinklerSpecialMode(id int, dto dtos.SprinklerSpecialModeDTO) (models.SprinklerSpecialMode, error) {
+func (service *SprinklerServiceImpl) AddSpecialMode(deviceId int, dto dtos.SprinklerSpecialModeDTO) (models.SprinklerSpecialMode, error) {
 	mode := dto.ToSprinklerSpecialMode()
-	return service.repository.AddSpecialMode(id, mode)
+	return service.repository.AddSpecialMode(deviceId, mode)
+}
+
+func (service *SprinklerServiceImpl) GetSpecialModes(deviceId int) ([]models.SprinklerSpecialMode, error) {
+	return service.repository.GetSpecialModes(deviceId)
+}
+
+func (service *SprinklerServiceImpl) DeleteSpecialMode(id int) (bool, error) {
+	return service.repository.DeleteSpecialMode(id)
+}
+
+func (service *SprinklerServiceImpl) GetSpecialMode(deviceId int) (models.SprinklerSpecialMode, error) {
+	return service.repository.GetSpecialMode(deviceId)
 }

@@ -4,6 +4,8 @@ import "smarthome-back/enumerations"
 
 type SprinklerSpecialMode struct {
 	// TODO: vidjeti sa tasijom da njena SpecialModes naslijedi ovu klasu
+	Id           int
+	DeviceId     int
 	StartTime    string
 	EndTime      string
 	SelectedDays []enumerations.Days

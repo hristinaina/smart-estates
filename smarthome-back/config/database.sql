@@ -67,7 +67,8 @@ CREATE TABLE sprinkler (
 );
 
 CREATE TABLE sprinklerSpecialMode(
-    DeviceId INT PRIMARY KEY,
+    Id INT PRIMARY KEY AUTO_INCREMENT,
+    DeviceId INT NOT NULL,
     StartTime TIME NOT NULL,
     EndTiME TIME NOT NULL,
     SelectedDays VARCHAR(255) NOT NULL,
@@ -169,9 +170,9 @@ INSERT INTO sprinkler (DeviceId, IsOn)
 VALUES
     (11, false);
 
-INSERT INTO sprinklerSpecialMode (DeviceId, StartTime, EndTime, SelectedDays)
+INSERT INTO sprinklerSpecialMode (Id, DeviceId, StartTime, EndTime, SelectedDays)
 VALUES
-    (11, '08:00:00', '10:00:00', 'Thursday,Sunday');
+    (1, 11, '08:00:00', '10:00:00', 'Thursday,Sunday');
 
 INSERT INTO evCharger (DeviceId, ChargingPower, Connections)
 VALUES

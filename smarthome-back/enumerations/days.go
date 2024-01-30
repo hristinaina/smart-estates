@@ -51,6 +51,9 @@ func (d Days) String() string {
 func ConvertStringsToEnumValues(days string) ([]Days, error) {
 	var enumValues []Days
 
+	if strings.HasSuffix(days, ",") {
+		days = days[:len(days)-1]
+	}
 	selectedDays := strings.Split(days, ",")
 	for _, dayStr := range selectedDays {
 		day, exists := daysStringMap[strings.ToUpper(dayStr)]
