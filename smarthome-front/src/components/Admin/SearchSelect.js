@@ -16,6 +16,7 @@ class SearchSelect extends React.Component {
     if (prevProps.options !== this.props.options) {
       this.updateOptions();
     }
+    this.props.onOptionsChange(this.state.selectedOptions);
   }
 
   updateOptions = async () => {

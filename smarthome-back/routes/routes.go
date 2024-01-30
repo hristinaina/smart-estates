@@ -124,4 +124,12 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		vehicleGateRoutes.GET("/license-plate", vehicleGateController.GetAllLicensePlates)
 		vehicleGateRoutes.GET("/count/:id/:from/:to/:license-plate", vehicleGateController.GetLicencePlatesCount)
 	}
+
+	consumptionRoutes := r.Group("/api/consumption")
+	{
+		middleware := middleware.NewMiddleware(db)
+		ConsumptionController := controllers.NewConsumptionController(db, influxDb)
+		consumptionRoutes.POST("/selected-time", middleware.RequireAuth, ConsumptionController.GetConsumptionForSelectedTime)
+		consumptionRoutes.POST("/selected-date", middleware.RequireAuth, ConsumptionController.GetConsumptionForSelectedDate)
+	}
 }

@@ -9,6 +9,7 @@ import HomeBatteryService from '../../services/HomeBatteryService';
 import "./Consumption.css"
 import SearchSelect from './SearchSelect';
 import { auto } from '@popperjs/core';
+import ConsumptionService from '../../services/ConsumptionService';
 
 export class Consumption extends Component {
     constructor(props) {
@@ -34,18 +35,12 @@ export class Consumption extends Component {
                 { label: 'By Real Estate', value: 'rs' }
             ],
         };
+        this.selectedOptions = [];
     }
 
     async componentDidMount() {
         const valid = await authService.validateUser();
         if (!valid) window.location.assign("/");
-
-        const historyData = await HomeBatteryService.getHBGraphDataByRS(1);
-        console.log(historyData)
-        const graphData = this.convertResultToGraphData(historyData.result);
-        this.setState({
-            data: graphData,
-        });
     }
 
     isTimestampInLastHour = (timestamp) => {
@@ -58,7 +53,7 @@ export class Consumption extends Component {
     };
 
     updateGraph = async (value) => {
-        const result = await HomeBatteryService.getGraphDataForDropdownSelect(1, value);
+        const result = await ConsumptionService.getConsumptionGraphDataForDropdownSelect(this.state.selectedTypeOption.value, this.selectedOptions, value);
         const graphData = this.convertResultToGraphData(result.result.result)
         this.setState({
             data: graphData,
@@ -68,7 +63,6 @@ export class Consumption extends Component {
     handleTypeSelectChange = (event, selectedOption) => {
         this.setState({ selectedTypeOption: selectedOption });
     };
-
 
     handleOptionChange = async (event, value) => {
         this.setState({ selectedOption: value });
@@ -99,7 +93,7 @@ export class Consumption extends Component {
             this.handleClick();
             return;
         }
-        const result = await HomeBatteryService.getGraphDataForDates(1, this.state.startDate, this.state.endDate);
+        const result = await ConsumptionService.getConsumptionGraphDataForDates(this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
         console.log("datum graf ", result.result.result)
         const graphData = this.convertResultToGraphData(result.result.result)
         this.setState({
@@ -122,6 +116,10 @@ export class Consumption extends Component {
         }
         return graphData
     }
+
+    handleSearchSelectChange = (selectedOptions) => {
+        this.selectedOptions = selectedOptions;
+      };
 
     // snackbar
     handleClick = () => {
@@ -169,6 +167,7 @@ export class Consumption extends Component {
                             disableClearable />
                         <SearchSelect
                             options={selectedTypeOption.value}
+                            onOptionsChange={this.handleSearchSelectChange}
                         />
                     </div>
                     <div className='c-tools-container'>
