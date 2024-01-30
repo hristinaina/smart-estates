@@ -131,5 +131,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		SprinklerRoutes.PUT("/:id/on", sprinklerController.TurnOn)
 		SprinklerRoutes.PUT("/:id/off", sprinklerController.TurnOff)
 		SprinklerRoutes.DELETE("/:id", sprinklerController.Delete)
+		SprinklerRoutes.POST("/mode/:id", sprinklerController.AddSprinklerSpecialMode)
 	}
 }

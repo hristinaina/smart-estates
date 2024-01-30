@@ -15,8 +15,9 @@ type SprinklerRepository interface {
 	GetAll() ([]models.Sprinkler, error)
 	UpdateIsOn(id int, isOn bool) (bool, error)
 	Delete(id int) (bool, error)
-	AddSpecialMode(id int, mode models.SprinklerSpecialMode) (models.Sprinkler, error)
+	AddSpecialMode(id int, mode models.SprinklerSpecialMode) (models.SprinklerSpecialMode, error)
 	Add(sprinkler models.Sprinkler) (models.Sprinkler, error)
+	GetSpecialModes(id int) ([]models.SprinklerSpecialMode, error)
 }
 
 type SprinklerRepositoryImpl struct {
@@ -126,30 +127,14 @@ func (repo *SprinklerRepositoryImpl) Delete(id int) (bool, error) {
 	return true, nil
 }
 
-func (repo *SprinklerRepositoryImpl) AddSpecialMode(id int, mode models.SprinklerSpecialMode) (models.Sprinkler, error) {
-	return models.Sprinkler{}, nil
-}
-
-func (repo *SprinklerRepositoryImpl) scanRows(rows *sql.Rows) ([]models.Sprinkler, error) {
-	var sprinklers []models.Sprinkler
-	for rows.Next() {
-		var (
-			device     models2.Device
-			consDevice models2.ConsumptionDevice
-			sprinkler  models.Sprinkler
-		)
-
-		if err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.RealEstate,
-			&device.IsOnline, &consDevice.PowerSupply, &consDevice.PowerConsumption, &sprinkler.IsOn); err != nil {
-			fmt.Println("Error: ", err.Error())
-			return []models.Sprinkler{}, err
-		}
-		consDevice.Device = device
-		sprinkler.ConsumptionDevice = consDevice
-		sprinklers = append(sprinklers, sprinkler)
+func (repo *SprinklerRepositoryImpl) AddSpecialMode(id int, mode models.SprinklerSpecialMode) (models.SprinklerSpecialMode, error) {
+	selectedDays := mode.SelectedDaysToString()
+	query := `INSERT INTO SprinklerSpecialMode (DeviceId, StartTime, EndTime, SelectedDays) VALUES (?, ?, ?, ?)`
+	_, err := repo.db.Exec(query, id, mode.StartTime, mode.EndTime, selectedDays)
+	if repositories.CheckIfError(err) {
+		return models.SprinklerSpecialMode{}, err
 	}
-
-	return sprinklers, nil
+	return mode, nil
 }
 
 func (repo *SprinklerRepositoryImpl) Add(device models.Sprinkler) (models.Sprinkler, error) {
@@ -192,4 +177,30 @@ func (repo *SprinklerRepositoryImpl) Add(device models.Sprinkler) (models.Sprink
 	device.ConsumptionDevice.Device.Id = int(deviceID)
 
 	return device, nil
+}
+
+func (repo *SprinklerRepositoryImpl) GetSpecialModes(id int) ([]models.SprinklerSpecialMode, error) {
+	return nil, nil
+}
+
+func (repo *SprinklerRepositoryImpl) scanRows(rows *sql.Rows) ([]models.Sprinkler, error) {
+	var sprinklers []models.Sprinkler
+	for rows.Next() {
+		var (
+			device     models2.Device
+			consDevice models2.ConsumptionDevice
+			sprinkler  models.Sprinkler
+		)
+
+		if err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.RealEstate,
+			&device.IsOnline, &consDevice.PowerSupply, &consDevice.PowerConsumption, &sprinkler.IsOn); err != nil {
+			fmt.Println("Error: ", err.Error())
+			return []models.Sprinkler{}, err
+		}
+		consDevice.Device = device
+		sprinkler.ConsumptionDevice = consDevice
+		sprinklers = append(sprinklers, sprinkler)
+	}
+
+	return sprinklers, nil
 }

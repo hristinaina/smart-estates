@@ -17,8 +17,11 @@ func NewSprinklerSpecialMode(startTime, endTime string, selectedDays []enumerati
 	}
 }
 
-type SprinklerSpecialModeDTO struct {
-	StartTime    string
-	EndTime      string
-	SelectedDays []string
+func (s SprinklerSpecialMode) SelectedDaysToString() string {
+	res := ""
+	for _, day := range s.SelectedDays {
+		res += day.String() + ","
+	}
+
+	return res
 }

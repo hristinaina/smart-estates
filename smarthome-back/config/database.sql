@@ -169,7 +169,7 @@ INSERT INTO sprinkler (DeviceId, IsOn)
 VALUES
     (11, false);
 
-INSERT INTO sprinklerSpecialMode (DeviceId, StartTime, EndTiME, SelectedDays)
+INSERT INTO sprinklerSpecialMode (DeviceId, StartTime, EndTime, SelectedDays)
 VALUES
     (11, '08:00:00', '10:00:00', 'Thursday,Sunday');
 

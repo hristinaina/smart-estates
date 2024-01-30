@@ -1,6 +1,9 @@
 package enumerations
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type Days int
 
@@ -13,6 +16,16 @@ const (
 	SATURDAY
 	SUNDAY
 )
+
+var daysStringMap = map[string]Days{
+	"MONDAY":    MONDAY,
+	"TUESDAY":   TUESDAY,
+	"WEDNESDAY": WEDNESDAY,
+	"THURSDAY":  THURSDAY,
+	"FRIDAY":    FRIDAY,
+	"SATURDAY":  SATURDAY,
+	"SUNDAY":    SUNDAY,
+}
 
 func (d Days) String() string {
 	switch d {
@@ -33,4 +46,19 @@ func (d Days) String() string {
 	default:
 		return fmt.Sprintf("Unknown day: %d", d)
 	}
+}
+
+func ConvertStringsToEnumValues(days string) ([]Days, error) {
+	var enumValues []Days
+
+	selectedDays := strings.Split(days, ",")
+	for _, dayStr := range selectedDays {
+		day, exists := daysStringMap[strings.ToUpper(dayStr)]
+		if !exists {
+			return nil, fmt.Errorf("invalid day string: %s", dayStr)
+		}
+		enumValues = append(enumValues, day)
+	}
+
+	return enumValues, nil
 }

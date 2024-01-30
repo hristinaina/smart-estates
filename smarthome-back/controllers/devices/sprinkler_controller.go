@@ -98,3 +98,24 @@ func (controller SprinklerController) Add(c *gin.Context) {
 
 	c.JSON(200, sprinkler)
 }
+
+func (controller SprinklerController) AddSprinklerSpecialMode(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+
+	var dto dtos.SprinklerSpecialModeDTO
+
+	if err := c.BindJSON(&dto); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	mode, err := controller.service.AddSprinklerSpecialMode(id, dto)
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+
+	c.JSON(200, mode)
+}

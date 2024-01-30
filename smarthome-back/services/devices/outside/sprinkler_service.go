@@ -14,6 +14,7 @@ type SprinklerService interface {
 	UpdateIsOn(id int, isOn bool) (bool, error)
 	Delete(id int) (bool, error)
 	Add(dto dtos.DeviceDTO) (models.Sprinkler, error)
+	AddSprinklerSpecialMode(id int, dto dtos.SprinklerSpecialModeDTO) (models.SprinklerSpecialMode, error)
 }
 
 type SprinklerServiceImpl struct {
@@ -42,8 +43,12 @@ func (service *SprinklerServiceImpl) Delete(id int) (bool, error) {
 	return service.repository.Delete(id)
 }
 
-// Add TODO: this function may not be necessary because there is implementation in Device Service for this
 func (service *SprinklerServiceImpl) Add(dto dtos.DeviceDTO) (models.Sprinkler, error) {
 	device := dto.ToSprinkler()
 	return service.repository.Add(device)
+}
+
+func (service *SprinklerServiceImpl) AddSprinklerSpecialMode(id int, dto dtos.SprinklerSpecialModeDTO) (models.SprinklerSpecialMode, error) {
+	mode := dto.ToSprinklerSpecialMode()
+	return service.repository.AddSpecialMode(id, mode)
 }
