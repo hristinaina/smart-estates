@@ -111,25 +111,44 @@ export class GrantPermission extends Component {
 
     handleGrantPermission = async () => {
         const user = authService.getCurrentUser()
+
         const deviceIds = this.state.selectedDevices.map(device => device.Id);
-        // console.log(this.state.emails)
-        // console.log(deviceIds)
-        // console.log(this.state.realEstate.Id)
-        // console.log(this.state.realEstate.Name)
-        // console.log(user.Name + " " + user.Surname)
 
-        await PermissionService.sendGrantValues({
-            "Emails": this.state.emails,
-            "Devices": deviceIds,
-            "RealEstateId": this.state.realEstate.Id,
-            "RealEstateName": this.state.realEstate.Name,
-            "User": user.Name + " " + user.Surname
-        })
+        const exist = this.isExistSelectedPermissions(deviceIds)
 
-        this.setState({ selectedDevices: [], selectAll: false, newEmail: "", emails: [], grantPermissionDisabled: true })
+        if (!exist) {
+            await PermissionService.sendGrantValues({
+                "Emails": this.state.emails,
+                "Devices": deviceIds,
+                "RealEstateId": this.state.realEstate.Id,
+                "RealEstateName": this.state.realEstate.Name,
+                "User": user.Name + " " + user.Surname
+            })
 
-        this.setState({ snackbarMessage: "Successfully granted permissions!" });
-        this.handleClick();
+            this.setState({ selectedDevices: [], selectAll: false, newEmail: "", emails: [], grantPermissionDisabled: true })
+
+            this.setState({ snackbarMessage: "Successfully granted permissions!" });
+            this.handleClick();
+        }
+        else {
+            this.setState({ snackbarMessage: "You have already grant permissions. Look at the table!" });
+            this.handleClick();
+        }
+    }
+
+    isExistSelectedPermissions = (deviceIds) => {
+        const found = this.state.tableData.some(item =>
+            this.state.emails.some(email =>
+                deviceIds.some(device =>
+                    item.DeviceId === device && item.UserEmail === email
+                )
+            )
+        );
+        if (found) {
+            console.log("Uslov ispunjen!");
+            return true;
+        }
+        return false;
     }
 
     // RIGHT SIDE
