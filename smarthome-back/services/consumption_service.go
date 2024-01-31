@@ -12,6 +12,8 @@ import (
 type ConsumptionService interface {
 	GetConsumptionForSelectedTime(queryType string, selectedTime string, inputType string, selectedOptions []string) interface{}
 	GetConsumptionForSelectedDate(queryType string, startDate, endDate string, inputType string, selectedOptions []string) interface{}
+	GetRatioForSelectedDate(startDate, endDate string, inputType string, selectedOptions []string) interface{}
+	GetRatioForSelectedTime(selectedTime string, inputType string, selectedOptions []string) interface{}
 }
 
 type ConsumptionServiceImpl struct {
@@ -22,6 +24,20 @@ type ConsumptionServiceImpl struct {
 
 func NewConsumptionService(db *sql.DB, influxDb influxdb2.Client) ConsumptionService {
 	return &ConsumptionServiceImpl{db: db, influxDb: influxDb, realEstateService: NewRealEstateService(db)}
+}
+
+func (uc *ConsumptionServiceImpl) GetRatioForSelectedDate(startDate, endDate string, inputType string, selectedOptions []string) interface{} {
+	resultsC := uc.GetConsumptionForSelectedDate("consumption", startDate, endDate, inputType, selectedOptions).(map[string]map[time.Time]float64)
+	resultsP := uc.GetConsumptionForSelectedDate("solar_panel", startDate, endDate, inputType, selectedOptions).(map[string]map[time.Time]float64)
+	results := calculateRatio(resultsC, resultsP)
+	return results
+}
+
+func (uc *ConsumptionServiceImpl) GetRatioForSelectedTime(selectedTime string, inputType string, selectedOptions []string) interface{} {
+	resultsC := uc.GetConsumptionForSelectedTime("consumption", selectedTime, inputType, selectedOptions).(map[string]map[time.Time]float64)
+	resultsP := uc.GetConsumptionForSelectedTime("solar_panel", selectedTime, inputType, selectedOptions).(map[string]map[time.Time]float64)
+	results := calculateRatio(resultsC, resultsP)
+	return results
 }
 
 func (s *ConsumptionServiceImpl) GetConsumptionForSelectedTime(queryType string, selectedTime string, inputType string, selectedOptions []string) interface{} {
@@ -137,6 +153,35 @@ func calculateDates(selectedTime string) (string, string) {
 	endDateStr := endDate.Format("2006-01-02T15:04:05Z")
 
 	return startDateStr, endDateStr
+}
+
+func calculateRatio(resultC, resultP map[string]map[time.Time]float64) map[string]map[time.Time]float64 {
+	aggregatedMap := make(map[string]map[time.Time]float64)
+
+	for city, innerMapC := range resultC {
+		innerMapP, ok := resultP[city]
+		if !ok {
+			// Handle the case where the city is not present in resultP
+			continue
+		}
+
+		// Initialize the inner map for the aggregated result
+		aggregatedMap[city] = make(map[time.Time]float64)
+
+		// Iterate over timestamps in innerMapC
+		for timestampC, valueC := range innerMapC {
+			// Subtract value from resultC
+			aggregatedMap[city][timestampC] -= valueC
+		}
+
+		// Iterate over timestamps in innerMapP
+		for timestampP, valueP := range innerMapP {
+			// Add value from resultP
+			aggregatedMap[city][timestampP] += valueP
+		}
+	}
+
+	return aggregatedMap
 }
 
 func aggregateResults(results map[string]map[time.Time]float64) map[time.Time]float64 {

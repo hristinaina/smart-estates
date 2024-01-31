@@ -19,7 +19,6 @@ func NewConsumptionController(db *sql.DB, influxDb influxdb2.Client) Consumption
 	return ConsumptionController{service: services.NewConsumptionService(db, influxDb)}
 }
 
-// todo u sustini u novom servisu samo dobavi sve rs i zovni funkciju iz hb za svaki rs
 func (uc ConsumptionController) GetConsumptionForSelectedTime(c *gin.Context) {
 	var input consumption_graph.TimeInput
 
@@ -49,5 +48,37 @@ func (uc ConsumptionController) GetConsumptionForSelectedDate(c *gin.Context) {
 		fmt.Println("Error parsing date:", err)
 	}
 	results := uc.service.GetConsumptionForSelectedDate(input.QueryType, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), input.Type, input.SelectedOptions)
+	c.JSON(http.StatusOK, gin.H{"result": results})
+}
+
+func (uc ConsumptionController) GetRatioForSelectedTime(c *gin.Context) {
+	var input consumption_graph.TimeInput
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+	results := uc.service.GetRatioForSelectedTime(input.Time, input.Type, input.SelectedOptions)
+	c.JSON(http.StatusOK, gin.H{"result": results})
+}
+
+func (uc ConsumptionController) GetRatioForSelectedDate(c *gin.Context) {
+	var input consumption_graph.DateInput
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+
+	startDate, err := time.Parse("2006-01-02", input.Start)
+	if err != nil {
+		fmt.Println("Error parsing date:", err)
+	}
+
+	endDate, err := time.Parse("2006-01-02", input.End)
+	if err != nil {
+		fmt.Println("Error parsing date:", err)
+	}
+	results := uc.service.GetRatioForSelectedDate(startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), input.Type, input.SelectedOptions)
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }

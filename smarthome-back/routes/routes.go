@@ -131,5 +131,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		ConsumptionController := controllers.NewConsumptionController(db, influxDb)
 		consumptionRoutes.POST("/selected-time", middleware.RequireAuth, ConsumptionController.GetConsumptionForSelectedTime)
 		consumptionRoutes.POST("/selected-date", middleware.RequireAuth, ConsumptionController.GetConsumptionForSelectedDate)
+		consumptionRoutes.POST("/ratio/selected-time", middleware.RequireAuth, ConsumptionController.GetRatioForSelectedTime)
+		consumptionRoutes.POST("/ratio/selected-date", middleware.RequireAuth, ConsumptionController.GetRatioForSelectedDate)
 	}
 }
