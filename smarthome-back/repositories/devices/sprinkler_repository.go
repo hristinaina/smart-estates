@@ -133,11 +133,13 @@ func (repo *SprinklerRepositoryImpl) Delete(id int) (bool, error) {
 func (repo *SprinklerRepositoryImpl) AddSpecialMode(id int, mode models.SprinklerSpecialMode) (models.SprinklerSpecialMode, error) {
 	selectedDays := mode.SelectedDaysToString()
 	query := `INSERT INTO SprinklerSpecialMode (DeviceId, StartTime, EndTime, SelectedDays) VALUES (?, ?, ?, ?)`
-	_, err := repo.db.Exec(query, id, mode.StartTime, mode.EndTime, selectedDays)
+	res, err := repo.db.Exec(query, id, mode.StartTime, mode.EndTime, selectedDays)
 	if repositories.CheckIfError(err) {
 		return models.SprinklerSpecialMode{}, err
 	}
+	modeId, err := res.LastInsertId()
 	mode.DeviceId = id
+	mode.Id = int(modeId)
 	return mode, nil
 }
 

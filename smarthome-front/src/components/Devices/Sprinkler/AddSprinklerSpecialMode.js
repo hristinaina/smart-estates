@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import {
     Button,
-    TextField,
     Select,
     MenuItem,
     InputLabel,
@@ -18,13 +17,13 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogContentText,
     DialogActions,
     IconButton,
     Snackbar,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import '../AirConditioner/SpecialModeForm.css'
+import SprinklerService from '../../../services/SprinklerService';
 
 
 class AddSprinklerSpecialMode extends Component {
@@ -36,11 +35,40 @@ class AddSprinklerSpecialMode extends Component {
             mode: '',
             selectedDays: [],
             specialModes: [],
+            modes: [],
             showDialog: false,
             snackbarMessage: '',
             showSnackbar: false,
             openSnackbar: false,
         };
+        this.id = parseInt(this.extractDeviceIdFromUrl());
+    }
+
+    async componentDidMount() {
+        // TODO: 
+        const res = await SprinklerService.getSpecialModes(11);
+        if (res !== null) {
+            let specials = [];
+            res.forEach(element => {
+                const specialMode = {
+                    start: element.StartTime,
+                    end: element.EndTime,
+                    selectedDays: this.getSelectedDays(element.SelectedDays),
+                };
+                specials.push(specialMode);
+            });
+           
+            await this.setState({specialModes: specials});
+        }
+    }
+
+    getSelectedDays(selectedDays) {
+        return selectedDays.split(',').filter(day => day !== "");
+    }
+
+    extractDeviceIdFromUrl() {
+        const parts = window.location.href.split('/');
+        return parts[parts.length - 1];
     }
 
     handleSelectedDays = (event) => {
@@ -63,10 +91,10 @@ class AddSprinklerSpecialMode extends Component {
         const existingModeForDay = specialModes.find(
             (item) =>
                 item.selectedDays.some((day) => selectedDays.includes(day)) &&
-                ((new Date(`2000-01-01 ${start}`) >= new Date(`2000-01-01 ${item.start}`) &&
-                    new Date(`2000-01-01 ${start}`) <= new Date(`2000-01-01 ${item.end}`)) ||
-                    (new Date(`2000-01-01 ${end}`) >= new Date(`2000-01-01 ${item.start}`) &&
-                        new Date(`2000-01-01 ${end}`) <= new Date(`2000-01-01 ${item.end}`)))
+                ((new Date(`2000-01-01 ${start}`) >= new Date(`2000-01-01 ${item.StartTime}`) &&
+                    new Date(`2000-01-01 ${start}`) <= new Date(`2000-01-01 ${item.EndTime}`)) ||
+                    (new Date(`2000-01-01 ${end}`) >= new Date(`2000-01-01 ${item.StartTime}`) &&
+                        new Date(`2000-01-01 ${end}`) <= new Date(`2000-01-01 ${item.EndTime}`)))
         );
     
         if (existingModeForDay) {
@@ -75,14 +103,14 @@ class AddSprinklerSpecialMode extends Component {
             return;
         }
 
-        // if everything alright add mode
+        // if everything ok add mode
         const specialMode = {
             start,
             end,
             selectedDays,
         };
 
-        console.log(specialMode)
+        console.log(specialMode);
 
         // reset data
         this.setState({
@@ -119,7 +147,7 @@ class AddSprinklerSpecialMode extends Component {
         this.setState({ openSnackbar: false });
     };
 
-    handleSave = () => {
+    handleSave = async() => {
         this.setState({ showDialog: false });
         this.props.onAdd(this.state.specialModes);
     }
@@ -135,7 +163,7 @@ class AddSprinklerSpecialMode extends Component {
             <Dialog open={this.state.showDialog} onClose={this.closeDialog}>
                 <DialogTitle style={{marginBottom: '25px'}}>Add Special Mode</DialogTitle>
                 <DialogContent>
-                    <div className='firstRow' style={{'margin-bottom': '2em'}}>
+                    <div className='firstRow' style={{marginBottom: '2em'}}>
                         <span className="a">Start:</span>
                         <FormControl>
                             <Input style={{cursor: 'pointer'}} type="time" value={this.state.start} onChange={(e) => this.setState({ start: e.target.value })} />

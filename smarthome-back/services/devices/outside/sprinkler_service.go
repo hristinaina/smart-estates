@@ -15,7 +15,7 @@ type SprinklerService interface {
 	Delete(id int) (bool, error)
 	Add(dto dtos.DeviceDTO) (models.Sprinkler, error)
 	AddSpecialMode(deviceId int, dto dtos.SprinklerSpecialModeDTO) (models.SprinklerSpecialMode, error)
-	GetSpecialModes(deviceId int) ([]models.SprinklerSpecialMode, error)
+	GetSpecialModes(deviceId int) ([]dtos.SprinklerSpecialModeDTO, error)
 	DeleteSpecialMode(id int) (bool, error)
 	GetSpecialMode(id int) (models.SprinklerSpecialMode, error)
 }
@@ -56,8 +56,16 @@ func (service *SprinklerServiceImpl) AddSpecialMode(deviceId int, dto dtos.Sprin
 	return service.repository.AddSpecialMode(deviceId, mode)
 }
 
-func (service *SprinklerServiceImpl) GetSpecialModes(deviceId int) ([]models.SprinklerSpecialMode, error) {
-	return service.repository.GetSpecialModes(deviceId)
+func (service *SprinklerServiceImpl) GetSpecialModes(deviceId int) ([]dtos.SprinklerSpecialModeDTO, error) {
+	res, err := service.repository.GetSpecialModes(deviceId)
+	if err != nil {
+		return nil, err
+	}
+	var ret []dtos.SprinklerSpecialModeDTO
+	for _, value := range res {
+		ret = append(ret, dtos.SprinklerSpecialModeToDTO(value))
+	}
+	return ret, nil
 }
 
 func (service *SprinklerServiceImpl) DeleteSpecialMode(id int) (bool, error) {

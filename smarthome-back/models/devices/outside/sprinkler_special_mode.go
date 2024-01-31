@@ -1,6 +1,8 @@
 package models
 
-import "smarthome-back/enumerations"
+import (
+	"smarthome-back/enumerations"
+)
 
 type SprinklerSpecialMode struct {
 	// TODO: vidjeti sa tasijom da njena SpecialModes naslijedi ovu klasu

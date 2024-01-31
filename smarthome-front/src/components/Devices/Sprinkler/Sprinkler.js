@@ -5,6 +5,7 @@ import { IconButton, Switch, Table, TableCell, TableContainer, TableRow, Typogra
 import AddSprinklerSpecialMode from "./AddSprinklerSpecialMode";
 import CloseIcon from '@mui/icons-material/Close';
 import LogTable from "../AirConditioner/LogTable";
+import SprinklerService from "../../../services/SprinklerService";
 
 export class Sprinkler extends Component {
 
@@ -20,6 +21,29 @@ export class Sprinkler extends Component {
             logData: [],
         };
     }
+
+    async componentDidMount() {
+        // TODO: 
+        const res = await SprinklerService.getSpecialModes(11);
+        if (res !== null) {
+            let specials = [];
+            res.forEach(element => {
+                const specialMode = {
+                    start: element.StartTime,
+                    end: element.EndTime,
+                    selectedDays: this.getSelectedDays(element.SelectedDays),
+                };
+                specials.push(specialMode);
+            });
+           
+            await this.setState({specialModes: specials});
+        }
+    }
+
+    getSelectedDays(selectedDays) {
+        return selectedDays.split(',').filter(day => day !== "");
+    }
+
 
     handleBackArrow() {
         window.location.assign("/devices")
