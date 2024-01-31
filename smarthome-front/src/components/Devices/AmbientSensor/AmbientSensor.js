@@ -10,6 +10,7 @@ import AmbientSensorService from '../../../services/AmbientSensorService';
 import { Autocomplete, TextField, Button, IconButton, Snackbar } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeviceService from '../../../services/DeviceService';
+import SensorDataTable from './SensorDataTable';
 
 
 export class AmbientSensor extends Component {
@@ -19,10 +20,9 @@ export class AmbientSensor extends Component {
         super(props);
         this.state = {
             device: {},
-            averageTemp: 0.0,
-            averageHmd: 0.0,
             switchOn: false,
             activeGraph: 1,
+            historyData:[],
             data: {
                 labels: [],
                 datasets: [
@@ -82,7 +82,6 @@ export class AmbientSensor extends Component {
         if (!valid) window.location.assign("/");
 
         const device = await DeviceService.getDeviceById(this.id, 'http://localhost:8081/api/ambient/');
-        console.log(device)
         this.Name = device.Device.Name;
         // const { device } = this.state;  // todo instead of this get device from back by deviceId
         const updatedData =
@@ -97,8 +96,6 @@ export class AmbientSensor extends Component {
         try {
             const result = await AmbientSensorService.getGraphData(this.id);
             const values = result.result
-            console.log("rezultat", values)
-            // console.log(typeof(values))
 
             const timestamps = Object.keys(values);
             const humidityData = timestamps.map((timestamp) => values[timestamp].humidity);
@@ -170,6 +167,8 @@ export class AmbientSensor extends Component {
         const humidityData = timestamps.map((timestamp) => values[timestamp].humidity);
         const temperatureData = timestamps.map((timestamp) => values[timestamp].temperature);
 
+        this.setState({historyData: values})
+
         await this.setState({
             data: {
                 labels: timestamps,
@@ -191,28 +190,7 @@ export class AmbientSensor extends Component {
                 ],
             },
         });
-
-        this.calculateAverages(values);
     }
-
-    calculateAverages = (data) => {
-        let temperatureSum = 0;
-        let humiditySum = 0;
-        const totalSamples = Object.values(data).length;
-
-        Object.values(data).forEach(sample => {
-            temperatureSum += sample.temperature;
-            humiditySum += sample.humidity;
-        });
-
-        const temperatureAverage = temperatureSum / totalSamples;
-        const humidityAverage = humiditySum / totalSamples;
-
-        this.setState({
-            averageTemp: temperatureAverage.toFixed(2),
-            averageHmd: humidityAverage.toFixed(2)
-        });
-    };
 
     populateGraph = (message) => {
         const { data } = this.state;
@@ -279,7 +257,6 @@ export class AmbientSensor extends Component {
             return;
         }
         const result = await AmbientSensorService.getDataForSelectedDate(this.id, this.state.startDate, this.state.endDate);
-        console.log("datum graf ", result.result.result)
         result.result.result != null ? await this.historyGraph(result.result.result) : await this.historyGraph([]) 
     };
 
@@ -305,7 +282,7 @@ export class AmbientSensor extends Component {
     };
 
     render() {
-        const { selectedOption, startDate, endDate, options, averageTemp, averageHmd } = this.state;
+        const { selectedOption, startDate, endDate, options, historyData } = this.state;
 
         const action = (
             <React.Fragment>
@@ -340,63 +317,59 @@ export class AmbientSensor extends Component {
                     }
 
                     {this.state.activeGraph === 2 && 
+                    <div>
                         <div className="history-container">
-                        <div className="history-controls">
-                            <div>
-                                <div style={{textAlign: "left"}}>
-                                    <span>Average temperature: </span>
-                                    <span style={{fontWeight: "bold", marginLeft: "15px"}}>{averageTemp}  °C</span>
-                                </div>
-                                <div style={{textAlign: "left", marginBottom: "55px", marginTop: "15px"}}>
-                                    <span>Average humidity: </span>
-                                    <span style={{fontWeight: "bold", marginLeft: "45px"}}>{averageHmd}  %</span>
-                                </div>                            
+                            <div className="history-controls">
+                                <Autocomplete
+                                    value={selectedOption}
+                                    onChange={this.handleOptionChange}
+                                    options={options}
+                                    getOptionLabel={(option) => option.label}
+                                    style={{ width: '100%', marginBottom: '10px' }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Select Time Range"
+                                            InputLabelProps={{ shrink: true }}
+                                        />
+                                    )}
+                                    isOptionEqualToValue={(option, value) => option.value === value.value}
+                                    renderOption={(props, option, { selected }) => (
+                                        <li {...props}>
+                                            <span>{option.label}</span>
+                                        </li>
+                                    )}
+                                    disableClearable
+                                />
+                                <TextField
+                                    label="Start Date"
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => this.handleDateChange('startDate', e)}
+                                    InputLabelProps={{ shrink: true }}
+                                    style={{ width: '100%', marginBottom: '10px' }}
+                                    inputProps={{ max: new Date().toISOString().split('T')[0] }}
+                                />
+                                <TextField
+                                    label="End Date"
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => this.handleDateChange('endDate', e)}
+                                    InputLabelProps={{ shrink: true }}
+                                    style={{ width: '100%', marginBottom: '10px' }}
+                                    inputProps={{ max: new Date().toISOString().split('T')[0] }}
+                                />
+                                <Button variant="contained" color="primary" onClick={this.handleButtonClick} style={{ width: '100%' }}>Apply</Button>
                             </div>
-                            <Autocomplete
-                                value={selectedOption}
-                                onChange={this.handleOptionChange}
-                                options={options}
-                                getOptionLabel={(option) => option.label}
-                                style={{ width: '100%', marginBottom: '10px' }}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Select Time Range"
-                                        InputLabelProps={{ shrink: true }}
-                                    />
-                                )}
-                                isOptionEqualToValue={(option, value) => option.value === value.value}
-                                renderOption={(props, option, { selected }) => (
-                                    <li {...props}>
-                                        <span>{option.label}</span>
-                                    </li>
-                                )}
-                                disableClearable
-                            />
-                            <TextField
-                                label="Start Date"
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => this.handleDateChange('startDate', e)}
-                                InputLabelProps={{ shrink: true }}
-                                style={{ width: '100%', marginBottom: '10px' }}
-                                inputProps={{ max: new Date().toISOString().split('T')[0] }}
-                            />
-                            <TextField
-                                label="End Date"
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => this.handleDateChange('endDate', e)}
-                                InputLabelProps={{ shrink: true }}
-                                style={{ width: '100%', marginBottom: '10px' }}
-                                inputProps={{ max: new Date().toISOString().split('T')[0] }}
-                            />
-                            <Button variant="contained" color="primary" onClick={this.handleButtonClick} style={{ width: '100%' }}>Apply</Button>
+                            <div className="history-chart">
+                                <Line ref={(ref) => (this.chartInstance = ref)} data={this.state.data} options={this.options} />
+                            </div>
                         </div>
-                        <div className="history-chart">
-                            <Line ref={(ref) => (this.chartInstance = ref)} data={this.state.data} options={this.options} />
-                        </div>
-                    </div>}
+                        <div>
+                            <SensorDataTable data={historyData} />
+                        </div>  
+                    </div>
+                    }
                 </div>
 
         <Snackbar
@@ -406,7 +379,7 @@ export class AmbientSensor extends Component {
         message={this.state.snackbarMessage}
         action={action}/>
 
-            </div>
+     </div>
         )
     }
 
