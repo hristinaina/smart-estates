@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import {
     Button,
-    TextField,
     Select,
     MenuItem,
     InputLabel,
@@ -18,7 +17,6 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogContentText,
     DialogActions,
     IconButton,
     Snackbar,

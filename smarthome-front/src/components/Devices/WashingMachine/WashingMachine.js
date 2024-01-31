@@ -110,7 +110,7 @@ export class WashingMachine extends Component {
     handleMqttMessageForWM(topic, message) {
         const result = JSON.parse(message.toString())
         
-        if(result.id == this.state.device.Device.Device.Id) {
+        if(result.id === this.state.device.Device.Device.Id) {
             const selectedMode = this.state.mode.find(item => item.Id === result.mode);
             this.handleSwitchToggle(selectedMode, "mqtt")
         }    
@@ -215,9 +215,9 @@ export class WashingMachine extends Component {
         return this.state.scheduledModes.some(mode => {
             const modeStartTime = new Date(mode.StartTime).getTime();
             let modeDuration = 60
-            if(mode.ModeId == 1) modeDuration = 120
-            else if (mode.ModeId == 3) modeDuration = 30
-            else if (mode.ModeId == 4) modeDuration = 90
+            if(mode.ModeId === 1) modeDuration = 120
+            else if (mode.ModeId === 3) modeDuration = 30
+            else if (mode.ModeId === 4) modeDuration = 90
             const modeEndTime = modeStartTime + (modeDuration * 60 * 1000); 
     
             if (startTimeOfNewProgram === modeStartTime) {
@@ -305,7 +305,7 @@ export class WashingMachine extends Component {
             clearInterval(intervalId); 
         }
         
-        if (duration == 0) {
+        if (duration === 0) {
             console.log("nema nista")
             this.setState({ remainingTime: "00:00:00" }); 
             return;

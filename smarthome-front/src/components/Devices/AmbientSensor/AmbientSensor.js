@@ -7,7 +7,7 @@ import { Navigation } from '../../Navigation/Navigation';
 import './AmbientSensor.css'
 import authService from '../../../services/AuthService'
 import AmbientSensorService from '../../../services/AmbientSensorService';
-import { Autocomplete, TextField, Button, Box, Grid, IconButton, Snackbar } from '@mui/material';
+import { Autocomplete, TextField, Button, IconButton, Snackbar } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeviceService from '../../../services/DeviceService';
 

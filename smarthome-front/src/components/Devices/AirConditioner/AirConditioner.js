@@ -7,6 +7,7 @@ import mqtt from 'mqtt';
 import { TextField, Button, Snackbar, Typography, Switch, Input, FormControl } from '@mui/material';
 import DeviceService from '../../../services/DeviceService';
 import LogTable from './LogTable';
+import PieChart from './PieChart';
 
 
 export class AirConditioner extends Component {
@@ -27,7 +28,7 @@ export class AirConditioner extends Component {
             showSnackbar: false,
             open: false,
             temp: 20.0,
-            currentTemp: "Loading..."
+            currentTemp: "Loading...",
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -121,7 +122,7 @@ export class AirConditioner extends Component {
         {
             const updatedMode = mode.map((m) => { 
                 // ako je bio upaljen, posalji da se gasi   
-                if(m.switchOn && item.name != m.name) {  
+                if(m.switchOn && item.name !== m.name) {  
                     console.log("dugme prvo")
                     this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn, email)
                     ++i                   
@@ -157,7 +158,7 @@ export class AirConditioner extends Component {
 
         const updatedMode = mode.map((m) => { 
             // ako je bio upaljen, posalji da se gasi   
-            if(m.switchOn && item.name != m.name) {  
+            if(m.switchOn && item.name !== m.name) {  
                 console.log("zakazano prvo")
                 this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn, "auto")
                 ++i                   
@@ -350,8 +351,8 @@ export class AirConditioner extends Component {
                         </div>
                         )
                     })}
-
                     </div>
+
                     <div id='sp-right-card'>
                         <p className='sp-card-title'>Switch History</p>
                         <form onSubmit={this.handleFormSubmit} className='sp-container'>
@@ -378,6 +379,21 @@ export class AirConditioner extends Component {
                             <Button type="submit" id='sp-data-button'>Filter</Button>
                         </form>
                         <LogTable logData={logData} />
+                    </div>
+                </div>
+
+                <div id='statistics'>
+                    <p className='sp-card-title'>Statistic</p>
+                    <p>Graphs are based on switch history data</p>
+                    <div>
+                        <p className='sp-card-title'>Mode usage percentage %</p>
+                        <PieChart data={logData} graph={1} />
+
+                        <p className='sp-card-title'>Device activity percentage %</p>
+                        <PieChart data={logData} graph={2} />
+
+                        <p className='sp-card-title'>User usage percentage %</p>
+                        <PieChart data={logData} graph={3} />
                     </div>
                 </div>
                 <Snackbar
