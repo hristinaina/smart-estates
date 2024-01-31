@@ -49,6 +49,6 @@ func (uc ConsumptionController) GetConsumptionForSelectedDate(c *gin.Context) {
 	if err != nil {
 		fmt.Println("Error parsing date:", err)
 	}
-	results := uc.service.GetConsumptionForSelectedDate(startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), 1)
+	results := uc.service.GetConsumptionForSelectedDate(startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), input.Type, input.SelectedOptions)
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }

@@ -11,7 +11,7 @@ import (
 
 type ConsumptionService interface {
 	GetConsumptionForSelectedTime(selectedTime string, inputType string, selectedOptions []string) interface{}
-	GetConsumptionForSelectedDate(startDate, endDate string, estateId int) interface{}
+	GetConsumptionForSelectedDate(startDate, endDate string, inputType string, selectedOptions []string) interface{}
 }
 
 type ConsumptionServiceImpl struct {
@@ -26,7 +26,8 @@ func NewConsumptionService(db *sql.DB, influxDb influxdb2.Client) ConsumptionSer
 
 func (s *ConsumptionServiceImpl) GetConsumptionForSelectedTime(selectedTime string, inputType string, selectedOptions []string) interface{} {
 	if inputType == "rs" {
-		return s.getConsumptionForRealEstates(selectedTime, selectedOptions)
+		startDate, endDate := calculateDates(selectedTime)
+		return s.getConsumptionForRealEstates(startDate, endDate, selectedOptions)
 
 	} else { // input type is "city"
 		// Initialize a map to store aggregated values for each city (there can be multiple cities in selectedOptions)
@@ -39,7 +40,8 @@ func (s *ConsumptionServiceImpl) GetConsumptionForSelectedTime(selectedTime stri
 				estateIds[i] = strconv.Itoa(estate.Id)
 			}
 			// [estate.Name][timestamp]value
-			realEstatesMap := s.getConsumptionForRealEstates(selectedTime, estateIds)
+			startDate, endDate := calculateDates(selectedTime)
+			realEstatesMap := s.getConsumptionForRealEstates(startDate, endDate, estateIds)
 			cityAggregatedValues := aggregateResults(realEstatesMap)
 			// Store the aggregated values for the city in the results map
 			if len(cityAggregatedValues) == 0 {
@@ -55,27 +57,49 @@ func (s *ConsumptionServiceImpl) GetConsumptionForSelectedTime(selectedTime stri
 	}
 }
 
-func (s *ConsumptionServiceImpl) GetConsumptionForSelectedDate(startDate, endDate string, estateId int) interface{} {
-	query := fmt.Sprintf(`from(bucket:"bucket") 
-	|> range(start: %s, stop: %s)
-	|> filter(fn: (r) => r._measurement == "consumption" and r["_field"] == "electricity" and r["estate_id"] == "%d")
-	|> yield(name: "sum")`, startDate, endDate, estateId)
-	selectedTime := getDateDifference(startDate, endDate)
-	return s.processingQuery(query, selectedTime)
+func (s *ConsumptionServiceImpl) GetConsumptionForSelectedDate(startDate, endDate string, inputType string, selectedOptions []string) interface{} {
+	if inputType == "rs" {
+		return s.getConsumptionForRealEstates(startDate, endDate, selectedOptions)
+
+	} else { // input type is "city"
+		// Initialize a map to store aggregated values for each city (there can be multiple cities in selectedOptions)
+		var results = make(map[string]map[time.Time]float64) //[city][timestamp]value
+
+		for _, city := range selectedOptions {
+			estates, _ := s.realEstateService.GetByCity(city)
+			estateIds := make([]string, len(estates))
+			for i, estate := range estates {
+				estateIds[i] = strconv.Itoa(estate.Id)
+			}
+			// [estate.Name][timestamp]value
+			realEstatesMap := s.getConsumptionForRealEstates(startDate, endDate, estateIds)
+			cityAggregatedValues := aggregateResults(realEstatesMap)
+			// Store the aggregated values for the city in the results map
+			if len(cityAggregatedValues) == 0 {
+				continue
+			}
+			results[city] = cityAggregatedValues
+		}
+
+		if len(results) == 0 {
+			return nil
+		}
+		return results
+	}
 }
 
-func (s *ConsumptionServiceImpl) getConsumptionForRealEstates(selectedTime string, selectedOptions []string) map[string]map[time.Time]float64 {
+func (s *ConsumptionServiceImpl) getConsumptionForRealEstates(startDate, endDate string, selectedOptions []string) map[string]map[time.Time]float64 {
 	var results = make(map[string]map[time.Time]float64)
 
 	for _, estateId := range selectedOptions {
 		estateId, _ := strconv.Atoi(estateId)
 		estate, _ := s.realEstateService.Get(estateId)
 		query := fmt.Sprintf(`from(bucket:"bucket") 
-			|> range(start: %s, stop: now())
-			|> filter(fn: (r) => r._measurement == "consumption" and r["_field"] == "electricity" and r["estate_id"] == "%d")
-			|> yield(name: "sum")`, selectedTime, estateId)
+		|> range(start: %s, stop: %s)
+		|> filter(fn: (r) => r._measurement == "consumption" and r["_field"] == "electricity" and r["estate_id"] == "%d")
+		|> yield(name: "sum")`, startDate, endDate, estateId)
 
-		tempMap := s.processingQuery(query, selectedTime)
+		tempMap := s.processingQuery(query, startDate, endDate)
 		if len(tempMap) == 0 {
 			continue
 		}
@@ -85,6 +109,34 @@ func (s *ConsumptionServiceImpl) getConsumptionForRealEstates(selectedTime strin
 		return nil
 	}
 	return results
+}
+
+func calculateDates(selectedTime string) (string, string) {
+	endDate := time.Now().UTC()
+	var startDate time.Time
+
+	switch selectedTime {
+	case "-24h":
+		startDate = endDate.Add(-24 * time.Hour)
+	case "-6h":
+		startDate = endDate.Add(-6 * time.Hour)
+	case "-12h":
+		startDate = endDate.Add(-12 * time.Hour)
+	case "-7d":
+		startDate = endDate.Add(-7 * 24 * time.Hour)
+	case "-30d":
+		startDate = endDate.Add(-30 * 24 * time.Hour)
+	default:
+		// Handle unsupported selectedTime or provide a default behavior
+		fmt.Println("Unsupported selectedTime:", selectedTime)
+		return "", ""
+	}
+
+	// Format the dates as strings
+	startDateStr := startDate.Format("2006-01-02T15:04:05Z")
+	endDateStr := endDate.Format("2006-01-02T15:04:05Z")
+
+	return startDateStr, endDateStr
 }
 
 func aggregateResults(results map[string]map[time.Time]float64) map[time.Time]float64 {
@@ -103,7 +155,7 @@ func aggregateResults(results map[string]map[time.Time]float64) map[time.Time]fl
 }
 
 func getDateDifference(startDate, endDate string) string {
-	layout := "2006-01-02"
+	layout := "2006-01-02T15:04:05Z"
 
 	// Parse the start and end dates
 	start, err := time.Parse(layout, startDate)
@@ -121,14 +173,14 @@ func getDateDifference(startDate, endDate string) string {
 	// Calculate the difference in days
 	daysDiff := int(end.Sub(start).Hours() / 24)
 
-	if daysDiff > 3 {
+	if daysDiff > 2 {
 		return "-7d"
 	} else {
 		return ""
 	}
 }
 
-func (s *ConsumptionServiceImpl) processingQuery(query string, selectedTime string) map[time.Time]float64 {
+func (s *ConsumptionServiceImpl) processingQuery(query string, startDate, endDate string) map[time.Time]float64 {
 	Org := "Smart Home"
 	queryAPI := s.influxDb.QueryAPI(Org)
 
@@ -168,8 +220,9 @@ func (s *ConsumptionServiceImpl) processingQuery(query string, selectedTime stri
 			continue
 		}
 
+		selectedTime := getDateDifference(startDate, endDate)
 		// Check if selectedTime is "-7d" and aggregate values by day
-		if selectedTime == "-7d" || selectedTime == "-30d" {
+		if selectedTime == "-7d" {
 			parsedTime = time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(), 0, 0, 0, 0, parsedTime.Location())
 		}
 
