@@ -144,4 +144,11 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		washingMachineRoutes.GET("/schedule/:id", washingMachineController.GetScheduledModes)
 		washingMachineRoutes.PUT("history", middleware.RequireAuth, washingMachineController.GetHistoryData)
 	}
+
+	evChargerRoutes := r.Group("/api/ev")
+	{
+		//middleware := middleware.NewMiddleware(db)
+		evChargerController := devicesController.NewEVChargerController(db, influxDb)
+		evChargerRoutes.GET("/:id", evChargerController.Get)
+	}
 }

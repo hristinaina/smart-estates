@@ -3,27 +3,74 @@ package energetic
 import (
 	"database/sql"
 	_ "database/sql"
+	"fmt"
 	_ "fmt"
 	_ "github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"smarthome-back/dtos"
+	models "smarthome-back/models/devices"
 	"smarthome-back/models/devices/energetic"
 )
 
 type EVChargerService interface {
 	Add(estate dtos.DeviceDTO) energetic.EVCharger
+	Get(id int) energetic.EVCharger
 }
 
 type EVChargerServiceImpl struct {
-	db *sql.DB
+	db       *sql.DB
+	influxDb influxdb2.Client
 }
 
-func NewEVChargerService(db *sql.DB) EVChargerService {
-	return &EVChargerServiceImpl{db: db}
+func NewEVChargerService(db *sql.DB, influxdb influxdb2.Client) EVChargerService {
+	return &EVChargerServiceImpl{db: db, influxDb: influxdb}
+}
+
+func (s *EVChargerServiceImpl) Get(id int) energetic.EVCharger {
+	query := `SELECT
+				d.id,
+				d.name,
+				d.type,
+				d.realEstate,
+				d.isOnline,
+				hb.chargingPower,
+				hb.connections
+			FROM
+				device d
+			JOIN
+				evCharger hb ON d.id = hb.deviceId
+			WHERE
+				d.id = ?`
+
+	// Execute the query
+	row := s.db.QueryRow(query, id)
+
+	var sp energetic.EVCharger
+	var device models.Device
+
+	err := row.Scan(
+		&device.Id,
+		&device.Name,
+		&device.Type,
+		&device.RealEstate,
+		&device.IsOnline,
+		&sp.ChargingPower,
+		&sp.Connections,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			fmt.Println("No charger found with the specified ID")
+		} else {
+			fmt.Println("Error retrieving charger:", err)
+		}
+		return energetic.EVCharger{}
+	}
+	sp.Device = device
+	return sp
 }
 
 func (s *EVChargerServiceImpl) Add(dto dtos.DeviceDTO) energetic.EVCharger {
-	// TODO: add some validation and exception throwing
 	device := dto.ToEVCharger()
 	tx, err := s.db.Begin()
 	if err != nil {

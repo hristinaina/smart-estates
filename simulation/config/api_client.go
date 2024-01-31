@@ -85,6 +85,30 @@ func GetSP(id int) (models.SolarPanel, error) {
 	return device, nil
 }
 
+// Get performs a GET request and returns device data based on device id
+func GetEVCharger(id int) (models.EVCharger, error) {
+	url := api + "/ev/" + strconv.Itoa(id)
+
+	response, err := http.Get(url)
+	if err != nil {
+		return models.EVCharger{}, fmt.Errorf("error making GET request: %v", err)
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return models.EVCharger{}, fmt.Errorf("error reading response body: %v", err)
+	}
+
+	var device models.EVCharger
+	err = json.Unmarshal(body, &device)
+	if err != nil {
+		return models.EVCharger{}, fmt.Errorf("error unmarshalling JSON: %v", err)
+	}
+
+	return device, nil
+}
+
 func GetAC(id int) (models.AirConditioner, error) {
 	url := api + "/ac/" + strconv.Itoa(id)
 
