@@ -67,8 +67,7 @@ export class Consumption extends Component {
     };
 
     handleOptionChange = async (event, value) => {
-        if (this.selectedOptions.length === 0)
-        {
+        if (this.selectedOptions.length === 0) {
             this.setState({ snackbarMessage: "You haven't selected any subjects" });
             this.handleClick();
             return;
@@ -82,8 +81,7 @@ export class Consumption extends Component {
     };
 
     handleButtonClick = async () => {
-        if (this.selectedOptions.length === 0)
-        {
+        if (this.selectedOptions.length === 0) {
             this.setState({ snackbarMessage: "You haven't selected any subjects" });
             this.handleClick();
             return;
@@ -122,17 +120,17 @@ export class Consumption extends Component {
         const b = random();
         const a = 1; // You can adjust the alpha (transparency) value if needed
         return `rgba(${r},${g},${b},${a})`;
-      }
+    }
 
     convertResultToGraphData(values) {
         if (values == null) {
             return {
                 timestamps: [],
-                datasets: []
+                datasets: [],
+                x: {},
             }
         }
         //values is a map["estateId"]map[timestamp]float
-
         // Step 1: Combine timestamps from all inner maps
         const allTimestamps = Array.from(new Set(Object.values(values).flatMap(innerMap => Object.keys(innerMap)))).sort();
         // Step 2: Create arrays with values for each inner map
@@ -142,17 +140,33 @@ export class Consumption extends Component {
             borderColor: this.getRandomColor(),
             borderWidth: 2,
             fill: false,
-          }));
+        }));
         const graphData = {
             timestamps: allTimestamps,
-            datasets: keyValuesArrays
+            datasets: keyValuesArrays,
+            x: {
+                type: 'time',
+                time: {
+                    displayFormats: {
+                        quarter: 'HH:MM'
+                    }
+                }
+            },
+        };
+        if (! ["-6h", "-12h", "-24h"].includes(this.state.selectedOption.value)) {
+            graphData.x.time = {
+                unit: 'day',
+                displayFormats: {
+                    day: 'MMM d',
+                },
+            };
         }
-        return graphData
+        return graphData;
     }
 
     handleSearchSelectChange = (selectedOptions) => {
         this.selectedOptions = selectedOptions;
-      };
+    };
 
     // snackbar
     handleClick = () => {
@@ -180,7 +194,7 @@ export class Consumption extends Component {
                             onChange={this.handleTypeSelectChange}
                             options={typeOptions}
                             getOptionLabel={(option) => option.label}
-                            style={{ width: '260px', marginLeft:"auto" }}
+                            style={{ width: '260px', marginLeft: "auto" }}
                             renderInput={(params) => (
                                 <TextField
                                     style={{ backgroundColor: "white" }}
@@ -209,7 +223,7 @@ export class Consumption extends Component {
                             onChange={this.handleOptionChange}
                             options={options}
                             getOptionLabel={(option) => option.label}
-                            style={{ width: '260px',marginLeft:"auto" }}
+                            style={{ width: '260px', marginLeft: "auto" }}
                             renderInput={(params) => (
                                 <TextField
                                     style={{ backgroundColor: "white" }}
@@ -227,8 +241,8 @@ export class Consumption extends Component {
                                 </li>
                             )}
                             disableClearable />
-                        <p style={{marginLeft:"20px", marginRight:"20px" }}><b>or</b></p>
-                        <Box display="flex" alignItems="center" style={{marginRight:"auto" }}>
+                        <p style={{ marginLeft: "20px", marginRight: "20px" }}><b>or</b></p>
+                        <Box display="flex" alignItems="center" style={{ marginRight: "auto" }}>
                             <TextField
                                 style={{ backgroundColor: "white", marginRight: "5px" }}
                                 label="Start Date"

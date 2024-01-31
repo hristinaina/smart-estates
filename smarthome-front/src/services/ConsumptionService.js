@@ -11,7 +11,7 @@ class ConsumptionService {
 
     async getConsumptionGraphDataForDropdownSelect(type, options, time) {
         const selectedOptions = this.convertOptionsToStrings(options);
-        console.log(selectedOptions);
+        //console.log(selectedOptions);
         try {
             const response = await fetch('http://localhost:8081/api/consumption/selected-time', {
                 method: 'POST',
@@ -22,7 +22,7 @@ class ConsumptionService {
 
             if (response.ok) {
                 const data = await response.json();
-                //console.log(data)
+                console.log(data)
                 return { result: data };
             } else {
                 const data = await response.json();
@@ -47,7 +47,7 @@ class ConsumptionService {
 
             if (response.ok) {
                 const data = await response.json();
-                //console.log(data)
+                console.log(data)
                 return { result: data };
             } else {
                 const data = await response.json();

@@ -13,14 +13,7 @@ const AdminGraph = ({ data }) => {
 
     const options = {
         scales: {
-            x: {
-                type: 'time',
-                time: {
-                    displayFormats: {
-                        quarter: 'HH:MM'
-                    }
-                }
-            },
+            x: data.x,
             y: {
                 beginAtZero: true,
             },

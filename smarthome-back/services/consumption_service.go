@@ -36,7 +36,7 @@ func (s *ConsumptionServiceImpl) GetConsumptionForSelectedTime(selectedTime stri
 			|> filter(fn: (r) => r._measurement == "consumption" and r["_field"] == "electricity" and r["estate_id"] == "%d")
 			|> yield(name: "sum")`, selectedTime, estateId)
 
-			tempMap := s.processingQuery(query)
+			tempMap := s.processingQuery(query, selectedTime)
 			if len(tempMap) == 0 {
 				continue
 			}
@@ -52,16 +52,42 @@ func (s *ConsumptionServiceImpl) GetConsumptionForSelectedTime(selectedTime stri
 	return results
 }
 
+func getDifference(startDate, endDate string) string {
+	layout := "2006-01-02"
+
+	// Parse the start and end dates
+	start, err := time.Parse(layout, startDate)
+	if err != nil {
+		fmt.Printf("Error parsing start date '%s': %v\n", startDate, err)
+		return ""
+	}
+
+	end, err := time.Parse(layout, endDate)
+	if err != nil {
+		fmt.Printf("Error parsing end date '%s': %v\n", endDate, err)
+		return ""
+	}
+
+	// Calculate the difference in days
+	daysDiff := int(end.Sub(start).Hours() / 24)
+
+	if daysDiff > 3 {
+		return "-7d"
+	} else {
+		return ""
+	}
+}
+
 func (s *ConsumptionServiceImpl) GetConsumptionForSelectedDate(startDate, endDate string, estateId int) interface{} {
 	query := fmt.Sprintf(`from(bucket:"bucket") 
 	|> range(start: %s, stop: %s)
 	|> filter(fn: (r) => r._measurement == "consumption" and r["_field"] == "electricity" and r["estate_id"] == "%d")
 	|> yield(name: "sum")`, startDate, endDate, estateId)
-
-	return s.processingQuery(query)
+	selectedTime := getDifference(startDate, endDate)
+	return s.processingQuery(query, selectedTime)
 }
 
-func (s *ConsumptionServiceImpl) processingQuery(query string) map[time.Time]float64 {
+func (s *ConsumptionServiceImpl) processingQuery(query string, selectedTime string) map[time.Time]float64 {
 	Org := "Smart Home"
 	queryAPI := s.influxDb.QueryAPI(Org)
 
@@ -95,14 +121,18 @@ func (s *ConsumptionServiceImpl) processingQuery(query string) map[time.Time]flo
 
 	for timeStr, value := range tempPoints {
 		layout := "2006-01-02 15:04"
-
 		parsedTime, err := time.Parse(layout, timeStr)
 		if err != nil {
 			fmt.Printf("Error parsing time '%s': %v\n", timeStr, err)
 			continue
 		}
 
-		resultPoints[parsedTime] = value
+		// Check if selectedTime is "-7d" and aggregate values by day
+		if selectedTime == "-7d" || selectedTime == "-30d" {
+			parsedTime = time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(), 0, 0, 0, 0, parsedTime.Location())
+		}
+
+		resultPoints[parsedTime] += value
 	}
 
 	return resultPoints
