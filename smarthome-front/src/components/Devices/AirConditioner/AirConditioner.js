@@ -356,7 +356,7 @@ export class AirConditioner extends Component {
                         <p className='sp-card-title'>Switch History</p>
                         <form onSubmit={this.handleFormSubmit} className='sp-container'>
                             <label>
-                                Email:
+                                User:
                                 <select style={{width: "200px", cursor: "pointer"}}
                                     className="new-real-estate-select"
                                     value={pickedValue}
