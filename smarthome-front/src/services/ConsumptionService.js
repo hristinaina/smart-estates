@@ -59,14 +59,14 @@ class ConsumptionService {
         }
     }
 
-    async getRatioGraphDataForDropdownSelect(type, options, time) {
+    async getRatioGraphDataForDropdownSelect(type, options, time, batteryId) {
         const selectedOptions = this.convertOptionsToStrings(options);
         //console.log(selectedOptions);
         try {
             const response = await fetch('http://localhost:8081/api/consumption/ratio/selected-time', {
                 method: 'POST',
                 credentials: 'include',
-                body: JSON.stringify({ type, selectedOptions, time })
+                body: JSON.stringify({ type, selectedOptions, time, batteryId })
             })
             // console.log(response)
 
@@ -84,14 +84,14 @@ class ConsumptionService {
         }
     }
 
-    async getRatioGraphDataForDates(type, options, start, end) {
+    async getRatioGraphDataForDates(type, options, start, end, batteryId) {
         const selectedOptions = this.convertOptionsToStrings(options);
         //console.log(selectedOptions);
         try {
             const response = await fetch('http://localhost:8081/api/consumption/ratio/selected-date', {
                 method: 'POST',
                 credentials: 'include',
-                body: JSON.stringify({ type, selectedOptions, start, end })
+                body: JSON.stringify({ type, selectedOptions, start, end, batteryId })
             })
             // console.log(response)
 

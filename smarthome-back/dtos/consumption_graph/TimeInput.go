@@ -5,4 +5,5 @@ type TimeInput struct {
 	SelectedOptions []string `json:"selectedOptions" binding:"required"`
 	Time            string   `json:"time" binding:"required"`
 	QueryType       string   `json:"queryType" binding:"-"`
+	BatteryId       string   `json:"batteryId" binding:"-"`
 }

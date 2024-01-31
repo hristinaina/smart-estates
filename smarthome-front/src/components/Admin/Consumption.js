@@ -19,6 +19,7 @@ export class Consumption extends Component {
             consumptionData: [],
             productionData: [],
             ratioData: [],
+            edData: [],
             snackbarMessage: '',
             showSnackbar: false,
             open: false,
@@ -58,7 +59,8 @@ export class Consumption extends Component {
     updateGraph = async (value) => {
         const resultC = await ConsumptionService.getConsumptionGraphDataForDropdownSelect("consumption", this.state.selectedTypeOption.value, this.selectedOptions, value);
         const resultP = await ConsumptionService.getConsumptionGraphDataForDropdownSelect("solar_panel", this.state.selectedTypeOption.value, this.selectedOptions, value);
-        const ratio = await ConsumptionService.getRatioGraphDataForDropdownSelect(this.state.selectedTypeOption.value, this.selectedOptions, value);
+        const ratio = await ConsumptionService.getRatioGraphDataForDropdownSelect(this.state.selectedTypeOption.value, this.selectedOptions, value, "");
+        const edratio = await ConsumptionService.getRatioGraphDataForDropdownSelect(this.state.selectedTypeOption.value, this.selectedOptions, value, "electrical_distribution");
 
         let showMinutes = true;
         if (!["-6h", "-12h", "-24h"].includes(this.state.selectedOption.value))
@@ -66,11 +68,13 @@ export class Consumption extends Component {
         const graphData = this.convertResultToGraphData(resultC.result.result, showMinutes, "Electricity Consumption")
         const graphProduction = this.convertResultToGraphData(resultP.result.result, showMinutes, "Electricity Production")
         const graphRatio = this.convertResultToGraphData(ratio.result.result, showMinutes, "Production & Consumption Ratio")
+        const edRatio = this.convertResultToGraphData(edratio.result.result, showMinutes, "Electrical Distribution")
 
         this.setState({
             consumptionData: graphData,
             productionData: graphProduction,
             ratioData: graphRatio,
+            edData: edRatio,
         });
     }
 
@@ -124,16 +128,19 @@ export class Consumption extends Component {
         const resultC = await ConsumptionService.getConsumptionGraphDataForDates("consumption", this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
         //console.log("datum graf ", result.result.result)
         const resultP = await ConsumptionService.getConsumptionGraphDataForDates("solar_panel", this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
-        const ratio = await ConsumptionService.getRatioGraphDataForDates(this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
+        const ratio = await ConsumptionService.getRatioGraphDataForDates(this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate, "");
+        const edratio = await ConsumptionService.getRatioGraphDataForDates(this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate, "electrical_distribution");
 
         const graphData = this.convertResultToGraphData(resultC.result.result, showMinutes, "Electricity Consumption")
         const graphProduction = this.convertResultToGraphData(resultP.result.result, showMinutes, "Electricity Production")
         const graphRatio = this.convertResultToGraphData(ratio.result.result, showMinutes, "Production & Consumption Ratio")
+        const edRatio = this.convertResultToGraphData(edratio.result.result, showMinutes, "Electrical Distribution")
 
         this.setState({
             consumptionData: graphData,
             productionData: graphProduction,
             graphData: graphRatio,
+            edData: edRatio,
         });
     }
 
@@ -206,7 +213,7 @@ export class Consumption extends Component {
     };
 
     render() {
-        const { consumptionData, productionData, ratioData, startDate, endDate, selectedOption, options, selectedTypeOption, typeOptions } = this.state;
+        const { consumptionData, productionData, ratioData, edData, startDate, endDate, selectedOption, options, selectedTypeOption, typeOptions } = this.state;
 
         return (
             <div>
@@ -304,8 +311,9 @@ export class Consumption extends Component {
                     <div className='c-left-card'><AdminGraph data={consumptionData} /></div>
                     <div className='c-right-card'><AdminGraph data={productionData} /></div>
                 </div>
-                <div>
+                <div className='sp-container'>
                     <div className='c-left-card'><AdminGraph data={ratioData} /></div>
+                    <div className='c-right-card'><AdminGraph data={edData} /></div>
                 </div>
                 <Snackbar
                     open={this.state.open}

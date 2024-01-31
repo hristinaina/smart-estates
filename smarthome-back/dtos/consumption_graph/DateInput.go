@@ -6,4 +6,5 @@ type DateInput struct {
 	Start           string   `json:"start" binding:"required"`
 	End             string   `json:"end" binding:"required"`
 	QueryType       string   `json:"queryType" binding:"-"`
+	BatteryId       string   `json:"batteryId" binding:"-"`
 }

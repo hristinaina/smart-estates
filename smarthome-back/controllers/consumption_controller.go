@@ -26,7 +26,7 @@ func (uc ConsumptionController) GetConsumptionForSelectedTime(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
 	}
-	results := uc.service.GetConsumptionForSelectedTime(input.QueryType, input.Time, input.Type, input.SelectedOptions)
+	results := uc.service.GetConsumptionForSelectedTime(input.QueryType, input.Time, input.Type, input.SelectedOptions, "")
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 
@@ -47,7 +47,7 @@ func (uc ConsumptionController) GetConsumptionForSelectedDate(c *gin.Context) {
 	if err != nil {
 		fmt.Println("Error parsing date:", err)
 	}
-	results := uc.service.GetConsumptionForSelectedDate(input.QueryType, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), input.Type, input.SelectedOptions)
+	results := uc.service.GetConsumptionForSelectedDate(input.QueryType, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), input.Type, input.SelectedOptions, "")
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 
@@ -58,7 +58,7 @@ func (uc ConsumptionController) GetRatioForSelectedTime(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
 	}
-	results := uc.service.GetRatioForSelectedTime(input.Time, input.Type, input.SelectedOptions)
+	results := uc.service.GetRatioForSelectedTime(input.Time, input.Type, input.SelectedOptions, input.BatteryId)
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 
@@ -79,6 +79,6 @@ func (uc ConsumptionController) GetRatioForSelectedDate(c *gin.Context) {
 	if err != nil {
 		fmt.Println("Error parsing date:", err)
 	}
-	results := uc.service.GetRatioForSelectedDate(startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), input.Type, input.SelectedOptions)
+	results := uc.service.GetRatioForSelectedDate(startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), input.Type, input.SelectedOptions, input.BatteryId)
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
