@@ -20,11 +20,11 @@ export class Sprinkler extends Component {
             email: '',
             logData: [],
         };
+        this.id = parseInt(this.extractDeviceIdFromUrl());
     }
 
     async componentDidMount() {
-        // TODO: 
-        const res = await SprinklerService.getSpecialModes(11);
+        const res = await SprinklerService.getSpecialModes(this.id);
         if (res !== null) {
             let specials = [];
             res.forEach(element => {
@@ -40,6 +40,11 @@ export class Sprinkler extends Component {
         }
     }
 
+    extractDeviceIdFromUrl() {
+        const parts = window.location.href.split('/');
+        return parts[parts.length - 1];
+    }
+
     getSelectedDays(selectedDays) {
         return selectedDays.split(',').filter(day => day !== "");
     }
@@ -50,15 +55,17 @@ export class Sprinkler extends Component {
     }
 
     handleAddSpecialMode = (specialModes) => {
-        console.log("add special mode");
-        console.log(specialModes);
         this.setState({specialModes: specialModes});
-        // TODO: save to database
     }
 
     handleFormSubmit = () => {
         console.log("form submitted");
 
+    }
+
+    handleDelete = () => {
+        // TODO:
+        console.log("delete nije jos implementiran");
     }
 
     render() {

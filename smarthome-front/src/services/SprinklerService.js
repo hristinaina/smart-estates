@@ -45,13 +45,17 @@ class SprinklerService {
     }
 
     async addMode(mode, id) {
+        let selectedDays = "";
+        mode.selectedDays.forEach(day => {
+            selectedDays += day + ","
+        });
         const url =  `http://localhost:8081/api/sprinkler/mode/${id}`;
         const requestOptions = {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({"StartTime": mode.StartTime, "EndTime": mode.EndTime, "SelecteDays": mode.SelecteDays}),
+            body: JSON.stringify({"StartTime": mode.start + ":00", "EndTime": mode.end + ":00", "SelectedDays": selectedDays}),
         };
         
         const response = await fetch(url, requestOptions);

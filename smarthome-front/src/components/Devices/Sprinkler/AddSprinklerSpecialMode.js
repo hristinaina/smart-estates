@@ -35,7 +35,7 @@ class AddSprinklerSpecialMode extends Component {
             mode: '',
             selectedDays: [],
             specialModes: [],
-            modes: [],
+            newSpecialModes: [],
             showDialog: false,
             snackbarMessage: '',
             showSnackbar: false,
@@ -45,8 +45,7 @@ class AddSprinklerSpecialMode extends Component {
     }
 
     async componentDidMount() {
-        // TODO: 
-        const res = await SprinklerService.getSpecialModes(11);
+        const res = await SprinklerService.getSpecialModes(this.id);
         if (res !== null) {
             let specials = [];
             res.forEach(element => {
@@ -110,7 +109,7 @@ class AddSprinklerSpecialMode extends Component {
             selectedDays,
         };
 
-        console.log(specialMode);
+        let newSpecialModes = this.state.newSpecialModes
 
         // reset data
         this.setState({
@@ -118,6 +117,7 @@ class AddSprinklerSpecialMode extends Component {
             start: '',
             end: '',
             selectedDays: [],
+            newSpecialModes: [...newSpecialModes, specialMode],
         });
     };
 
@@ -149,7 +149,11 @@ class AddSprinklerSpecialMode extends Component {
 
     handleSave = async() => {
         this.setState({ showDialog: false });
+        this.state.newSpecialModes.forEach(mode => {
+            SprinklerService.addMode(mode, this.id);
+        });
         this.props.onAdd(this.state.specialModes);
+        this.setState({specialModes: [], newSpecialModes: []});
     }
 
     render() {
@@ -249,8 +253,7 @@ class AddSprinklerSpecialMode extends Component {
                     action={this.action}
                 />
         </div>
-    );
-    }
+    );}
 }
 
 export default AddSprinklerSpecialMode;

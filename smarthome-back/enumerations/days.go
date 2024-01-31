@@ -50,18 +50,21 @@ func (d Days) String() string {
 
 func ConvertStringsToEnumValues(days string) ([]Days, error) {
 	var enumValues []Days
-
-	if strings.HasSuffix(days, ",") {
-		days = days[:len(days)-1]
-	}
-	selectedDays := strings.Split(days, ",")
-	for _, dayStr := range selectedDays {
-		day, exists := daysStringMap[strings.ToUpper(dayStr)]
-		if !exists {
-			return nil, fmt.Errorf("invalid day string: %s", dayStr)
+	if days != "" {
+		if strings.HasSuffix(days, ",") {
+			days = days[:len(days)-1]
 		}
-		enumValues = append(enumValues, day)
-	}
+		selectedDays := strings.Split(days, ",")
+		for _, dayStr := range selectedDays {
+			day, exists := daysStringMap[strings.ToUpper(dayStr)]
+			if !exists {
+				return nil, fmt.Errorf("invalid day string: %s", dayStr)
+			}
+			enumValues = append(enumValues, day)
+		}
 
-	return enumValues, nil
+		return enumValues, nil
+	} else {
+		return []Days{}, nil
+	}
 }
