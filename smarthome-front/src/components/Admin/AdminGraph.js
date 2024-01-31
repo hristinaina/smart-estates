@@ -16,6 +16,20 @@ const AdminGraph = ({ data }) => {
             x: data.x,
             y: {
                 beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'kW/m2',
+                },
+            },
+        },
+        plugins: {
+            title: {
+                display: true,
+                text: data.title,
+                padding: {
+                    top: 10,
+                    bottom: 10,
+                },
             },
         },
     };

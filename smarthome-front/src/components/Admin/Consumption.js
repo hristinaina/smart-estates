@@ -16,7 +16,8 @@ export class Consumption extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            data: [],
+            consumptionData: [],
+            productionData: [],
             snackbarMessage: '',
             showSnackbar: false,
             open: false,
@@ -54,14 +55,18 @@ export class Consumption extends Component {
     };
 
     updateGraph = async (value) => {
-        const result = await ConsumptionService.getConsumptionGraphDataForDropdownSelect("consumption", this.state.selectedTypeOption.value, this.selectedOptions, value);
+        const resultC = await ConsumptionService.getConsumptionGraphDataForDropdownSelect("consumption", this.state.selectedTypeOption.value, this.selectedOptions, value);
+        const resultP = await ConsumptionService.getConsumptionGraphDataForDropdownSelect("solar_panel", this.state.selectedTypeOption.value, this.selectedOptions, value);
+       
         let showMinutes = true;
         if (! ["-6h", "-12h", "-24h"].includes(this.state.selectedOption.value))
             showMinutes = false
-        const graphData = this.convertResultToGraphData(result.result.result, showMinutes)
-        //console.log(graphData)
+        const graphData = this.convertResultToGraphData(resultC.result.result, showMinutes, "Electricity Consumption")
+        const graphProduction = this.convertResultToGraphData(resultP.result.result, showMinutes, "Electricity Production")
+
         this.setState({
-            data: graphData,
+            consumptionData: graphData,
+            productionData: graphProduction,
         });
     }
 
@@ -112,11 +117,14 @@ export class Consumption extends Component {
         if (difference > twoDays) {
             showMinutes = false;
         }
-        const result = await ConsumptionService.getConsumptionGraphDataForDates("consumption", this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
-        console.log("datum graf ", result.result.result)
-        const graphData = this.convertResultToGraphData(result.result.result, showMinutes)
+        const resultC = await ConsumptionService.getConsumptionGraphDataForDates("consumption", this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
+        //console.log("datum graf ", result.result.result)
+        const resultP = await ConsumptionService.getConsumptionGraphDataForDates("solar_panel", this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
+        const graphData = this.convertResultToGraphData(resultC.result.result, showMinutes, "Electricity Consumption")
+        const graphProduction = this.convertResultToGraphData(resultP.result.result, showMinutes, "Electricity Production")
         this.setState({
-            data: graphData,
+            consumptionData: graphData,
+            productionData: graphProduction,
         });
     }
 
@@ -129,7 +137,7 @@ export class Consumption extends Component {
         return `rgba(${r},${g},${b},${a})`;
     }
 
-    convertResultToGraphData(values, showMinutes) {
+    convertResultToGraphData(values, showMinutes, type) {
         if (values == null) {
             return {
                 timestamps: [],
@@ -159,6 +167,7 @@ export class Consumption extends Component {
                     }
                 }
             },
+            title: type,
         };
         if (!showMinutes) {
             graphData.x.time = {
@@ -188,7 +197,7 @@ export class Consumption extends Component {
     };
 
     render() {
-        const { data, startDate, endDate, selectedOption, options, selectedTypeOption, typeOptions } = this.state;
+        const { consumptionData, productionData, startDate, endDate, selectedOption, options, selectedTypeOption, typeOptions } = this.state;
 
         return (
             <div>
@@ -283,8 +292,8 @@ export class Consumption extends Component {
                     </div>
                 </div>
                 <div className='sp-container'>
-                    <div id='c-left-card'><AdminGraph data={data} /></div>
-                    <div id='c-right-card'><AdminGraph data={data} /></div>
+                    <div id='c-left-card'><AdminGraph data={consumptionData} /></div>
+                    <div id='c-right-card'><AdminGraph data={productionData} /></div>
                 </div>
                 <Snackbar
                     open={this.state.open}
