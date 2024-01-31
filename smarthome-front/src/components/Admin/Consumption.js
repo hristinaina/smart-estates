@@ -55,7 +55,10 @@ export class Consumption extends Component {
 
     updateGraph = async (value) => {
         const result = await ConsumptionService.getConsumptionGraphDataForDropdownSelect(this.state.selectedTypeOption.value, this.selectedOptions, value);
-        const graphData = this.convertResultToGraphData(result.result.result)
+        let showMinutes = true;
+        if (! ["-6h", "-12h", "-24h"].includes(this.state.selectedOption.value))
+            showMinutes = false
+        const graphData = this.convertResultToGraphData(result.result.result, showMinutes)
         //console.log(graphData)
         this.setState({
             data: graphData,
@@ -98,16 +101,20 @@ export class Consumption extends Component {
             return;
         }
         const oneMonth = 30 * 24 * 60 * 60 * 1000;
+        const twoDays =  2 * 24 * 60 * 60 * 1000
         const difference = new Date(this.state.endDate) - new Date(this.state.startDate);
-
+        let showMinutes = true;
         if (difference > oneMonth) {
             this.setState({ snackbarMessage: 'The difference between start date and end date must not be more than one month' });
             this.handleClick();
             return;
         }
+        if (difference > twoDays) {
+            showMinutes = false;
+        }
         const result = await ConsumptionService.getConsumptionGraphDataForDates(this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
         console.log("datum graf ", result.result.result)
-        const graphData = this.convertResultToGraphData(result.result.result)
+        const graphData = this.convertResultToGraphData(result.result.result, showMinutes)
         this.setState({
             data: graphData,
         });
@@ -122,7 +129,7 @@ export class Consumption extends Component {
         return `rgba(${r},${g},${b},${a})`;
     }
 
-    convertResultToGraphData(values) {
+    convertResultToGraphData(values, showMinutes) {
         if (values == null) {
             return {
                 timestamps: [],
@@ -153,7 +160,7 @@ export class Consumption extends Component {
                 }
             },
         };
-        if (! ["-6h", "-12h", "-24h"].includes(this.state.selectedOption.value)) {
+        if (!showMinutes) {
             graphData.x.time = {
                 unit: 'day',
                 displayFormats: {
