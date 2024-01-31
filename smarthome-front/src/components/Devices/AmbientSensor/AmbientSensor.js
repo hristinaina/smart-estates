@@ -310,7 +310,12 @@ export class AmbientSensor extends Component {
                         <span onClick={() => { this.setActiveGraph(2); this.updateGraph(this.state.selectedOption.value) }} className={this.state.activeGraph === 2 ? 'active-button' : 'non-active-button'}>History</span>
                     </div>
 
-                    {this.state.activeGraph === 1 && <Line ref={(ref) => (this.chartInstance = ref)} data={this.state.data} options={this.options} />}
+                    {this.state.activeGraph === 1 && 
+                        <div style={{ display: "flex", justifyContent: "center" }}>
+                            <Line className='ws-graph' ref={(ref) => (this.chartInstance = ref)} data={this.state.data} options={this.options} />
+                        </div>
+                    }
+
                     {this.state.activeGraph === 2 && 
                         <div className="history-container">
                         <div className="history-controls">
@@ -361,68 +366,6 @@ export class AmbientSensor extends Component {
                     </div>}
                 </div>
 
-                {/* {this.state.activeGraph === 2 && 
-                <div>
-                    <Grid container spacing={2}>
-                        <Grid item xs={2}></Grid>
-                        <Grid item xs={3}>
-                            <Autocomplete
-                            value={selectedOption}
-                            onChange={this.handleOptionChange}
-                            options={options}
-                            getOptionLabel={(option) => option.label}
-                            style={{ width: '100%' }}
-                            renderInput={(params) => (
-                                <TextField
-                                {...params}
-                                label="Select Time Range"
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
-                                />
-                            )}
-                            isOptionEqualToValue={(option, value) => option.value === value.value}
-                            renderOption={(props, option, { selected }) => (
-                                <li {...props}>
-                                <span>{option.label}</span>
-                                </li>
-                            )}
-                            disableClearable />
-                    </Grid>
-                    <Grid item xs={6}>
-                        <Box display="flex" alignItems="center" justifyContent="flex-end">
-                        <TextField
-                            label="Start Date"
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => this.handleDateChange('startDate', e)}
-                            InputLabelProps={{
-                            shrink: true,
-                            }}
-                            inputProps={{
-                                max: new Date().toISOString().split('T')[0], 
-                            }}
-                        />
-                        <TextField
-                            label="End Date"
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => this.handleDateChange('endDate', e)}
-                            InputLabelProps={{
-                            shrink: true,
-                            }}
-                            inputProps={{
-                                max: new Date().toISOString().split('T')[0], 
-                            }}
-                        />
-                        <Button variant="contained" color="primary" onClick={this.handleButtonClick}>
-                            Apply
-                        </Button>
-                        </Box>
-                    </Grid>
-                    </Grid>
-
-        </div>} */}
         <Snackbar
         open={this.state.open}
         autoHideDuration={3000}
