@@ -40,8 +40,6 @@ class SprinklerService {
         if (!response.ok) {
             throw new Error(`HTTP error! Status ${response.status}`);
         }
-        const responseData = await response.json();
-        return responseData;
     }
 
     async addMode(mode, id) {

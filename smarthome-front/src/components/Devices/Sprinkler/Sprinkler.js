@@ -19,6 +19,7 @@ export class Sprinkler extends Component {
             pickedValue: '',
             email: '',
             logData: [],
+            switchOn: false,
         };
         this.id = parseInt(this.extractDeviceIdFromUrl());
     }
@@ -37,6 +38,12 @@ export class Sprinkler extends Component {
             });
            
             await this.setState({specialModes: specials});
+        }
+
+        const sprinkler = await SprinklerService.get(this.id);
+        console.log(sprinkler.IsOn);
+        if (sprinkler.IsOn == true){
+            await this.setState({switchOn: true});
         }
     }
 
@@ -68,6 +75,14 @@ export class Sprinkler extends Component {
         console.log("delete nije jos implementiran");
     }
 
+    handleSwitchToggle = async() => {
+        await this.setState((prevState) => ({
+            switchOn: !prevState.switchOn,
+        }));
+
+        await SprinklerService.changeState(this.id, this.state.switchOn);
+    }
+
     render() {
         
         return (
@@ -81,8 +96,8 @@ export class Sprinkler extends Component {
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Typography style={{ fontSize: '1.1em'}}>Off</Typography>
                                 <Switch
-                                    // checked={item.switchOn}
-                                    // onChange={() => this.handleSwitchToggle(item)}
+                                    checked={this.state.switchOn}
+                                    onChange={() => this.handleSwitchToggle()}
                                 />
                             <Typography style={{ fontSize: '1.1em' }}>On</Typography>
                         </div>
