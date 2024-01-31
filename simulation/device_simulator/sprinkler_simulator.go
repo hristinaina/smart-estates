@@ -17,7 +17,7 @@ const (
 	// TODO: add topics here
 	// topicApproached = "device/approached/"
 	// TopicVGOpenClose = "vg/open/"
-	TurnSprinklerON = "sprinkler/on"
+	TurnSprinklerON = "sprinkler/on/"
 )
 
 type SprinklerSimulator struct {
@@ -67,6 +67,7 @@ func (sim *SprinklerSimulator) CheckScheduledModes() {
 					fmt.Printf("Error publishing message with the device: %s \n", sim.device.Name)
 				} else {
 					fmt.Println("Successfully publishedddd")
+					fmt.Println(config.TurnSprinklerON+strconv.Itoa(sim.device.ID))
 				}
 			}
 		}

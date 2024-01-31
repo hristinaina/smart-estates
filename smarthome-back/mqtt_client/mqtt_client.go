@@ -28,6 +28,7 @@ const (
 	TopicConsumption   = "device/consumption/"
 	TopicApproached    = "device/approached/"
 	TopicVGOpenClose   = "vg/open/"
+	TurnSprinklerON    = "sprinkler/on/"
 )
 
 type MQTTClient struct {
@@ -71,6 +72,7 @@ func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicPayload+"+", mc.HandleValueChange)
 	mc.SubscribeToTopic(TopicConsumption+"+", mc.HandleHBData)
 	mc.SubscribeToTopic(TopicApproached+"+", mc.HandleVehicleApproached)
+	mc.SubscribeToTopic(TurnSprinklerON+"+", mc.HandleSprinklerMessage)
 	//todo subscribe here to other topics. Create your callback functions in other file
 
 	mc.StartDeviceStatusThread()

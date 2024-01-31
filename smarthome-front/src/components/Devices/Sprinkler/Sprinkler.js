@@ -6,8 +6,10 @@ import AddSprinklerSpecialMode from "./AddSprinklerSpecialMode";
 import CloseIcon from '@mui/icons-material/Close';
 import LogTable from "../AirConditioner/LogTable";
 import SprinklerService from "../../../services/SprinklerService";
+import mqtt from 'mqtt';
 
 export class Sprinkler extends Component {
+    connected = false;
 
     constructor(props) {
         super(props);
@@ -25,6 +27,7 @@ export class Sprinkler extends Component {
             showSnackbar: false,
         };
         this.id = parseInt(this.extractDeviceIdFromUrl());
+        this.mqttClient = null;
     }
 
     async componentDidMount() {
@@ -47,11 +50,54 @@ export class Sprinkler extends Component {
         if (sprinkler.IsOn == true){
             await this.setState({switchOn: true});
         }
+
+        try {        
+            // mqtt connection
+            if (!this.connected) {
+                this.connected = true;
+                this.mqttClient = mqtt.connect('ws://localhost:9001/mqtt', {
+                        clientId: "react-front-nvt-2023-sprinkler",
+                        clean: false,
+                        keepalive: 60
+                });
+                this.mqttClient.on('connect', () => {
+                    console.log("iddddd");
+                    console.log(this.id);
+                    this.mqttClient.subscribe('sprinkler/on/' + this.id);
+                });
+    
+                this.mqttClient.on('message', (topic, message) => {
+                    this.handleMqttMessage(topic, message);
+                });
+            }
+
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     extractDeviceIdFromUrl() {
         const parts = window.location.href.split('/');
         return parts[parts.length - 1];
+    }
+
+    async handleMqttMessage(topic, message) {
+        var parts = topic.split("/");
+
+        // Get the last part (after the last "/")
+        var lastPart = parts[parts.length - 1];
+
+        // Parse the last part to an integer
+        var parsedNumber = parseInt(lastPart, 10);
+        if (parsedNumber != this.id) {
+            console.log(parsedNumber);
+            return;
+        }
+        console.log("STIGLA JE PORUKA");
+        console.log(this.state.switchOn);
+        if (this.state.switchOn == false) {
+            this.handleSwitchToggle();
+        }
     }
 
     getSelectedDays(selectedDays) {
@@ -77,13 +123,6 @@ export class Sprinkler extends Component {
             this.handleClick();
             return 
         }
-        // const logData = await DeviceService.getACHistoryData(this.id, pickedValue, startDate, endDate);
-        // console.log(logData.result)
-        // const data = this.setAction(logData.result)
-        // this.setState({
-        //     logData: data,
-        // });
-
     }
 
     handleDelete = () => {
