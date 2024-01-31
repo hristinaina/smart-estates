@@ -19,6 +19,8 @@ export class AmbientSensor extends Component {
         super(props);
         this.state = {
             device: {},
+            averageTemp: 0.0,
+            averageHmd: 0.0,
             switchOn: false,
             activeGraph: 1,
             data: {
@@ -189,7 +191,28 @@ export class AmbientSensor extends Component {
                 ],
             },
         });
+
+        this.calculateAverages(values);
     }
+
+    calculateAverages = (data) => {
+        let temperatureSum = 0;
+        let humiditySum = 0;
+        const totalSamples = Object.values(data).length;
+
+        Object.values(data).forEach(sample => {
+            temperatureSum += sample.temperature;
+            humiditySum += sample.humidity;
+        });
+
+        const temperatureAverage = temperatureSum / totalSamples;
+        const humidityAverage = humiditySum / totalSamples;
+
+        this.setState({
+            averageTemp: temperatureAverage.toFixed(2),
+            averageHmd: humidityAverage.toFixed(2)
+        });
+    };
 
     populateGraph = (message) => {
         const { data } = this.state;
@@ -282,7 +305,7 @@ export class AmbientSensor extends Component {
     };
 
     render() {
-        const { selectedOption, startDate, endDate, options } = this.state;
+        const { selectedOption, startDate, endDate, options, averageTemp, averageHmd } = this.state;
 
         const action = (
             <React.Fragment>
@@ -319,6 +342,16 @@ export class AmbientSensor extends Component {
                     {this.state.activeGraph === 2 && 
                         <div className="history-container">
                         <div className="history-controls">
+                            <div>
+                                <div style={{textAlign: "left"}}>
+                                    <span>Average temperature: </span>
+                                    <span style={{fontWeight: "bold", marginLeft: "15px"}}>{averageTemp}  °C</span>
+                                </div>
+                                <div style={{textAlign: "left", marginBottom: "55px", marginTop: "15px"}}>
+                                    <span>Average humidity: </span>
+                                    <span style={{fontWeight: "bold", marginLeft: "45px"}}>{averageHmd}  %</span>
+                                </div>                            
+                            </div>
                             <Autocomplete
                                 value={selectedOption}
                                 onChange={this.handleOptionChange}
