@@ -158,14 +158,9 @@ func calculateDates(selectedTime string) (string, string) {
 func calculateRatio(resultC, resultP map[string]map[time.Time]float64) map[string]map[time.Time]float64 {
 	aggregatedMap := make(map[string]map[time.Time]float64)
 
+	// this will go through every city/rs in mapC and aggregate if in mapP or just place value from mapC
 	for city, innerMapC := range resultC {
-		innerMapP, ok := resultP[city]
-		if !ok {
-			// Handle the case where the city is not present in resultP
-			continue
-		}
-
-		// Initialize the inner map for the aggregated result
+		innerMapP, _ := resultP[city]
 		aggregatedMap[city] = make(map[time.Time]float64)
 
 		// Iterate over timestamps in innerMapC
@@ -177,6 +172,22 @@ func calculateRatio(resultC, resultP map[string]map[time.Time]float64) map[strin
 		// Iterate over timestamps in innerMapP
 		for timestampP, valueP := range innerMapP {
 			// Add value from resultP
+			aggregatedMap[city][timestampP] += valueP
+		}
+	}
+
+	// case: city/rs doesn't exist in mapC but exists in mapP
+	for city, innerMapP := range resultP {
+		_, ok := resultC[city]
+		if ok {
+			// Don't do anything if the city is present in resultC
+			continue
+		}
+		aggregatedMap[city] = make(map[time.Time]float64)
+
+		// Iterate over timestamps in innerMapP
+		for timestampP, valueP := range innerMapP {
+			// Subtract value from resultC
 			aggregatedMap[city][timestampP] += valueP
 		}
 	}
