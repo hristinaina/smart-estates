@@ -11,6 +11,7 @@ import { Navigation } from "../../Navigation/Navigation";
 import WashingMachineService from "../../../services/WashingMachineService";
 import { Close } from "@mui/icons-material";
 import mqtt from 'mqtt';
+import PieChart from "../AirConditioner/PieChart";
 
 
 export class WashingMachine extends Component {
@@ -479,6 +480,21 @@ export class WashingMachine extends Component {
                             <Button type="submit" id='sp-data-button'>Filter</Button>
                         </form>
                         <LogTable logData={logData} />
+                    </div>
+                </div>
+
+                <div id='statistics'>
+                    <p className='sp-card-title'>Statistic</p>
+                    <p>Graphs are based on switch history data</p>
+                    <div>
+                        <p className='sp-card-title'>Mode usage percentage %</p>
+                        <PieChart data={logData} graph={1} />
+
+                        <p className='sp-card-title'>Device activity percentage %</p>
+                        <PieChart data={logData} graph={2} />
+
+                        <p className='sp-card-title'>User usage percentage %</p>
+                        <PieChart data={logData} graph={3} />
                     </div>
                 </div>
                 <Snackbar
