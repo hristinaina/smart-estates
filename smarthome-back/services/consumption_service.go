@@ -10,8 +10,8 @@ import (
 )
 
 type ConsumptionService interface {
-	GetConsumptionForSelectedTime(selectedTime string, inputType string, selectedOptions []string) interface{}
-	GetConsumptionForSelectedDate(startDate, endDate string, inputType string, selectedOptions []string) interface{}
+	GetConsumptionForSelectedTime(queryType string, selectedTime string, inputType string, selectedOptions []string) interface{}
+	GetConsumptionForSelectedDate(queryType string, startDate, endDate string, inputType string, selectedOptions []string) interface{}
 }
 
 type ConsumptionServiceImpl struct {
@@ -24,10 +24,10 @@ func NewConsumptionService(db *sql.DB, influxDb influxdb2.Client) ConsumptionSer
 	return &ConsumptionServiceImpl{db: db, influxDb: influxDb, realEstateService: NewRealEstateService(db)}
 }
 
-func (s *ConsumptionServiceImpl) GetConsumptionForSelectedTime(selectedTime string, inputType string, selectedOptions []string) interface{} {
+func (s *ConsumptionServiceImpl) GetConsumptionForSelectedTime(queryType string, selectedTime string, inputType string, selectedOptions []string) interface{} {
 	if inputType == "rs" {
 		startDate, endDate := calculateDates(selectedTime)
-		return s.getConsumptionForRealEstates(startDate, endDate, selectedOptions)
+		return s.getConsumptionForRealEstates(queryType, startDate, endDate, selectedOptions)
 
 	} else { // input type is "city"
 		// Initialize a map to store aggregated values for each city (there can be multiple cities in selectedOptions)
@@ -41,7 +41,7 @@ func (s *ConsumptionServiceImpl) GetConsumptionForSelectedTime(selectedTime stri
 			}
 			// [estate.Name][timestamp]value
 			startDate, endDate := calculateDates(selectedTime)
-			realEstatesMap := s.getConsumptionForRealEstates(startDate, endDate, estateIds)
+			realEstatesMap := s.getConsumptionForRealEstates(queryType, startDate, endDate, estateIds)
 			cityAggregatedValues := aggregateResults(realEstatesMap)
 			// Store the aggregated values for the city in the results map
 			if len(cityAggregatedValues) == 0 {
@@ -57,9 +57,9 @@ func (s *ConsumptionServiceImpl) GetConsumptionForSelectedTime(selectedTime stri
 	}
 }
 
-func (s *ConsumptionServiceImpl) GetConsumptionForSelectedDate(startDate, endDate string, inputType string, selectedOptions []string) interface{} {
+func (s *ConsumptionServiceImpl) GetConsumptionForSelectedDate(queryType, startDate, endDate string, inputType string, selectedOptions []string) interface{} {
 	if inputType == "rs" {
-		return s.getConsumptionForRealEstates(startDate, endDate, selectedOptions)
+		return s.getConsumptionForRealEstates(queryType, startDate, endDate, selectedOptions)
 
 	} else { // input type is "city"
 		// Initialize a map to store aggregated values for each city (there can be multiple cities in selectedOptions)
@@ -72,7 +72,7 @@ func (s *ConsumptionServiceImpl) GetConsumptionForSelectedDate(startDate, endDat
 				estateIds[i] = strconv.Itoa(estate.Id)
 			}
 			// [estate.Name][timestamp]value
-			realEstatesMap := s.getConsumptionForRealEstates(startDate, endDate, estateIds)
+			realEstatesMap := s.getConsumptionForRealEstates(queryType, startDate, endDate, estateIds)
 			cityAggregatedValues := aggregateResults(realEstatesMap)
 			// Store the aggregated values for the city in the results map
 			if len(cityAggregatedValues) == 0 {
@@ -88,17 +88,17 @@ func (s *ConsumptionServiceImpl) GetConsumptionForSelectedDate(startDate, endDat
 	}
 }
 
-func (s *ConsumptionServiceImpl) getConsumptionForRealEstates(startDate, endDate string, selectedOptions []string) map[string]map[time.Time]float64 {
+func (s *ConsumptionServiceImpl) getConsumptionForRealEstates(queryType string, startDate, endDate string, selectedOptions []string) map[string]map[time.Time]float64 {
 	var results = make(map[string]map[time.Time]float64)
 
 	for _, estateId := range selectedOptions {
 		estateId, _ := strconv.Atoi(estateId)
 		estate, _ := s.realEstateService.Get(estateId)
+
 		query := fmt.Sprintf(`from(bucket:"bucket") 
 		|> range(start: %s, stop: %s)
-		|> filter(fn: (r) => r._measurement == "consumption" and r["_field"] == "electricity" and r["estate_id"] == "%d")
-		|> yield(name: "sum")`, startDate, endDate, estateId)
-
+		|> filter(fn: (r) => r._measurement == "%s" and r["_field"] == "electricity" and r["estate_id"] == "%d")
+		|> yield(name: "sum")`, startDate, endDate, queryType, estateId)
 		tempMap := s.processingQuery(query, startDate, endDate)
 		if len(tempMap) == 0 {
 			continue

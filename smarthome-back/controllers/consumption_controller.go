@@ -27,11 +27,10 @@ func (uc ConsumptionController) GetConsumptionForSelectedTime(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
 	}
-	results := uc.service.GetConsumptionForSelectedTime(input.Time, input.Type, input.SelectedOptions)
+	results := uc.service.GetConsumptionForSelectedTime(input.QueryType, input.Time, input.Type, input.SelectedOptions)
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 
-// todo u sustini u novom servisu samo dobavi sve rs i zovni funkciju iz hb za svaki rs
 func (uc ConsumptionController) GetConsumptionForSelectedDate(c *gin.Context) {
 	var input consumption_graph.DateInput
 
@@ -49,6 +48,6 @@ func (uc ConsumptionController) GetConsumptionForSelectedDate(c *gin.Context) {
 	if err != nil {
 		fmt.Println("Error parsing date:", err)
 	}
-	results := uc.service.GetConsumptionForSelectedDate(startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), input.Type, input.SelectedOptions)
+	results := uc.service.GetConsumptionForSelectedDate(input.QueryType, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), input.Type, input.SelectedOptions)
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }

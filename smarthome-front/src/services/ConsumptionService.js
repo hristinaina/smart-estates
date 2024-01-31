@@ -9,14 +9,14 @@ class ConsumptionService {
         return options;
     }
 
-    async getConsumptionGraphDataForDropdownSelect(type, options, time) {
+    async getConsumptionGraphDataForDropdownSelect(queryType, type, options, time) {
         const selectedOptions = this.convertOptionsToStrings(options);
         //console.log(selectedOptions);
         try {
             const response = await fetch('http://localhost:8081/api/consumption/selected-time', {
                 method: 'POST',
                 credentials: 'include',
-                body: JSON.stringify({ type, selectedOptions, time })
+                body: JSON.stringify({ type, selectedOptions, time, queryType })
             })
             // console.log(response)
 
@@ -34,14 +34,14 @@ class ConsumptionService {
         }
     }
 
-    async getConsumptionGraphDataForDates(type, options, start, end) {
+    async getConsumptionGraphDataForDates(queryType, type, options, start, end) {
         const selectedOptions = this.convertOptionsToStrings(options);
         //console.log(selectedOptions);
         try {
             const response = await fetch('http://localhost:8081/api/consumption/selected-date', {
                 method: 'POST',
                 credentials: 'include',
-                body: JSON.stringify({ type, selectedOptions, start, end })
+                body: JSON.stringify({ type, selectedOptions, start, end, queryType })
             })
             // console.log(response)
 

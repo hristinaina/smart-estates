@@ -54,7 +54,7 @@ export class Consumption extends Component {
     };
 
     updateGraph = async (value) => {
-        const result = await ConsumptionService.getConsumptionGraphDataForDropdownSelect(this.state.selectedTypeOption.value, this.selectedOptions, value);
+        const result = await ConsumptionService.getConsumptionGraphDataForDropdownSelect("consumption", this.state.selectedTypeOption.value, this.selectedOptions, value);
         let showMinutes = true;
         if (! ["-6h", "-12h", "-24h"].includes(this.state.selectedOption.value))
             showMinutes = false
@@ -112,7 +112,7 @@ export class Consumption extends Component {
         if (difference > twoDays) {
             showMinutes = false;
         }
-        const result = await ConsumptionService.getConsumptionGraphDataForDates(this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
+        const result = await ConsumptionService.getConsumptionGraphDataForDates("consumption", this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
         console.log("datum graf ", result.result.result)
         const graphData = this.convertResultToGraphData(result.result.result, showMinutes)
         this.setState({
