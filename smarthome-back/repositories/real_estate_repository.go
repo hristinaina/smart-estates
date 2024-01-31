@@ -36,6 +36,17 @@ func (rer *RealEstateRepository) GetByUserId(id int) ([]models.RealEstate, error
 	return ScanRows(rows)
 }
 
+func (rer *RealEstateRepository) GetByCity(city string) ([]models.RealEstate, error) {
+	query := "SELECT * FROM realestate WHERE city = ?"
+	rows, err := rer.db.Query(query, city)
+
+	if IsError(err) {
+		return nil, err
+	}
+	defer rows.Close()
+	return ScanRows(rows)
+}
+
 func (rer *RealEstateRepository) Get(id int) (models.RealEstate, error) {
 	query := "SELECT * FROM realestate WHERE ID = ?"
 	rows, err := rer.db.Query(query, id)

@@ -18,6 +18,7 @@ type RealEstateService interface {
 	// ChangeState if state == 0 it is accepted, in opposite it is declined
 	ChangeState(id int, state int, reason string) (models.RealEstate, error)
 	Add(estate models.RealEstate) (models.RealEstate, error)
+	GetByCity(city string) ([]models.RealEstate, error)
 }
 
 type RealEstateServiceImpl struct {
@@ -36,6 +37,10 @@ func (res *RealEstateServiceImpl) GetAll() ([]models.RealEstate, error) {
 
 func (res *RealEstateServiceImpl) GetByUserId(userId int) ([]models.RealEstate, error) {
 	return res.repository.GetByUserId(userId)
+}
+
+func (res *RealEstateServiceImpl) GetByCity(city string) ([]models.RealEstate, error) {
+	return res.repository.GetByCity(city)
 }
 
 func (res *RealEstateServiceImpl) Get(id int) (models.RealEstate, error) {
