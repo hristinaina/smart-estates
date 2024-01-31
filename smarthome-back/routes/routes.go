@@ -19,7 +19,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		userRoutes.POST("/verify-email", userController.SendResetPasswordEmail)
 		userRoutes.POST("/reset-password", userController.ResetPassword)
 
-		// todo promeni middleware
 		authController := controllers.NewAuthController(db)
 		middleware := middleware.NewMiddleware(db)
 		userRoutes.POST("/login", authController.Login)
@@ -134,5 +133,15 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		permissionRoutes.POST("/deny/:id", middleware.RequireAuth, permissionController.DeletePermit)
 		permissionRoutes.GET("/get-real-estate/:id", middleware.RequireAuth, permissionController.GetPermitRealEstate)
 		permissionRoutes.GET("/get-devices/:id/:userId", middleware.RequireAuth, permissionController.GetDeviceForRealEstate)
+	}
+
+	washingMachineRoutes := r.Group("/api/wm")
+	{
+		middleware := middleware.NewMiddleware(db)
+		washingMachineController := devicesController.NewWashingMachineController(db, mqtt)
+		washingMachineRoutes.GET("/:id", washingMachineController.Get)
+		washingMachineRoutes.POST("/schedule", middleware.RequireAuth, washingMachineController.AddScheduledMode)
+		washingMachineRoutes.GET("/schedule/:id", washingMachineController.GetScheduledModes)
+		washingMachineRoutes.PUT("history", middleware.RequireAuth, washingMachineController.GetHistoryData)
 	}
 }

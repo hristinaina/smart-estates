@@ -134,6 +134,52 @@ func GetAmbientSensor(id int) (models.AmbientSensor, error) {
 	return device, nil
 }
 
+func GetWashingMachine(id int) (models.WashingMachine, error) {
+	url := api + "/wm/" + strconv.Itoa(id)
+
+	response, err := http.Get(url)
+	if err != nil {
+		return models.WashingMachine{}, fmt.Errorf("error making GET request: %v", err)
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return models.WashingMachine{}, fmt.Errorf("error reading response body: %v", err)
+	}
+
+	var device models.WashingMachine
+	err = json.Unmarshal(body, &device)
+	if err != nil {
+		return models.WashingMachine{}, fmt.Errorf("error unmarshalling JSON: %v", err)
+	}
+
+	return device, nil
+}
+
+func GetWashingMachineScheduledMode(id int) ([]models.ScheduledMode, error) {
+	url := api + "/wm/schedule/" + strconv.Itoa(id)
+
+	response, err := http.Get(url)
+	if err != nil {
+		return []models.ScheduledMode{}, fmt.Errorf("error making GET request: %v", err)
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return []models.ScheduledMode{}, fmt.Errorf("error reading response body: %v", err)
+	}
+
+	var modes []models.ScheduledMode
+	err = json.Unmarshal(body, &modes)
+	if err != nil {
+		return []models.ScheduledMode{}, fmt.Errorf("error unmarshalling JSON: %v", err)
+	}
+
+	return modes, nil
+}
+
 func GetSolarRadiation(latitude float64, longitude float64) (models.OpenMeteoResponse, error) {
 	apiUrl := "https://api.open-meteo.com/v1/forecast"
 	params := url.Values{}

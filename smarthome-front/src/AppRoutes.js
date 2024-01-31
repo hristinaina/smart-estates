@@ -17,6 +17,7 @@ import { AirConditioner } from './components/Devices/AirConditioner/AirCondition
 import { HomeBattery } from './components/Devices/HomeBattery/HomeBattery';
 import { VehicleGate } from './components/Devices/VehicleGate/VehicleGate';
 import { GrantPermission } from './components/Permission/GrantPermission';
+import { WashingMachine } from './components/Devices/WashingMachine/WashingMachine';
 
 const AppRoutes = [
   {
@@ -78,6 +79,10 @@ const AppRoutes = [
   {
     path: "/air-conditioner/:id",
     element: <AirConditioner />
+  },
+  {
+    path: "/washing-machine/:id",
+    element: <WashingMachine />
   },
   {
     path: "/vehicle-gate/:id",

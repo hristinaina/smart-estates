@@ -108,8 +108,8 @@ func (sas *SuperAdminControllerImpl) AddAdmin(c *gin.Context) {
 		return
 	}
 
-	// send admin mail with his password
-	sas.mail_service.CreateAdminLoginRequest(input.Name, input.Surname, input.Email, password)
+	// send admin mail with his password - async send mail
+	go sas.mail_service.CreateAdminLoginRequest(input.Name, input.Surname, input.Email, password)
 
 	// respond
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully added admin"})

@@ -53,7 +53,7 @@ export class AirConditioner extends Component {
         const data = this.setAction(logData.result)
         this.setState({ 
             logData: data,
-            email: user.Email,
+            email: user.Name + " " + user.Surname,
             pickedValue: "none",
             startDate: "",
             endDate: "",
@@ -93,20 +93,26 @@ export class AirConditioner extends Component {
     }
 
     setAction = (data) => {
+        console.log(data)
         for (const key in data) {
             if (data[key].Action === 0) {
                 data[key].Action = "Turn off";
             } else if (data[key].Action === 1) {
                 data[key].Action = "Turn on";
             }
+
+            if (data[key].User.includes("@")) {
+                data[key].User = this.state.email;
+            }
         }
         return data
     }
 
     handleSwitchToggle = (item) => {
+        console.log(item)
         console.log("uslo je i ovde")
         let i = 0
-        const { mode } = this.state;
+        const { mode, email } = this.state;
         let canTurnOn = false
         if(!item.switchOn)
             canTurnOn = this.canTurnOn(item.name, item.temp)
@@ -117,7 +123,7 @@ export class AirConditioner extends Component {
                 // ako je bio upaljen, posalji da se gasi   
                 if(m.switchOn && item.name != m.name) {  
                     console.log("dugme prvo")
-                    this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn, authService.getCurrentUser().Email)
+                    this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn, email)
                     ++i                   
                 }
                 if (!m.switchOn && m.name === item.name) {
@@ -137,7 +143,7 @@ export class AirConditioner extends Component {
             // ovo znaci da nista pre toga nije bilo ukljuceno/iskljuceno
             if(i===0) {
                 console.log("dugme drugo")
-                this.sendDataToSimulation(item.name, item.temp, '', !item.switchOn, authService.getCurrentUser().Email)
+                this.sendDataToSimulation(item.name, item.temp, '', !item.switchOn, email)
             }                   
             
             this.setState({ mode: updatedMode });
@@ -241,7 +247,6 @@ export class AirConditioner extends Component {
 
     // Handle incoming MQTT messages
     handleMqttMessage(topic, message) {
-        console.log(topic)
         const result = JSON.parse(message.toString())
         if (result.id === this.id) {
             this.setState({

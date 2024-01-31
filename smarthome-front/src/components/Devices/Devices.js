@@ -137,7 +137,7 @@ export class Devices extends Component {
         else if (device.Type === 'Air conditioner')
             window.location.assign("/air-conditioner/" + device.Id)
         else if (device.Type === 'Washing machine')
-            window.location.assign("/lamp/" + device.Id)
+            window.location.assign("/washing-machine/" + device.Id)
         else if (device.Type === 'Lamp')
             window.location.assign("/lamp/" + device.Id)
         else if (device.Type === 'Vehicle gate')

@@ -8,7 +8,7 @@ import (
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
 	"smarthome-back/mqtt_client"
-	"smarthome-back/repositories/devices"
+	repositories "smarthome-back/repositories/devices"
 	"smarthome-back/services"
 	"smarthome-back/services/devices/energetic"
 	"smarthome-back/services/devices/inside"
@@ -33,6 +33,7 @@ type DeviceServiceImpl struct {
 	db                    *sql.DB
 	inflixDb              influxdb2.Client
 	airConditionerService inside.AirConditionerService
+	washingMachineService inside.WashingMachineService
 	evChargerService      energetic.EVChargerService
 	homeBatteryService    energetic.HomeBatteryService
 	solarPanelService     energetic.SolarPanelService
@@ -44,7 +45,7 @@ type DeviceServiceImpl struct {
 }
 
 func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceService {
-	return &DeviceServiceImpl{db: db, airConditionerService: inside.NewAirConditionerService(db), evChargerService: energetic.NewEVChargerService(db),
+	return &DeviceServiceImpl{db: db, airConditionerService: inside.NewAirConditionerService(db), washingMachineService: inside.NewWashingMachineService(db), evChargerService: energetic.NewEVChargerService(db),
 		homeBatteryService: energetic.NewHomeBatteryService(db, influxDb), lampService: outside.NewLampService(db, influxDb),
 		vehicleGateService: outside.NewVehicleGateService(db, influxDb),
 		mqtt:               mqtt, deviceRepository: repositories.NewDeviceRepository(db),
@@ -82,6 +83,8 @@ func (res *DeviceServiceImpl) Add(dto dtos.DeviceDTO) (models.Device, error) {
 		device = res.ambientSensorService.Add(dto).ToDevice()
 	} else if dto.Type == 1 {
 		device = res.airConditionerService.Add(dto).ToDevice()
+	} else if dto.Type == 2 { // todo uradi za ves masinu
+		device = res.washingMachineService.Add(dto).ToDevice()
 	} else if dto.Type == 3 {
 		lamp, err := res.lampService.Add(dto)
 		if err != nil {
