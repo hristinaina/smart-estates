@@ -1,8 +1,6 @@
 package device_simulator
 
 import (
-	// "math"
-	// mqtt "github.com/eclipse/paho.mqtt.golang"
 	"math/rand"
 	"simulation/config"
 	"simulation/models"

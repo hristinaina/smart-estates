@@ -20,6 +20,9 @@ export class Sprinkler extends Component {
             email: '',
             logData: [],
             switchOn: false,
+            open: false,
+            snackbarMessage: '',
+            showSnackbar: false,
         };
         this.id = parseInt(this.extractDeviceIdFromUrl());
     }
@@ -41,7 +44,6 @@ export class Sprinkler extends Component {
         }
 
         const sprinkler = await SprinklerService.get(this.id);
-        console.log(sprinkler.IsOn);
         if (sprinkler.IsOn == true){
             await this.setState({switchOn: true});
         }
@@ -65,8 +67,22 @@ export class Sprinkler extends Component {
         this.setState({specialModes: specialModes});
     }
 
-    handleFormSubmit = () => {
-        console.log("form submitted");
+    handleFormSubmit = async(e) => {
+        e.preventDefault();
+
+        const { email, startDate, endDate, pickedValue } = this.state;
+        console.log(email, startDate, endDate);
+        if(new Date(startDate) > new Date(endDate)) {
+            this.setState({ snackbarMessage: "Start date must be before end date" });
+            this.handleClick();
+            return 
+        }
+        // const logData = await DeviceService.getACHistoryData(this.id, pickedValue, startDate, endDate);
+        // console.log(logData.result)
+        // const data = this.setAction(logData.result)
+        // this.setState({
+        //     logData: data,
+        // });
 
     }
 
@@ -84,7 +100,6 @@ export class Sprinkler extends Component {
     }
 
     render() {
-        
         return (
             <div>
                 <Navigation/>
@@ -173,4 +188,16 @@ export class Sprinkler extends Component {
             </div>
         )
     }
+
+    handleClick = () => {
+        this.setState({ open: true });
+    };
+
+    handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        this.setState({ open: false });
+    };
+
 }
