@@ -185,6 +185,7 @@ const DevicesList = ({ devices, deviceImages, onClick, connecting }) => {
                                 alt='device'
                                 src={deviceImages[device.Id]}
                                 className='device-img'
+                                style={{ width: '100%', height: '300px' }}
                             />
                             <div className='device-info'>
                                 <p className='device-title'>{device.Name}</p>
