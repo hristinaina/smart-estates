@@ -11,26 +11,28 @@ import (
 	"time"
 )
 
-type ConsumptionController struct {
-	service services.ConsumptionService
+type ElectricityController struct {
+	service services.ElectricityService
 }
 
-func NewConsumptionController(db *sql.DB, influxDb influxdb2.Client) ConsumptionController {
-	return ConsumptionController{service: services.NewConsumptionService(db, influxDb)}
+func NewElectricityController(db *sql.DB, influxDb influxdb2.Client) ElectricityController {
+	return ElectricityController{service: services.NewElectricityService(db, influxDb)}
 }
 
-func (uc ConsumptionController) GetConsumptionForSelectedTime(c *gin.Context) {
+// GetElectricityForSelectedTime used to get production OR consumption
+func (uc ElectricityController) GetElectricityForSelectedTime(c *gin.Context) {
 	var input consumption_graph.TimeInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
 	}
-	results := uc.service.GetConsumptionForSelectedTime(input.QueryType, input.Time, input.Type, input.SelectedOptions, "")
+	results := uc.service.GetElectricityForSelectedTime(input.QueryType, input.Time, input.Type, input.SelectedOptions, "")
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 
-func (uc ConsumptionController) GetConsumptionForSelectedDate(c *gin.Context) {
+// GetElectricityForSelectedDate used to get production OR consumption
+func (uc ElectricityController) GetElectricityForSelectedDate(c *gin.Context) {
 	var input consumption_graph.DateInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -47,11 +49,12 @@ func (uc ConsumptionController) GetConsumptionForSelectedDate(c *gin.Context) {
 	if err != nil {
 		fmt.Println("Error parsing date:", err)
 	}
-	results := uc.service.GetConsumptionForSelectedDate(input.QueryType, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), input.Type, input.SelectedOptions, "")
+	results := uc.service.GetElectricityForSelectedDate(input.QueryType, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), input.Type, input.SelectedOptions, "")
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 
-func (uc ConsumptionController) GetRatioForSelectedTime(c *gin.Context) {
+// GetRatioForSelectedTime used to get ratio (production - consumption) and ed (electrical distribution)
+func (uc ElectricityController) GetRatioForSelectedTime(c *gin.Context) {
 	var input consumption_graph.TimeInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -62,7 +65,8 @@ func (uc ConsumptionController) GetRatioForSelectedTime(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 
-func (uc ConsumptionController) GetRatioForSelectedDate(c *gin.Context) {
+// GetRatioForSelectedDate used to get ratio (production - consumption) and ed (electrical distribution)
+func (uc ElectricityController) GetRatioForSelectedDate(c *gin.Context) {
 	var input consumption_graph.DateInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {

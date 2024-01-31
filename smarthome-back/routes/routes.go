@@ -125,13 +125,13 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		vehicleGateRoutes.GET("/count/:id/:from/:to/:license-plate", vehicleGateController.GetLicencePlatesCount)
 	}
 
-	consumptionRoutes := r.Group("/api/consumption")
+	electricityRoutes := r.Group("/api/consumption")
 	{
 		middleware := middleware.NewMiddleware(db)
-		ConsumptionController := controllers.NewConsumptionController(db, influxDb)
-		consumptionRoutes.POST("/selected-time", middleware.RequireAuth, ConsumptionController.GetConsumptionForSelectedTime)
-		consumptionRoutes.POST("/selected-date", middleware.RequireAuth, ConsumptionController.GetConsumptionForSelectedDate)
-		consumptionRoutes.POST("/ratio/selected-time", middleware.RequireAuth, ConsumptionController.GetRatioForSelectedTime)
-		consumptionRoutes.POST("/ratio/selected-date", middleware.RequireAuth, ConsumptionController.GetRatioForSelectedDate)
+		ElectricityController := controllers.NewElectricityController(db, influxDb)
+		electricityRoutes.POST("/selected-time", middleware.RequireAuth, ElectricityController.GetElectricityForSelectedTime)
+		electricityRoutes.POST("/selected-date", middleware.RequireAuth, ElectricityController.GetElectricityForSelectedDate)
+		electricityRoutes.POST("/ratio/selected-time", middleware.RequireAuth, ElectricityController.GetRatioForSelectedTime)
+		electricityRoutes.POST("/ratio/selected-date", middleware.RequireAuth, ElectricityController.GetRatioForSelectedDate)
 	}
 }
