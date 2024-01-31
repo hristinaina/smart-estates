@@ -3,16 +3,13 @@ import '../Devices/Devices.css';
 import { Navigation } from '../Navigation/Navigation';
 import authService from '../../services/AuthService';
 import 'chart.js/auto';
-import HBGraph from '../Devices/HomeBattery/HBGraph';
-import { Autocomplete, TextField, Button, Box, Grid, Snackbar } from '@mui/material';
-import HomeBatteryService from '../../services/HomeBatteryService';
-import "./Consumption.css"
+import { Autocomplete, TextField, Button, Box, Snackbar } from '@mui/material';
+import "./ElectricityOverview.css"
 import SearchSelect from './SearchSelect';
-import { auto } from '@popperjs/core';
-import ConsumptionService from '../../services/ConsumptionService';
+import ElectricityService from '../../services/ElectricityService';
 import AdminGraph from './AdminGraph';
 
-export class Consumption extends Component {
+export class ElectricityOverview extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -57,10 +54,10 @@ export class Consumption extends Component {
     };
 
     updateGraph = async (value) => {
-        const resultC = await ConsumptionService.getConsumptionGraphDataForDropdownSelect("consumption", this.state.selectedTypeOption.value, this.selectedOptions, value);
-        const resultP = await ConsumptionService.getConsumptionGraphDataForDropdownSelect("solar_panel", this.state.selectedTypeOption.value, this.selectedOptions, value);
-        const ratio = await ConsumptionService.getRatioGraphDataForDropdownSelect(this.state.selectedTypeOption.value, this.selectedOptions, value, "");
-        const edratio = await ConsumptionService.getRatioGraphDataForDropdownSelect(this.state.selectedTypeOption.value, this.selectedOptions, value, "electrical_distribution");
+        const resultC = await ElectricityService.getConsumptionGraphDataForDropdownSelect("consumption", this.state.selectedTypeOption.value, this.selectedOptions, value);
+        const resultP = await ElectricityService.getConsumptionGraphDataForDropdownSelect("solar_panel", this.state.selectedTypeOption.value, this.selectedOptions, value);
+        const ratio = await ElectricityService.getRatioGraphDataForDropdownSelect(this.state.selectedTypeOption.value, this.selectedOptions, value, "");
+        const edratio = await ElectricityService.getRatioGraphDataForDropdownSelect(this.state.selectedTypeOption.value, this.selectedOptions, value, "electrical_distribution");
 
         let showMinutes = true;
         if (!["-6h", "-12h", "-24h"].includes(this.state.selectedOption.value))
@@ -125,11 +122,10 @@ export class Consumption extends Component {
         if (difference > twoDays) {
             showMinutes = false;
         }
-        const resultC = await ConsumptionService.getConsumptionGraphDataForDates("consumption", this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
-        //console.log("datum graf ", result.result.result)
-        const resultP = await ConsumptionService.getConsumptionGraphDataForDates("solar_panel", this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
-        const ratio = await ConsumptionService.getRatioGraphDataForDates(this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate, "");
-        const edratio = await ConsumptionService.getRatioGraphDataForDates(this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate, "electrical_distribution");
+        const resultC = await ElectricityService.getConsumptionGraphDataForDates("consumption", this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
+        const resultP = await ElectricityService.getConsumptionGraphDataForDates("solar_panel", this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate);
+        const ratio = await ElectricityService.getRatioGraphDataForDates(this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate, "");
+        const edratio = await ElectricityService.getRatioGraphDataForDates(this.state.selectedTypeOption.value, this.selectedOptions, this.state.startDate, this.state.endDate, "electrical_distribution");
 
         const graphData = this.convertResultToGraphData(resultC.result.result, showMinutes, "Electricity Consumption")
         const graphProduction = this.convertResultToGraphData(resultP.result.result, showMinutes, "Electricity Production")
@@ -139,7 +135,7 @@ export class Consumption extends Component {
         this.setState({
             consumptionData: graphData,
             productionData: graphProduction,
-            graphData: graphRatio,
+            ratioData: graphRatio,
             edData: edRatio,
         });
     }

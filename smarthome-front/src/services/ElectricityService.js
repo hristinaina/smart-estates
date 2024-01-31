@@ -1,4 +1,4 @@
-class ConsumptionService {
+class ElectricityService {
 
     convertOptionsToStrings(selectedOptions) {
         const options = []
@@ -110,4 +110,4 @@ class ConsumptionService {
     }
 }
 
-export default new ConsumptionService();
+export default new ElectricityService();
