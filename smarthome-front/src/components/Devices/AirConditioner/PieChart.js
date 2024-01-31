@@ -63,7 +63,6 @@ class PieChart extends Component {
 
     calculatePercentagesOffOn = () => {
         const { data } = this.props;
-        console.log(data)
         let turnOnCount = 0;
         let turnOffCount = 0;
 

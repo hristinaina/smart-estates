@@ -53,7 +53,6 @@ func (pc PermissionController) ReceiveGrantPermission(c *gin.Context) {
 		if email != currentUser.Email {
 			user, _ := pc.userRepository.GetUserByEmail(email)
 			if user != nil {
-				fmt.Println("POSTOJI KORISNIK")
 
 				for _, deviceId := range input.Devices {
 					isAlreadyExistPermission := pc.permissionRepository.IsPermissionAlreadyExist(input.RealEstateId, deviceId, email)
@@ -63,7 +62,6 @@ func (pc PermissionController) ReceiveGrantPermission(c *gin.Context) {
 					}
 				}
 				if sendMail {
-					fmt.Println("SALJI MEJL")
 					expiration := time.Now().Add(time.Minute * 30)
 					token, _ := pc.mailService.GenerateToken(user.Email, expiration)
 					go pc.mailService.PermissionMail(email, user.Name, input.User, input.RealEstateName, token)

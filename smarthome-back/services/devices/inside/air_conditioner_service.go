@@ -11,6 +11,8 @@ import (
 type AirConditionerService interface {
 	Add(estate dtos.DeviceDTO) inside.AirConditioner
 	Get(id int) inside.AirConditioner
+	UpdateSpecialMode(deviceId int, mode string, startTime string, endTime string, temperature float32, selectedDays string) error
+	AddNewSpecialModes(deviceId int, mode string, startTime string, endTime string, temperature float32, selectedDays string) error
 }
 
 type AirConditionerServiceImpl struct {
@@ -189,4 +191,85 @@ func (s *AirConditionerServiceImpl) Add(dto dtos.DeviceDTO) inside.AirConditione
 
 	device.Device.Device.Id = int(deviceID)
 	return device
+}
+
+func (s *AirConditionerServiceImpl) UpdateSpecialMode(deviceId int, mode string, startTime string, endTime string, temperature float32, selectedDays string) error {
+	query := `
+        UPDATE specialModes
+        SET Mode = ?, StartTime = ?, EndTime = ?, Temperature = ?, SelectedDays = ?
+        WHERE DeviceId = ?
+    `
+
+	_, err := s.db.Exec(query, mode, startTime, endTime, temperature, selectedDays, deviceId)
+	if err != nil {
+		return fmt.Errorf("failed to update special mode: %v", err)
+	}
+
+	return nil
+}
+
+type SpecialModeDB struct {
+	ID           int
+	DeviceID     int
+	StartTime    string
+	EndTime      string
+	Mode         string
+	Temperature  int
+	SelectedDays string
+}
+
+func (s *AirConditionerServiceImpl) isExist(deviceId int, mode string, startTime string, endTime string, temperature float32, selectedDays string) (bool, error) {
+	query := "SELECT * FROM specialModes WHERE DeviceId = ? AND StartTime = ? AND EndTime = ? AND Mode = ? AND Temperature = ? AND SelectedDays = ?"
+	row := s.db.QueryRow(query, deviceId, startTime, endTime, mode, temperature, selectedDays)
+
+	fmt.Println(startTime)
+	fmt.Println(endTime)
+	fmt.Println(mode)
+	fmt.Println(temperature)
+	fmt.Println(selectedDays)
+	var sm SpecialModeDB
+
+	err := row.Scan(&sm.ID, &sm.DeviceID, &sm.StartTime, &sm.EndTime, &sm.Mode, &sm.Temperature, &sm.SelectedDays)
+	if err != nil {
+		fmt.Println(err)
+		if err == sql.ErrNoRows {
+			fmt.Println("usao je ovde")
+			return false, nil
+		}
+		return false, err
+	}
+
+	fmt.Println("postoji")
+	fmt.Println(&sm.StartTime)
+	fmt.Println(&sm.EndTime)
+	fmt.Println(&sm.Mode)
+	fmt.Println(&sm.Temperature)
+	fmt.Println(&sm.SelectedDays)
+	return true, nil
+}
+
+func (s *AirConditionerServiceImpl) AddNewSpecialModes(deviceId int, mode string, startTime string, endTime string, temperature float32, selectedDays string) error {
+	exists, err := s.isExist(deviceId, mode, startTime, endTime, temperature, selectedDays)
+	if err != nil {
+		fmt.Println("moze da bude i ovde greska")
+		fmt.Println(err)
+		return err
+	}
+
+	if exists {
+		fmt.Println("Already exist.")
+		return nil
+	}
+
+	insertStatement := "INSERT INTO specialModes (DeviceId, StartTime, EndTime, Mode, Temperature, SelectedDays) VALUES (?, ?, ?, ?, ?, ?)"
+	fmt.Println(deviceId)
+	_, err = s.db.Exec(insertStatement, deviceId, startTime, endTime, mode, temperature, selectedDays)
+	if err != nil {
+		fmt.Println("a mozda je i ovde greskurina")
+		fmt.Println(err)
+		return err
+	}
+
+	fmt.Println("New data!!")
+	return nil
 }

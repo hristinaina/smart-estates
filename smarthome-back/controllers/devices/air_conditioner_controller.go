@@ -2,12 +2,14 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"smarthome-back/controllers"
 	"smarthome-back/dtos"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/services/devices/inside"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,4 +43,44 @@ func (ac AirConditionerController) GetHistoryData(c *gin.Context) {
 	}
 	results := mqtt_client.QueryDeviceData(ac.mqtt.GetInflux(), data)
 	c.JSON(http.StatusOK, gin.H{"result": results})
+}
+
+type SpecialModeDTO struct {
+	Start        string   `json:"start"`
+	End          string   `json:"end"`
+	SelectedMode string   `json:"selectedMode"`
+	Temperature  float32  `json:"temperature"`
+	SelectedDays []string `json:"selectedDays"`
+}
+
+func (ac AirConditionerController) EditSpecialModes(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
+
+	var input []SpecialModeDTO
+	fmt.Println(input)
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		fmt.Println("greskaaaaaaa")
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+
+	fmt.Println(input)
+	if len(input) == 0 {
+		// todo ako je prazno brisi
+	}
+
+	for _, mode := range input {
+		// temp, err := strconv.ParseFloat(mode.Temperature, 32)
+		err = ac.service.AddNewSpecialModes(id, mode.SelectedMode, mode.Start, mode.End, mode.Temperature, strings.Join(mode.SelectedDays, ","))
+		if err != nil {
+			fmt.Println("greskurina")
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "You have successfully scheduled the mode"})
 }

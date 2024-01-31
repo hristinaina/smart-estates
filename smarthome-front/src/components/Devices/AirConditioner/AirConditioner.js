@@ -8,6 +8,7 @@ import { TextField, Button, Snackbar, Typography, Switch, Input, FormControl } f
 import DeviceService from '../../../services/DeviceService';
 import LogTable from './LogTable';
 import PieChart from './PieChart';
+import SpecialModeForm from './SpecialModeForm';
 
 
 export class AirConditioner extends Component {
@@ -29,6 +30,8 @@ export class AirConditioner extends Component {
             open: false,
             temp: 20.0,
             currentTemp: "Loading...",
+            splitMode: [],
+            convertedSpecialMode: []
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -40,7 +43,13 @@ export class AirConditioner extends Component {
         if (!valid) window.location.assign("/");
 
         const device = await DeviceService.getDeviceById(this.id, 'http://localhost:8081/api/ac/');
-        const updatedMode = device.Mode.split(',').map((m) => ({
+        console.log(device)
+        const result = await this.convertFormat(device.SpecialMode)
+        this.setState({convertedSpecialMode: result})
+        const splitMode = device.Mode.split(',')
+        this.setState({splitMode: splitMode})
+
+        const updatedMode = splitMode.map((m) => ({
             name: m,
             switchOn: false,
             temp: 20.0
@@ -94,7 +103,6 @@ export class AirConditioner extends Component {
     }
 
     setAction = (data) => {
-        console.log(data)
         for (const key in data) {
             if (data[key].Action === 0) {
                 data[key].Action = "Turn off";
@@ -303,8 +311,29 @@ export class AirConditioner extends Component {
         this.setState({ open: false });
     };
 
+    handleAddSpecialMode = (specialMode) => {
+        // todo izmeni ovo i napravi api da se izmeni ovo 
+        const updatedSchedule = specialMode.map(item => ({
+            ...item,
+            temperature: parseFloat(item.temperature)
+        }));
+        this.setState({ specialModes: updatedSchedule });
+        console.log('Adding special mode:', updatedSchedule);
+    };
+
+    async convertFormat (data) {
+        console.log(data)
+        return data.map(item => ({
+            start: item.StartTime,
+            end: item.EndTime,
+            selectedMode: item.Mode,
+            temperature: item.Temperature,
+            selectedDays: item.SelectedDays.split(",")
+        }));
+    }   
+
     render() {
-        const { device, logData, mode, email, startDate, endDate, currentTemp, pickedValue } = this.state;
+        const { device, logData, mode, email, startDate, endDate, currentTemp, pickedValue, splitMode, convertedSpecialMode } = this.state;
 
         return (
             <div>
@@ -349,8 +378,10 @@ export class AirConditioner extends Component {
                                     )}
                                 </FormControl>                          
                         </div>
-                        )
-                    })}
+                        )})}
+                        <div style={{marginTop: "50px"}}>
+                            <SpecialModeForm onAdd={this.handleAddSpecialMode} acModes={splitMode} minTemp={device.MinTemperature} maxTemp={device.MaxTemperature} specialModeFromDevice={convertedSpecialMode} fromDevice={true} id={this.id}/>
+                        </div>
                     </div>
 
                     <div id='sp-right-card'>

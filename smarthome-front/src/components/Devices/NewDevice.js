@@ -447,7 +447,7 @@ export class NewDevice extends Component {
                                     </Select>
                                 </FormControl>
 
-                                <SpecialModeForm onAdd={this.handleAddSpecialMode} acModes={this.state.acModes} minTemp={this.state.minTemp} maxTemp={this.state.maxTemp}/>
+                                {/* <SpecialModeForm onAdd={this.handleAddSpecialMode} acModes={this.state.acModes} minTemp={this.state.minTemp} maxTemp={this.state.maxTemp} fromDevice={false}/> */}
 
                             </div>
                         )}
