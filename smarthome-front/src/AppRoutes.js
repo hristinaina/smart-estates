@@ -16,6 +16,7 @@ import { SolarPanel } from './components/Devices/SolarPanel/SolarPanel';
 import { AirConditioner } from './components/Devices/AirConditioner/AirConditioner';
 import { HomeBattery } from './components/Devices/HomeBattery/HomeBattery';
 import { VehicleGate } from './components/Devices/VehicleGate/VehicleGate';
+import { GrantPermission } from './components/Permission/GrantPermission';
 import { WashingMachine } from './components/Devices/WashingMachine/WashingMachine';
 
 const AppRoutes = [
@@ -41,6 +42,10 @@ const AppRoutes = [
   },
   {
     path: '/activate',
+    element: <ActivationPage />
+  },
+  {
+    path: '/activate-permission',
     element: <ActivationPage />
   },
   {
@@ -91,6 +96,10 @@ const AppRoutes = [
     path: "/hb/:id",
     element: <HomeBattery />
   },
+  {
+    path: "/grant-permission/:id",
+    element: <GrantPermission/>
+  }
 ];
 
 export default AppRoutes;

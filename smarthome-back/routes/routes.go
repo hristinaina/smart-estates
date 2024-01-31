@@ -123,6 +123,18 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		vehicleGateRoutes.GET("/count/:id/:from/:to/:license-plate", vehicleGateController.GetLicencePlatesCount)
 	}
 
+	permissionRoutes := r.Group("/api/permission")
+	{
+		middleware := middleware.NewMiddleware(db)
+		permissionController := controllers.NewPermissionController(db)
+		permissionRoutes.POST("", middleware.RequireAuth, permissionController.ReceiveGrantPermission)
+		permissionRoutes.POST("/verify", permissionController.VerifyAccount)
+		permissionRoutes.GET("/:id", middleware.RequireAuth, permissionController.GetPermissionForRealEstate)
+		permissionRoutes.POST("/deny/:id", middleware.RequireAuth, permissionController.DeletePermit)
+		permissionRoutes.GET("/get-real-estate/:id", middleware.RequireAuth, permissionController.GetPermitRealEstate)
+		permissionRoutes.GET("/get-devices/:id/:userId", middleware.RequireAuth, permissionController.GetDeviceForRealEstate)
+	}
+
 	washingMachineRoutes := r.Group("/api/wm")
 	{
 		middleware := middleware.NewMiddleware(db)

@@ -22,6 +22,7 @@ type MailService interface {
 	GenerateToken(email string, expiration time.Time) (string, error)
 	CreateAdminLoginRequest(name, surname, email, password string)
 	SendVerifyEmail(email, token string)
+	PermissionMail(email, name, owner, realEstate, token string)
 	DiscardRealEstate(estate models.RealEstate, email, name string)
 	ApproveRealEstate(estate models.RealEstate, email, name string)
 }
@@ -229,6 +230,31 @@ func (ms *MailServiceImpl) DiscardRealEstate(estate models.RealEstate, email, na
 		message.Personalizations[0].SetDynamicTemplateData("user_name", name)
 		message.Personalizations[0].SetDynamicTemplateData("real_estate_name", estate.Name)
 		message.Personalizations[0].SetDynamicTemplateData("reason", estate.DiscardReason)
+	}
+
+	client := sendgrid.NewSendClient(readFromEnvFile())
+	response, err := client.Send(message)
+	if err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println(response.StatusCode)
+	}
+}
+
+func (ms *MailServiceImpl) PermissionMail(email, name, owner, realEstate, token string) {
+	from := mail.NewEmail("SMART HOME SUPPORT", readSenderEmailFromJson())
+	subject := "Granted permissions"
+	to := mail.NewEmail("", email)
+	plainTextContent := fmt.Sprintf("Click the following link to verify your email: %s", "http://localhost:3000/activate-permission?token="+token)
+	htmlContent := fmt.Sprintf(`<strong>Click the following link to verify your email and reset your password:</strong> <a href="%s">%s</a>`, "http://localhost:3000/activate-permission?token="+token, "http://localhost:3000/activate-permission?token="+token)
+	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+
+	if isDomainSupportingHTML(strings.Split(email, "@")[1]) {
+		message.SetTemplateID("d-227ab0e9abe64dc2b1a847bc32ff4113")
+		message.Personalizations[0].SetDynamicTemplateData("user_name", name)
+		message.Personalizations[0].SetDynamicTemplateData("owner_name", owner)
+		message.Personalizations[0].SetDynamicTemplateData("real_estate", realEstate)
+		message.Personalizations[0].SetDynamicTemplateData("link", "http://localhost:3000/activate-permission?token="+token)
 	}
 
 	client := sendgrid.NewSendClient(readFromEnvFile())
