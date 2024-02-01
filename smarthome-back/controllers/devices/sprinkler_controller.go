@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"smarthome-back/controllers"
 	"smarthome-back/dtos"
+	"smarthome-back/models"
 	"smarthome-back/mqtt_client"
 	services "smarthome-back/services/devices/outside"
 	"strconv"
@@ -43,8 +44,9 @@ func (controller SprinklerController) GetAll(c *gin.Context) {
 
 func (controller SprinklerController) TurnOn(c *gin.Context) {
 	id := ExtractId(c)
-
-	sprinkler, err := controller.service.UpdateIsOn(id, true)
+	user, _ := c.Get("user")
+	customUser, _ := user.(*models.User)
+	sprinkler, err := controller.service.UpdateIsOn(id, true, customUser.Email)
 	if err != nil {
 		c.JSON(404, gin.H{"error": err})
 		return
@@ -54,8 +56,10 @@ func (controller SprinklerController) TurnOn(c *gin.Context) {
 
 func (controller SprinklerController) TurnOff(c *gin.Context) {
 	id := ExtractId(c)
+	user, _ := c.Get("user")
+	customUser, _ := user.(*models.User)
 
-	sprinkler, err := controller.service.UpdateIsOn(id, false)
+	sprinkler, err := controller.service.UpdateIsOn(id, false, customUser.Email)
 	if err != nil {
 		c.JSON(404, gin.H{"error": err})
 		return

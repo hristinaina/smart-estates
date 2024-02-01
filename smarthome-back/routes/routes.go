@@ -125,16 +125,17 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 
 	SprinklerRoutes := r.Group("api/sprinkler")
 	{
+		middleware := middleware.NewMiddleware(db)
 		sprinklerController := devicesController.NewSprinklerController(db, influxDb, mqtt)
 		SprinklerRoutes.GET("/:id", sprinklerController.Get)
 		SprinklerRoutes.GET("/", sprinklerController.GetAll)
-		SprinklerRoutes.PUT("/:id/on", sprinklerController.TurnOn)
-		SprinklerRoutes.PUT("/:id/off", sprinklerController.TurnOff)
+		SprinklerRoutes.PUT("/:id/on", middleware.RequireAuth, sprinklerController.TurnOn)
+		SprinklerRoutes.PUT("/:id/off", middleware.RequireAuth, sprinklerController.TurnOff)
 		SprinklerRoutes.DELETE("/:id", sprinklerController.Delete)
 		SprinklerRoutes.POST("/mode/:id", sprinklerController.AddSpecialMode)
 		SprinklerRoutes.GET("/mode/:id", sprinklerController.GetSpecialModes)
 		SprinklerRoutes.DELETE("/mode/:id", sprinklerController.DeleteSpecialMode)
 		SprinklerRoutes.GET("/mode/one/:id", sprinklerController.GetSpecialMode)
-		SprinklerRoutes.PUT("/history", sprinklerController.GetHistoryData)
+		SprinklerRoutes.PUT("/history", middleware.RequireAuth, sprinklerController.GetHistoryData)
 	}
 }

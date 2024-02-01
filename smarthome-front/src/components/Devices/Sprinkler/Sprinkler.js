@@ -7,6 +7,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import LogTable from "../AirConditioner/LogTable";
 import SprinklerService from "../../../services/SprinklerService";
 import mqtt from 'mqtt';
+import authService from "../../../services/AuthService";
 
 export class Sprinkler extends Component {
     connected = false;
@@ -31,6 +32,8 @@ export class Sprinkler extends Component {
     }
 
     async componentDidMount() {
+        const user = authService.getCurrentUser();
+        await this.setState({email: user.Email});   
         const res = await SprinklerService.getSpecialModes(this.id);
         if (res !== null) {
             let specials = [];

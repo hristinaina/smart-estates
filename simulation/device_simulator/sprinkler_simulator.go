@@ -22,6 +22,7 @@ const (
 )
 
 type SprinklerSimulator struct {
+	isOn bool
 	client mqtt.Client
 	device models.Device
 	consumptionDevice models.ConsumptionDevice
@@ -34,24 +35,23 @@ func NewSprinklerSimulator(client mqtt.Client, device models.Device) *SprinklerS
 		return &SprinklerSimulator {
 			client: client,
 			device: device,
+			isOn: false,
 		}
 	}
 	return &SprinklerSimulator {
 		client: client,
 		device: device,
 		consumptionDevice: consumptionDevice,
+		isOn: false,
 	}
 }
 
 func (sim *SprinklerSimulator) ConnectSprinkler() {
 	go SendHeartBeat(sim.client, sim.device.ID, sim.device.Name)
 	go sim.CheckScheduledModes()
-	// config.SubscribeToTopic(sim.client, TopicVGOpenClose+strconv.Itoa(sim.device.ID), sim.HandleLeaving)
 }
 
 func (sim *SprinklerSimulator) CheckScheduledModes() {
-	// TODO: ovdje while petlja koja svakih 60 sekundi dobavlja zakazane termine i provjerava da li treba upaliti prskalicu
-	// ukoliko je treba upaliti, objavi na topic koji ce hvatati front i back
 	ticker := time.NewTicker(60 * time.Second)
 	defer ticker.Stop()
 	for {
@@ -59,8 +59,9 @@ func (sim *SprinklerSimulator) CheckScheduledModes() {
 		case <-ticker.C:
 			scheduledModes := sim.getSheduledModes();
 			mode := sim.checkScheduledMode(scheduledModes);
-			if mode.Id != 0 {
+			if (mode.Id != 0) && (sim.isOn == false) {
 				err := config.PublishToTopic(sim.client, config.TurnSprinklerON+strconv.Itoa(sim.device.ID), strconv.Itoa(mode.Id))
+				sim.isOn = true
 				if err != nil {
 					fmt.Printf("Error publishing message with the device: %s \n", sim.device.Name)
 				} else {
@@ -68,12 +69,16 @@ func (sim *SprinklerSimulator) CheckScheduledModes() {
 				}
 			} else {
 				if sim.isCurrentTimeWithin70SecondsAfterEndTime(scheduledModes) {
-					err := config.PublishToTopic(sim.client, config.TurnSprinklerOFF+strconv.Itoa(sim.device.ID), strconv.Itoa(mode.Id))
-					if err != nil {
-						fmt.Printf("Error publishing message with the device: %s \n", sim.device.Name)
-					} else {
-						fmt.Println(config.TurnSprinklerOFF+strconv.Itoa(sim.device.ID))
+					if sim.isOn == true {
+						err := config.PublishToTopic(sim.client, config.TurnSprinklerOFF+strconv.Itoa(sim.device.ID), strconv.Itoa(mode.Id))
+						sim.isOn = false
+						if err != nil {
+							fmt.Printf("Error publishing message with the device: %s \n", sim.device.Name)
+						} else {
+							fmt.Println(config.TurnSprinklerOFF+strconv.Itoa(sim.device.ID))
+						}
 					}
+					
 				}
 			} 
 		}

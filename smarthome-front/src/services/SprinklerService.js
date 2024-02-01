@@ -6,6 +6,7 @@ class SprinklerService {
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'include',
                 };
     } 
 

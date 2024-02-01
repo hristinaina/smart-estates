@@ -49,8 +49,6 @@ func saveSprinklerToInfluxDb(client influxdb2.Client, deviceId int, mode, user s
 
 	writeAPI.WritePoint(point)
 	writeAPI.Flush()
-
-	fmt.Println("sprinkler influxdb")
 }
 
 type SprinklerHistoryData struct {
