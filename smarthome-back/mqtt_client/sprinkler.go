@@ -21,6 +21,10 @@ func (mc *MQTTClient) HandleSprinklerMessage(client mqtt.Client, msg mqtt.Messag
 	fmt.Println("PRIMLJENA PORUKA")
 	fmt.Println(msg.Topic())
 	fmt.Println("DEVICE IDDDD " + strconv.Itoa(deviceId))
+	_, err = mc.sprinkleRepository.UpdateIsOn(deviceId, true)
+	if err != nil {
+		fmt.Println(err)
+	}
 	saveSprinklerToInfluxDb(mc.influxDb, deviceId, "on", "auto")
 }
 
@@ -34,6 +38,10 @@ func (mc *MQTTClient) HandleSprinklerOffMessage(client mqtt.Client, msg mqtt.Mes
 	fmt.Println("PRIMLJENA PORUKA2")
 	fmt.Println(msg.Topic())
 	fmt.Println("DEVICE IDDDD " + strconv.Itoa(deviceId))
+	_, err = mc.sprinkleRepository.UpdateIsOn(deviceId, false)
+	if err != nil {
+		fmt.Println(err)
+	}
 	saveSprinklerToInfluxDb(mc.influxDb, deviceId, "off", "auto")
 }
 

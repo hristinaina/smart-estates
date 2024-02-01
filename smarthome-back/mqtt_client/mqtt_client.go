@@ -41,6 +41,7 @@ type MQTTClient struct {
 	realEstateRepository  repositories.RealEstateRepository
 	homeBatteryRepository repositories2.HomeBatteryRepository
 	vehicleGateRepository repositories2.VehicleGateRepository
+	sprinkleRepository    repositories2.SprinklerRepository
 }
 
 func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
@@ -60,6 +61,7 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 		homeBatteryRepository: repositories2.NewHomeBatteryRepository(db),
 		realEstateRepository:  *repositories.NewRealEstateRepository(db),
 		vehicleGateRepository: repositories2.NewVehicleGateRepository(db, influxDb),
+		sprinkleRepository:    repositories2.NewSprinklerRepository(db, influxDb),
 		influxDb:              influxDb,
 	}
 }

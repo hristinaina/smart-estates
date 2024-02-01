@@ -64,8 +64,6 @@ export class Sprinkler extends Component {
                         keepalive: 60
                 });
                 this.mqttClient.on('connect', () => {
-                    console.log("iddddd");
-                    console.log(this.id);
                     this.mqttClient.subscribe('sprinkler/on/' + this.id);
                     this.mqttClient.subscribe('sprinkler/off/' + this.id);
                 });
@@ -94,12 +92,9 @@ export class Sprinkler extends Component {
         var lastPart = parts[parts.length - 1];
         var parsedNumber = parseInt(lastPart, 10);
         if (parsedNumber != this.id) {
-            console.log(parsedNumber);
             return;
         }
-        if (this.state.switchOn == false) {
-            this.handleSwitchToggle();
-        }
+        await this.setState({switchOn: true});
     }
 
     async handleMqttOffMessage(topic, message) {
@@ -107,12 +102,9 @@ export class Sprinkler extends Component {
         var lastPart = parts[parts.length - 1];
         var parsedNumber = parseInt(lastPart, 10);
         if (parsedNumber != this.id) {
-            console.log(parsedNumber);
             return;
         }
-        if (this.state.switchOn == true) {
-            this.handleSwitchToggle();
-        }
+        await this.setState({switchOn: false});
     }
 
     getSelectedDays(selectedDays) {
@@ -132,7 +124,6 @@ export class Sprinkler extends Component {
         e.preventDefault();
 
         const { email, startDate, endDate, pickedValue } = this.state;
-        console.log(email, startDate, endDate);
         if(new Date(startDate) > new Date(endDate)) {
             this.setState({ snackbarMessage: "Start date must be before end date" });
             this.handleClick();
@@ -140,7 +131,6 @@ export class Sprinkler extends Component {
         }
 
         const logData = await SprinklerService.getHistoryData(this.id, pickedValue, startDate, endDate);
-        console.log(logData.result)
         // const data = this.setAction(logData.result)
         this.setState({
             logData: logData.result,
