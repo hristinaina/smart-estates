@@ -1,0 +1,45 @@
+.box-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.ev-box {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+}
+
+.ev-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: 0;
+    margin-top: 5px;
+}
+
+#connections-container{
+    margin: 30px;
+}
+
+.car-image{
+    width: 60px;
+    height: 60px;
+    margin-left: 40px;
+}
+
+.connection-box {
+    display: flex;
+    flex-direction: row;
+    margin-top: 20px;
+    width: 100% !important;
+}
+
+.ev-right-data{
+    margin-left: 75px;
+}
+
+.charger-image{
+    width: 25px;
+    height: 25px;
+    align-self: center;
+    margin-left: 5px;
+}

@@ -11,6 +11,7 @@ import { Button } from 'reactstrap';
 import './EVCharger.css'
 import { Snackbar } from "@mui/material";
 import SolarPanelService from '../../../services/SolarPanelService';
+import EVChargerService from '../../../services/EVChargerService';
 
 // todo prepraviti na tabelu umjesto grafa i uzimanje mejla kao sto je Tasija uradila
 export class EVCharger extends Component {
@@ -20,7 +21,8 @@ export class EVCharger extends Component {
         super(props);
         this.state = {
             device: {},
-            data: [],
+            data: [],  //za tabelu
+            connectionData: [],  // lista objekata car-simulation
             email: '',
             startDate: '',
             endDate: '',
@@ -37,21 +39,26 @@ export class EVCharger extends Component {
         const valid = await authService.validateUser();
         if (!valid) window.location.assign("/");
 
-        const device = await SolarPanelService.getSPById(this.id); //todo use different service
-
-        // todo update data (number of connections, maxValuePercentage)
+        const device = await EVChargerService.get(this.id);
+        // todo update data ( maxValuePercentage)
         const updatedData =
         {
             ...device,
             //Value: lastValue,
         }
 
+        let connectionData = [];
+        for (let i = 0; i < device.Connections; i++) {
+            connectionData.push({active: false})
+        }
+
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
         const historyData = await SolarPanelService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
-    
+
         this.setState({
             device: updatedData,
+            connectionData: connectionData,
             data: historyData,
             email: user.Email,
             startDate: "2023-12-12",
@@ -138,8 +145,9 @@ export class EVCharger extends Component {
     };
 
     render() {
-        const { device, data, email, startDate, endDate } = this.state;
-        //todo na lijevoj karti dodati neki dinamicki ispis konekcija zavisno od broja i sakrikti prikaz
+        const { device, data, email, startDate, endDate, connectionData } = this.state;
+        const connectionsArray = Array.from({ length: device.Connections }, (_, index) => index + 1);
+        console.log(connectionData);
         return (
             <div>
                 <Navigation />
@@ -147,12 +155,43 @@ export class EVCharger extends Component {
                 <span className='estate-title'>{this.Name}</span>
                 <div className='sp-container'>
                     <div id="sp-left-card">
-                        <p className='sp-card-title'>Device Data</p>
-                        <p className='sp-data-text'>ChargingPower:</p>
-                        <p><b>{device.NumberOfPanels} </b> </p>
-                        <p className='sp-data-text'>Max Charging Percentage</p>
-                        <p><b>{device.SurfaceArea}</b></p> 
-                        
+                        <p className='sp-card-title'>Electrical Vehicle Charger</p>
+                        <div className='box-container'>
+                            <div className='ev-box'>
+                                <p className='sp-data-text'>ChargingPower:</p>
+                                <p ><b>{device.ChargingPower} kw</b></p>
+                            </div>
+                            <div className='ev-box'>
+                                <p className='sp-data-text'>Max Charging Percentage:</p>
+                                <div className='box-container'>
+                                    <input
+                                        className="new-real-estate-input"
+                                        type="number"
+                                        name="charging"
+                                        maxLength="3"
+                                        value={device.Percentage}
+                                        onChange={this.handlePercentageInputChange}
+                                        style={{ display: "inline", width: "70px", marginLeft: "20px" }}
+                                    />
+                                    <Button className="ev-button" style={{ width: "80px", marginLeft: "15px" }}>Update</Button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="connections-container">
+                            {connectionsArray.map((index) => (
+                                <div key={index} className="connection-box">
+                                    <p className="mark"><b>Plug {index}: </b></p>
+                                    {connectionData[index-1].active &&
+                                        (<div className='box-container'>
+                                            <img src="/images/car.png" alt={`Car ${index}`} className="car-image" />
+                                            <p style={{marginLeft: "20px" }}>{connectionData[index-1].currentCapacity}/{connectionData[index-1].maxCapacity}kwh</p>
+                                            <p className='ev-right-data'><b>{connectionData[index-1].currentCapacity/connectionData[index-1].maxCapacity}%</b></p>
+                                            <img src="/images/charging.png" className='charger-image' alt={`Charging ${index}`}/>
+                                        </div>)}
+                                    {!connectionData[index-1].active && (<p style={{marginLeft: "45px" }}>Free</p>)}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                     <div id='sp-right-card'>
                         <p className='sp-card-title'>Actions History</p>
