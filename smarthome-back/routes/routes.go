@@ -58,7 +58,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	{
 		airConditionerController := devicesController.NewAirConditionerController(db, mqtt)
 		middleware := middleware.NewMiddleware(db)
-		airConditionerRoutes.GET("/:id", middleware.RequireAuth, airConditionerController.Get)
+		airConditionerRoutes.GET("/:id", airConditionerController.Get)
 		airConditionerRoutes.PUT("history", middleware.RequireAuth, airConditionerController.GetHistoryData)
 		airConditionerRoutes.POST("/edit/:id", middleware.RequireAuth, airConditionerController.EditSpecialModes)
 	}
