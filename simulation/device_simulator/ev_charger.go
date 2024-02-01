@@ -15,7 +15,7 @@ const (
 )
 
 type CarSimulator struct {
-	maxCapacity     float64
+	maxCapacity     int
 	currentCapacity float64
 	startCapacity   float64
 	active          bool
@@ -28,9 +28,15 @@ func initCar() CarSimulator {
 }
 
 func createCarSimulator() CarSimulator {
+	rand.Seed(time.Now().UnixNano())
+	maxCapacity := rand.Intn(61) + 20
+	startCapacity := (rand.Float64()*(0.6) + 0.1) * float64(maxCapacity)
+
 	return CarSimulator{
-		//todo random generisati podatke za ostale attribute
-		active: true,
+		maxCapacity:     maxCapacity,
+		startCapacity:   startCapacity,
+		currentCapacity: startCapacity,
+		active:          true,
 	}
 }
 
@@ -106,7 +112,7 @@ func (ev *EVChargerSimulator) simulateCarCharging(connectionId int) {
 		case <-ticker.C:
 			car := ev.connections[connectionId]
 			toCharge := ev.device.ChargingPower / 60 / 6 // inace je po satu, 60 je za po minuti i 6 za 10s
-			allowedMaxCapacity := car.maxCapacity * ev.maxChargingPercentage
+			allowedMaxCapacity := float64(car.maxCapacity) * ev.maxChargingPercentage
 			if car.currentCapacity+toCharge >= allowedMaxCapacity {
 				//todo javi beku i frontu da je zavrseno punjene auta i posalji id prikljucka i id punjaca ofc i naziv akcije
 				ev.connections[connectionId] = initCar()
