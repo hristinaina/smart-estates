@@ -13,8 +13,6 @@ type AirConditionerService interface {
 	Add(estate dtos.DeviceDTO) inside.AirConditioner
 	Get(id int) inside.AirConditioner
 	UpdateSpecialMode(deviceId int, mode string, startTime string, endTime string, temperature float32, selectedDays string) error
-	AddNewSpecialModes(deviceId int, mode string, startTime string, endTime string, temperature float32, selectedDays string) error
-
 	AddSpecialModes(deviceID int, mode string, startTime string, endTime string, temperature float32, selectedDays string) error
 	DeleteSpecialMode(deviceID int, smDTO []dtos.SpecialModeDTO) error
 }
@@ -220,62 +218,6 @@ type SpecialModeDB struct {
 	Mode         string
 	Temperature  float32
 	SelectedDays string
-}
-
-func (s *AirConditionerServiceImpl) isExist(deviceId int, mode string, startTime string, endTime string, temperature float32, selectedDays string) (bool, error) {
-	query := "SELECT * FROM specialModes WHERE DeviceId = ? AND StartTime = ? AND EndTime = ? AND Mode = ? AND Temperature = ? AND SelectedDays = ?"
-	row := s.db.QueryRow(query, deviceId, startTime, endTime, mode, temperature, selectedDays)
-
-	fmt.Println(startTime)
-	fmt.Println(endTime)
-	fmt.Println(mode)
-	fmt.Println(temperature)
-	fmt.Println(selectedDays)
-	var sm SpecialModeDB
-
-	err := row.Scan(&sm.ID, &sm.DeviceID, &sm.StartTime, &sm.EndTime, &sm.Mode, &sm.Temperature, &sm.SelectedDays)
-	if err != nil {
-		fmt.Println(err)
-		if err == sql.ErrNoRows {
-			fmt.Println("usao je ovde")
-			return false, nil
-		}
-		return false, err
-	}
-
-	fmt.Println("postoji")
-	fmt.Println(&sm.StartTime)
-	fmt.Println(&sm.EndTime)
-	fmt.Println(&sm.Mode)
-	fmt.Println(&sm.Temperature)
-	fmt.Println(&sm.SelectedDays)
-	return true, nil
-}
-
-func (s *AirConditionerServiceImpl) AddNewSpecialModes(deviceId int, mode string, startTime string, endTime string, temperature float32, selectedDays string) error {
-	exists, err := s.isExist(deviceId, mode, startTime, endTime, temperature, selectedDays)
-	if err != nil {
-		fmt.Println("moze da bude i ovde greska")
-		fmt.Println(err)
-		return err
-	}
-
-	if exists {
-		fmt.Println("Already exist.")
-		return nil
-	}
-
-	insertStatement := "INSERT INTO specialModes (DeviceId, StartTime, EndTime, Mode, Temperature, SelectedDays) VALUES (?, ?, ?, ?, ?, ?)"
-	fmt.Println(deviceId)
-	_, err = s.db.Exec(insertStatement, deviceId, startTime, endTime, mode, temperature, selectedDays)
-	if err != nil {
-		fmt.Println("a mozda je i ovde greskurina")
-		fmt.Println(err)
-		return err
-	}
-
-	fmt.Println("New data!!")
-	return nil
 }
 
 func (s *AirConditionerServiceImpl) getSpecialModesByDeviceId(deviceID int) ([]SpecialModeDB, error) {

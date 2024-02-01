@@ -61,7 +61,6 @@ func (ac AirConditionerController) EditSpecialModes(c *gin.Context) {
 	}
 
 	for _, mode := range input {
-		// temp, err := strconv.ParseFloat(mode.Temperature, 32)
 		err = ac.service.AddSpecialModes(id, mode.SelectedMode, mode.Start, mode.End, mode.Temperature, strings.Join(mode.SelectedDays, ","))
 		if err != nil {
 			fmt.Println("greskurina")
