@@ -18,6 +18,7 @@ import { HomeBattery } from './components/Devices/HomeBattery/HomeBattery';
 import { VehicleGate } from './components/Devices/VehicleGate/VehicleGate';
 import { GrantPermission } from './components/Permission/GrantPermission';
 import { WashingMachine } from './components/Devices/WashingMachine/WashingMachine';
+import { ElectricityOverview } from './components/Admin/ElectricityOverview';
 
 const AppRoutes = [
   {
@@ -99,7 +100,11 @@ const AppRoutes = [
   {
     path: "/grant-permission/:id",
     element: <GrantPermission/>
-  }
+  },
+  {
+    path: "/consumption",
+    element: <ElectricityOverview />
+  },
 ];
 
 export default AppRoutes;

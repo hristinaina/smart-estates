@@ -37,6 +37,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	{
 		realEstateController := controllers.NewRealEstateController(db)
 		realEstateRoutes.GET("/", realEstateController.GetAll)
+		realEstateRoutes.GET("/cities", realEstateController.GetAllCities)
 		realEstateRoutes.GET("/user/:userId", realEstateController.GetAllByUserId)
 		realEstateRoutes.GET("/:id", realEstateController.Get)
 		realEstateRoutes.GET("/pending", realEstateController.GetPending)
@@ -145,5 +146,15 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		washingMachineRoutes.POST("/schedule", middleware.RequireAuth, washingMachineController.AddScheduledMode)
 		washingMachineRoutes.GET("/schedule/:id", washingMachineController.GetScheduledModes)
 		washingMachineRoutes.PUT("history", middleware.RequireAuth, washingMachineController.GetHistoryData)
+	}
+
+	electricityRoutes := r.Group("/api/consumption")
+	{
+		middleware := middleware.NewMiddleware(db)
+		ElectricityController := controllers.NewElectricityController(db, influxDb)
+		electricityRoutes.POST("/selected-time", middleware.RequireAuth, ElectricityController.GetElectricityForSelectedTime)
+		electricityRoutes.POST("/selected-date", middleware.RequireAuth, ElectricityController.GetElectricityForSelectedDate)
+		electricityRoutes.POST("/ratio/selected-time", middleware.RequireAuth, ElectricityController.GetRatioForSelectedTime)
+		electricityRoutes.POST("/ratio/selected-date", middleware.RequireAuth, ElectricityController.GetRatioForSelectedDate)
 	}
 }

@@ -11,6 +11,17 @@ class RealEstateService {
           }
     }
 
+    async getCities() {
+      try {
+          const response = await fetch('http://localhost:8081/api/real-estates/cities');
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          console.error('Error fetching data:', error);
+          throw error;
+        }
+  }
+
     async getById(id) {
       try {
           const response = await fetch('http://localhost:8081/api/real-estates/' + id);
