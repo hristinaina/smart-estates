@@ -6,11 +6,15 @@ import (
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
 	"smarthome-back/models/devices/inside"
+	"strings"
 )
 
 type AirConditionerService interface {
 	Add(estate dtos.DeviceDTO) inside.AirConditioner
 	Get(id int) inside.AirConditioner
+	UpdateSpecialMode(deviceId int, mode string, startTime string, endTime string, temperature float32, selectedDays string) error
+	AddSpecialModes(deviceID int, mode string, startTime string, endTime string, temperature float32, selectedDays string) error
+	DeleteSpecialMode(deviceID int, smDTO []dtos.SpecialModeDTO) error
 }
 
 type AirConditionerServiceImpl struct {
@@ -189,4 +193,107 @@ func (s *AirConditionerServiceImpl) Add(dto dtos.DeviceDTO) inside.AirConditione
 
 	device.Device.Device.Id = int(deviceID)
 	return device
+}
+
+func (s *AirConditionerServiceImpl) UpdateSpecialMode(deviceId int, mode string, startTime string, endTime string, temperature float32, selectedDays string) error {
+	query := `
+        UPDATE specialModes
+        SET Mode = ?, StartTime = ?, EndTime = ?, Temperature = ?, SelectedDays = ?
+        WHERE DeviceId = ?
+    `
+
+	_, err := s.db.Exec(query, mode, startTime, endTime, temperature, selectedDays, deviceId)
+	if err != nil {
+		return fmt.Errorf("failed to update special mode: %v", err)
+	}
+
+	return nil
+}
+
+type SpecialModeDB struct {
+	ID           int
+	DeviceID     int
+	StartTime    string
+	EndTime      string
+	Mode         string
+	Temperature  float32
+	SelectedDays string
+}
+
+func (s *AirConditionerServiceImpl) getSpecialModesByDeviceId(deviceID int) ([]SpecialModeDB, error) {
+	rows, err := s.db.Query("SELECT * FROM specialModes WHERE DeviceId = ?", deviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var scheduledTerms []SpecialModeDB
+
+	for rows.Next() {
+		var term SpecialModeDB
+		err := rows.Scan(&term.ID, &term.DeviceID, &term.StartTime, &term.EndTime, &term.Mode, &term.Temperature, &term.SelectedDays)
+		if err != nil {
+			return nil, err
+		}
+		scheduledTerms = append(scheduledTerms, term)
+	}
+
+	return scheduledTerms, nil
+}
+
+func (s *AirConditionerServiceImpl) DeleteSpecialMode(deviceID int, smDTO []dtos.SpecialModeDTO) error {
+	data, err := s.getSpecialModesByDeviceId(deviceID)
+	if err != nil {
+		fmt.Println("greska kod get")
+		fmt.Println(err)
+	}
+
+	forDelete := true
+
+	// ako postoji u bazi ali ne i u listi
+	for _, bazaTerm := range data {
+		for _, mode := range smDTO {
+			if bazaTerm.DeviceID == deviceID && mode.Start == bazaTerm.StartTime && mode.End == bazaTerm.EndTime && mode.SelectedMode == bazaTerm.Mode && mode.Temperature == bazaTerm.Temperature && strings.Join(mode.SelectedDays, ",") == bazaTerm.SelectedDays {
+				forDelete = false
+			}
+		}
+		if forDelete {
+			fmt.Println("obrisano")
+			_, err := s.db.Exec("DELETE FROM specialModes WHERE DeviceId = ? AND StartTime = ? AND EndTime = ? AND Mode = ? AND Temperature = ? AND SelectedDays = ?", deviceID, bazaTerm.StartTime, bazaTerm.EndTime, bazaTerm.Mode, bazaTerm.Temperature, bazaTerm.SelectedDays)
+			if err != nil {
+				return err
+			}
+			break
+		}
+	}
+	return nil
+}
+
+func (s *AirConditionerServiceImpl) AddSpecialModes(deviceID int, mode string, startTime string, endTime string, temperature float32, selectedDays string) error {
+	data, err := s.getSpecialModesByDeviceId(deviceID)
+	if err != nil {
+		fmt.Println("greska kod get")
+		fmt.Println(err)
+	}
+
+	found := false
+
+	// Provera da li termin postoji u bazi
+	for _, bazaTerm := range data {
+		if bazaTerm.DeviceID == deviceID && startTime == bazaTerm.StartTime && endTime == bazaTerm.EndTime && mode == bazaTerm.Mode && temperature == bazaTerm.Temperature && selectedDays == bazaTerm.SelectedDays {
+			found = true
+			break
+		}
+	}
+
+	// Ako termin nije pronađen u bazi, dodajemo ga
+	if !found {
+		_, err := s.db.Exec("INSERT INTO specialModes (DeviceId, StartTime, EndTime, Mode, Temperature, SelectedDays) VALUES (?, ?, ?, ?, ?, ?)", deviceID, startTime, endTime, mode, temperature, selectedDays)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+	}
+
+	return nil
 }

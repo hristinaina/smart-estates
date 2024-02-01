@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import {
     Button,
-    TextField,
     Select,
     MenuItem,
     InputLabel,
@@ -18,7 +17,6 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogContentText,
     DialogActions,
     IconButton,
     Snackbar,
@@ -41,9 +39,23 @@ class SpecialModeForm extends Component {
             snackbarMessage: '',
             showSnackbar: false,
             openSnackbar: false,
+            id: -1,
         };
     }
 
+    componentDidMount() {
+        const { specialModeFromDevice } = this.props
+        this.setState({ specialModes: specialModeFromDevice})
+    }
+
+    componentDidUpdate(prevProps) {
+        if(this.props.fromDevice) {
+            if (prevProps.specialModeFromDevice !== this.props.specialModeFromDevice) {
+                this.setState({ specialModes: this.props.specialModeFromDevice, id: this.props.id });
+            }
+        }
+    }
+    
     handleSelectedDays = (event) => {
         const selectedDays = event.target.value;
 
@@ -55,6 +67,7 @@ class SpecialModeForm extends Component {
     handleAdd = () => {
         const { start, end, mode, temperature, selectedDays, specialModes } = this.state;
         const { acModes, minTemp, maxTemp } = this.props;
+        
         const selectedMode = mode === '' ? acModes[0] : this.state.mode;
         // check if a day is selected
         if(selectedDays.length === 0) {
@@ -110,6 +123,8 @@ class SpecialModeForm extends Component {
             temperature: 20,
             selectedDays: [],
         });
+
+        console.log(specialModes)
     };
 
     openDialog = () => {
@@ -138,9 +153,37 @@ class SpecialModeForm extends Component {
         this.setState({ openSnackbar: false });
     };
 
-    handleSave = () => {
+    handleSave = async () => {
         this.setState({ showDialog: false });
         this.props.onAdd(this.state.specialModes);
+
+        if(this.props.fromDevice) {
+            await this.sendValues()
+            this.setState({snackbarMessage: "Successfully chaged mode!"})
+            this.handleClick();
+        }
+    }
+
+    async sendValues() {
+        try {
+            console.log(this.state.specialModes)
+            const response = await fetch('http://localhost:8081/api/ac/edit/'+this.state.id, {
+                method: 'POST',
+                credentials: 'include',
+                body: JSON.stringify(this.state.specialModes)
+            })
+            
+            if (response.ok) {
+                const data = await response.json();
+                return { result: data };
+            } else {
+                const data = await response.json();
+                return { result: false, error: data.error };
+            }
+        } catch (error) {
+            console.error('Greška :', error);
+            return { result: false, error: 'Network error' };
+        }
     }
 
     render() {

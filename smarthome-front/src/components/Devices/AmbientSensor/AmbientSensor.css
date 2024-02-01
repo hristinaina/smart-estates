@@ -50,12 +50,16 @@
 
 .history-controls {
     width: 30%; 
-    padding: 10px; 
-    margin-top: 5%;
+    padding: 10px;
+    margin-top: 75px; 
 }
 
 .history-chart {
-    width: 65%;
-    height: 800px;
+    width: 90%;
+    height: 500px;
+}
 
+.ws-graph {
+    height: 100%!important;
+    width: 75% !important;
 }

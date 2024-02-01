@@ -9,6 +9,20 @@ type WashingMachine struct {
 	ModeName string
 }
 
+type ScheduledMode struct {
+	Id        int
+	DeviceId  int
+	StartTime string
+	ModeId    int
+}
+
+type Mode struct {
+	Id          int
+	Name        string
+	Duration    int
+	Temperature string
+}
+
 func NewWashingMachine(device models.ConsumptionDevice, mode []Mode) WashingMachine {
 	return WashingMachine{
 		Device: device,

@@ -11,6 +11,7 @@ import { Navigation } from "../../Navigation/Navigation";
 import WashingMachineService from "../../../services/WashingMachineService";
 import { Close } from "@mui/icons-material";
 import mqtt from 'mqtt';
+import PieChart from "../AirConditioner/PieChart";
 
 
 export class WashingMachine extends Component {
@@ -110,7 +111,7 @@ export class WashingMachine extends Component {
     handleMqttMessageForWM(topic, message) {
         const result = JSON.parse(message.toString())
         
-        if(result.id == this.state.device.Device.Device.Id) {
+        if(result.id === this.state.device.Device.Device.Id) {
             const selectedMode = this.state.mode.find(item => item.Id === result.mode);
             this.handleSwitchToggle(selectedMode, "mqtt")
         }    
@@ -215,9 +216,9 @@ export class WashingMachine extends Component {
         return this.state.scheduledModes.some(mode => {
             const modeStartTime = new Date(mode.StartTime).getTime();
             let modeDuration = 60
-            if(mode.ModeId == 1) modeDuration = 120
-            else if (mode.ModeId == 3) modeDuration = 30
-            else if (mode.ModeId == 4) modeDuration = 90
+            if(mode.ModeId === 1) modeDuration = 120
+            else if (mode.ModeId === 3) modeDuration = 30
+            else if (mode.ModeId === 4) modeDuration = 90
             const modeEndTime = modeStartTime + (modeDuration * 60 * 1000); 
     
             if (startTimeOfNewProgram === modeStartTime) {
@@ -305,7 +306,7 @@ export class WashingMachine extends Component {
             clearInterval(intervalId); 
         }
         
-        if (duration == 0) {
+        if (duration === 0) {
             console.log("nema nista")
             this.setState({ remainingTime: "00:00:00" }); 
             return;
@@ -457,7 +458,7 @@ export class WashingMachine extends Component {
                         <p className='sp-card-title'>Switch History</p>
                         <form onSubmit={this.handleFormSubmit} className='sp-container'>
                             <label>
-                                Email:
+                                User:
                                 <select style={{width: "200px", cursor: "pointer"}}
                                     className="new-real-estate-select"
                                     value={pickedValue}
@@ -479,6 +480,21 @@ export class WashingMachine extends Component {
                             <Button type="submit" id='sp-data-button'>Filter</Button>
                         </form>
                         <LogTable logData={logData} />
+                    </div>
+                </div>
+
+                <div id='statistics'>
+                    <p className='sp-card-title'>Statistic</p>
+                    <p>Graphs are based on switch history data</p>
+                    <div>
+                        <p className='sp-card-title'>Mode usage percentage %</p>
+                        <PieChart data={logData} graph={1} />
+
+                        <p className='sp-card-title'>Device activity percentage %</p>
+                        <PieChart data={logData} graph={2} />
+
+                        <p className='sp-card-title'>User usage percentage %</p>
+                        <PieChart data={logData} graph={3} />
                     </div>
                 </div>
                 <Snackbar

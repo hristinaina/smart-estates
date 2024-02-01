@@ -57,7 +57,6 @@ class LogTable extends React.Component {
   };
 
   handleChangePage = (event, newPage) => {
-    console.log(newPage)
     this.setState({ page: newPage })
   };
 

@@ -2,12 +2,14 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"smarthome-back/controllers"
 	"smarthome-back/dtos"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/services/devices/inside"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,4 +43,31 @@ func (ac AirConditionerController) GetHistoryData(c *gin.Context) {
 	}
 	results := mqtt_client.QueryDeviceData(ac.mqtt.GetInflux(), data)
 	c.JSON(http.StatusOK, gin.H{"result": results})
+}
+
+func (ac AirConditionerController) EditSpecialModes(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
+
+	var input []dtos.SpecialModeDTO
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		fmt.Println("greskaaaaaaa")
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+
+	for _, mode := range input {
+		err = ac.service.AddSpecialModes(id, mode.SelectedMode, mode.Start, mode.End, mode.Temperature, strings.Join(mode.SelectedDays, ","))
+		if err != nil {
+			fmt.Println("greskurina")
+		}
+	}
+
+	ac.service.DeleteSpecialMode(id, input)
+
+	c.JSON(http.StatusOK, gin.H{"message": "You have successfully scheduled the mode"})
 }
