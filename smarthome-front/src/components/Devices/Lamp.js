@@ -248,9 +248,9 @@ export class Lamp extends Component {
                     </div>
                     <div id='sp-right-card'>
                         <Line key={JSON.stringify(this.state.data)}  data={this.state.data} options={this.options} />
-                        {/* <div id='custom-date-range-container'>
+                        <div id='custom-date-range-container'>
                             <button id='custom-date-range' onClick={this.openDialog}>Add custom date range</button>
-                        </div> */}
+                        </div>
                     </div>
                 </div>
 

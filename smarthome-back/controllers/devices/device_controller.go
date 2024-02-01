@@ -85,3 +85,16 @@ func (rec DeviceController) GetConsumptionDevice(c *gin.Context) {
 
 	c.JSON(200, dto)
 }
+
+func (rec DeviceController) GetAvailability(c *gin.Context) {
+	fmt.Println("Usaoooo")
+	var deviceDTO dtos.ActionGraphRequest
+	// convert json object to model device
+	if err := c.BindJSON(&deviceDTO); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid JSON"})
+		return
+	}
+	rec.service.GetAvailability(deviceDTO)
+
+	c.JSON(200, "ok")
+}
