@@ -27,7 +27,7 @@ func (mc *MQTTClient) HandleInputPercentageChange(client mqtt.Client, msg mqtt.M
 		fmt.Println("Error unmarshaling JSON:", err)
 		return
 	}
-	saveActionToInflux(mc.influxDb, deviceId, data.Email, data.Action, -1, data.CurrentCapacity)
+	saveActionToInflux(mc.influxDb, deviceId, data.Email, "percentageChange", -1, data.CurrentCapacity)
 }
 
 func (mc *MQTTClient) HandleAutoActionsForCharger(client mqtt.Client, msg mqtt.Message) {

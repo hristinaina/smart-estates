@@ -31,6 +31,7 @@ const (
 	TopicVGOpenClose   = "vg/open/"
 	TopicEVCStart      = "ev/start/"
 	TopicEVCEnd        = "ev/end/"
+	TopicEVCPercentage = "ev/percentage/"
 )
 
 type MQTTClient struct {
@@ -79,6 +80,7 @@ func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicApproached+"+", mc.HandleVehicleApproached)
 	mc.SubscribeToTopic(TopicEVCStart+"+", mc.HandleAutoActionsForCharger)
 	mc.SubscribeToTopic(TopicEVCEnd+"+", mc.HandleAutoActionsForCharger)
+	mc.SubscribeToTopic(TopicEVCPercentage+"+", mc.HandleInputPercentageChange)
 	//todo subscribe here to other topics. Create your callback functions in other file
 
 	mc.StartDeviceStatusThread()

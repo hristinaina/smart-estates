@@ -26,7 +26,7 @@ export class EVCharger extends Component {
             email: '',
             startDate: '',
             endDate: '',
-            inputPercentage: '',
+            inputPercentage: 90,
             snackbarMessage: '',
             showSnackbar: false,
             open: false,
@@ -134,11 +134,18 @@ export class EVCharger extends Component {
         this.setState({ [fieldName]: event.target.value });
     };
 
-    handleButtonPercentageClick(){
-        //todo javiti preko mqtt i beku i simulaciji da se izmjenio percentage
-        //todo beku da se sacuva u influxu (jer je korisnicika akcija)
-        //todo simulaciji da bi znala kada da zavrsi
-        console.log(this.state.inputPercentage);
+    handleButtonPercentageClick= () => {
+        const topic = "ev/percentage/" + this.id;
+        const { inputPercentage } = this.state;
+        var message = {
+            "CurrentCapacity": inputPercentage/100,
+            "Email": authService.getCurrentUser().Email,
+        }
+        this.mqttClient.publish(topic, JSON.stringify(message));
+
+        this.setState({ snackbarMessage: "Successfully changed maximum charging percentage!" });
+        this.handleClick();
+        console.log(inputPercentage);
     }
 
     handleBackArrow() {
@@ -186,7 +193,7 @@ export class EVCharger extends Component {
                                         onChange={(e) => this.setState({ inputPercentage: e.target.value })}
                                         style={{ display: "inline", width: "70px", marginLeft: "20px" }}
                                     />
-                                    <Button className="ev-button" style={{ width: "80px", marginLeft: "15px" }}>Update</Button>
+                                    <Button className="ev-button" style={{ width: "80px", marginLeft: "15px" }} onClick={this.handleButtonPercentageClick}>Update</Button>
                                 </div>
                             </div>
                         </div>
@@ -224,7 +231,7 @@ export class EVCharger extends Component {
                                 <TextField style={{ backgroundColor: "white" }} type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
                             </label>
                             <br />
-                            <Button type="submit" id='sp-data-button' onClick={this.handleButtonPercentageClick}>Fetch Data</Button>
+                            <Button type="submit" id='sp-data-button'>Fetch Data</Button>
                         </form>
                         <SPGraph data={data} />
                     </div>

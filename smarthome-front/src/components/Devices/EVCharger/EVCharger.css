@@ -16,6 +16,10 @@
     margin-top: 5px;
 }
 
+.ev-button:hover{
+    cursor: pointer;
+ }
+
 #connections-container{
     margin: 30px;
 }
