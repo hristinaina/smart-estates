@@ -150,5 +150,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		//middleware := middleware.NewMiddleware(db)
 		evChargerController := devicesController.NewEVChargerController(db, influxDb)
 		evChargerRoutes.GET("/:id", evChargerController.Get)
+		evChargerRoutes.GET("/lastPercentage/:id", evChargerController.GetLastPercentage)
 	}
 }

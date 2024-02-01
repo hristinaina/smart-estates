@@ -41,29 +41,25 @@ export class EVCharger extends Component {
         if (!valid) window.location.assign("/");
 
         const device = await EVChargerService.get(this.id);
-        // todo update data ( maxValuePercentage)
-        const updatedData =
-        {
-            ...device,
-            //Value: lastValue,
-        }
 
         let connectionData = [];
         for (let i = 0; i < device.Connections; i++) {
             connectionData.push({active: false})
         }
 
+        const percentage = await EVChargerService.getLastPercentage(this.id);
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
         const historyData = await SolarPanelService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
 
         this.setState({
-            device: updatedData,
+            device: device,
             connectionData: connectionData,
             data: historyData,
             email: user.Email,
             startDate: "2023-12-12",
             endDate: "2023-12-23",
+            inputPercentage: parseInt(percentage *100),
         });
 
         try {

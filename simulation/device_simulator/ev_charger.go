@@ -68,11 +68,15 @@ func NewEVChargerSimulator(client mqtt.Client, device models.Device) *EVChargerS
 	if err != nil {
 		return nil
 	}
+	percentage, err := config.GetLastPercentage(device.ID)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return &EVChargerSimulator{
 		client:                client,
 		device:                ev,
 		connections:           make(map[int]CarSimulator),
-		maxChargingPercentage: 0.9,
+		maxChargingPercentage: percentage,
 	}
 }
 

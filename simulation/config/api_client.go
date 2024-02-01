@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
 	"simulation/models"
@@ -107,6 +108,29 @@ func GetEVCharger(id int) (models.EVCharger, error) {
 	}
 
 	return device, nil
+}
+
+// Get performs a GET request and returns device data based on device id
+func GetLastPercentage(id int) (float64, error) {
+	url := api + "/ev/lastPercentage/" + strconv.Itoa(id)
+
+	response, err := http.Get(url)
+	if err != nil {
+		return 0.9, fmt.Errorf("error making GET request: %v", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return 0.9, fmt.Errorf("unexpected status code: %v", response.Status)
+	}
+
+	var lastPercentage float64
+	err = json.NewDecoder(response.Body).Decode(&lastPercentage)
+	if err != nil {
+		return 0.0, fmt.Errorf("error decoding JSON: %v", err)
+	}
+
+	return math.Round(lastPercentage*100) / 100, nil
 }
 
 func GetAC(id int) (models.AirConditioner, error) {

@@ -28,3 +28,14 @@ func (uc EVChargerController) Get(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, device)
 }
+
+func (uc EVChargerController) GetLastPercentage(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	controllers.CheckIfError(err, c)
+	lastPercentage, err := uc.service.GetLastPercentage(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No data found"})
+		return
+	}
+	c.JSON(http.StatusOK, lastPercentage)
+}
