@@ -1,7 +1,6 @@
 package devices
 
 import (
-	"context"
 	"database/sql"
 	_ "database/sql"
 	"errors"
@@ -18,6 +17,7 @@ import (
 	"smarthome-back/services/devices/inside"
 	"smarthome-back/services/devices/outside"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -29,12 +29,12 @@ type DeviceService interface {
 	GetConsumptionDevice(id int) (models.ConsumptionDevice, error)
 	GetConsumptionDevicesByEstateId(estateId int) ([]models.ConsumptionDevice, error)
 	GetConsumptionDeviceDto(id int) (dtos.ConsumptionDeviceDto, error)
-	GetAvailability(dto dtos.ActionGraphRequest) []time.Time
+	GetAvailability(dto dtos.ActionGraphRequest) map[time.Time]float64
 }
 
 type DeviceServiceImpl struct {
 	db                    *sql.DB
-	inflixDb              influxdb2.Client
+	influxDb              influxdb2.Client
 	airConditionerService inside.AirConditionerService
 	washingMachineService inside.WashingMachineService
 	evChargerService      energetic.EVChargerService
@@ -48,10 +48,10 @@ type DeviceServiceImpl struct {
 }
 
 func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceService {
-	return &DeviceServiceImpl{db: db, inflixDb: influxDb, airConditionerService: inside.NewAirConditionerService(db), washingMachineService: inside.NewWashingMachineService(db), evChargerService: energetic.NewEVChargerService(db),
+	return &DeviceServiceImpl{db: db, influxDb: influxDb, airConditionerService: inside.NewAirConditionerService(db), washingMachineService: inside.NewWashingMachineService(db), evChargerService: energetic.NewEVChargerService(db),
 		homeBatteryService: energetic.NewHomeBatteryService(db, influxDb), lampService: outside.NewLampService(db, influxDb),
 		vehicleGateService: outside.NewVehicleGateService(db, influxDb),
-		mqtt:               mqtt, deviceRepository: repositories.NewDeviceRepository(db),
+		mqtt:               mqtt, deviceRepository: repositories.NewDeviceRepository(db, influxDb),
 		solarPanelService: energetic.NewSolarPanelService(db, influxDb), ambientSensorService: inside.NewAmbientSensorService(db)}
 }
 
@@ -129,40 +129,157 @@ func (res *DeviceServiceImpl) GetConsumptionDevice(id int) (models.ConsumptionDe
 	return res.deviceRepository.GetConsumptionDevice(id)
 }
 
-func (res *DeviceServiceImpl) GetAvailability(dto dtos.ActionGraphRequest) []time.Time {
-	influxOrg := "Smart Home"
-	influxBucket := "bucket"
+func (res *DeviceServiceImpl) GetAvailability(dto dtos.ActionGraphRequest) map[time.Time]float64 {
+	onlineTimes := res.deviceRepository.GetAvailability(dto, "1")
+	offlineTimes := res.deviceRepository.GetAvailability(dto, "0")
 
-	// Create InfluxDB query API
-	queryAPI := res.inflixDb.QueryAPI(influxOrg)
-	// Define your InfluxDB query with conditions
-	query := fmt.Sprintf(
-		`from(bucket: "%s")
-		  |> range(start: %s, stop: %s)
-		  |> filter(fn: (r) => r["_measurement"] == "device_status" and r["device_id"] == "%s" and r["_field"] == "status" and r["_value"] == 1)
-		  |> map(fn: (r) => ({
-			time: r["_time"]
-		  }))`,
-		influxBucket, dto.StartDate, dto.EndDate, strconv.Itoa(dto.DeviceId),
-	)
-
-	result, err := queryAPI.Query(context.Background(), query)
-	if err != nil {
-		fmt.Printf("Error executing InfluxDB query: %v\n", err)
-		return nil
-	}
-
-	defer result.Close()
-	var times []time.Time
-	fmt.Println("Printing influxDB data...")
-	for result.Next() {
-		fmt.Println("------------------------")
-		fmt.Println(result.Record())
-		fmt.Println(result.Record().Time())
-		times = append(times, result.Record().Time())
-		if err := result.Err(); err != nil {
-			fmt.Println("ERROR happened")
+	if dto.EndDate == "-1" {
+		return res.getAvailabilityPerHour(onlineTimes, offlineTimes)
+	} else {
+		if GetNumOfPassedDays(ParseDate(dto.StartDate), ParseDate(dto.EndDate)) >= 2 {
+			return res.getAvailabilityPerDay(onlineTimes, offlineTimes)
+		} else {
+			return res.getAvailabilityPerHour(onlineTimes, offlineTimes)
 		}
 	}
-	return times
+}
+
+func (res *DeviceServiceImpl) GetTotalOnlineOfflineHours(dto dtos.ActionGraphRequest) (float64, float64) {
+	onlineTimes := res.deviceRepository.GetAvailability(dto, "1")
+	offlineTimes := res.deviceRepository.GetAvailability(dto, "0")
+
+	totalOnlineDuration := res.getTotalOnlineDuration(onlineTimes, offlineTimes).Hours()
+	if dto.EndDate == "-1" {
+		startDate := strings.TrimRight(dto.StartDate, "h")
+		passedTime, err := strconv.Atoi(startDate)
+		if err != nil {
+			fmt.Printf("Error parsing duration: %v\n", err)
+			return 0, 0
+		}
+		return totalOnlineDuration, float64(passedTime)*(-1) - totalOnlineDuration
+	} else {
+		// TODO:
+		fmt.Println("Not implemented yet")
+		totalHours := GetNumOfPassedHours(ParseDate(dto.StartDate), ParseDate(dto.EndDate))
+		return totalOnlineDuration, totalHours - totalOnlineDuration
+	}
+}
+
+func (res *DeviceServiceImpl) getAvailabilityPerHour(online, offline []time.Time) map[time.Time]float64 {
+	totalDurationPerHour := make(map[time.Time]float64)
+
+	length := Min(len(online), len(offline))
+	for i := 0; i < length; i++ {
+		startHour := online[i].Truncate(time.Hour)
+		stopHour := offline[i].Truncate(time.Hour)
+
+		for currentHour := startHour; currentHour.Before(stopHour); currentHour = currentHour.Add(time.Hour) {
+			nextHour := currentHour.Add(time.Hour)
+			if nextHour.After(stopHour) {
+				nextHour = stopHour // this is why if hoursOnline > 1 ... is needed
+			}
+
+			durationOnline := nextHour.Sub(online[i])
+			hoursOnline := durationOnline.Hours()
+			if hoursOnline > 1 {
+				hoursOnline = 1 // because in one hour, online time can't be greater than hour
+			}
+			totalDurationPerHour[currentHour] += hoursOnline
+		}
+	}
+
+	for hour, totalOnlineTime := range totalDurationPerHour {
+		fmt.Printf("Hour: %v, Total Online Time: %.2f\n", hour.Format("2006-01-02 15:04:05"), totalOnlineTime)
+	}
+
+	return totalDurationPerHour
+}
+
+func (res *DeviceServiceImpl) getAvailabilityPerDay(online, offline []time.Time) map[time.Time]float64 {
+	totalDurationPerDay := make(map[time.Time]float64)
+
+	length := Min(len(online), len(offline))
+	offlineInd := 0
+	for i := 0; i < length; i++ {
+		if offlineInd >= length {
+			break
+		}
+		startDate := online[i].Truncate(24 * time.Hour)
+		stopDate := offline[offlineInd].Truncate(24 * time.Hour)
+		if offline[offlineInd].Before(online[i]) {
+			for {
+				offlineInd++
+				if offlineInd >= length {
+					break
+				}
+				stopDate = offline[offlineInd].Truncate(24 * time.Hour)
+				if offline[offlineInd].After(online[i]) {
+					break
+				}
+			}
+
+		}
+
+		if stopDate.After(startDate) {
+			if GetNumOfPassedDays(online[i], offline[offlineInd]) > 1 {
+				// TODO: won't work for every case (offline more than 1 day after)
+				continue
+			}
+			// total time for first date
+			firstDayDuration := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 23, 59, 59,
+				0, startDate.Location()).Sub(online[i])
+			totalDurationPerDay[startDate] += firstDayDuration.Hours()
+
+			// total time for second date
+			secondDayDuration := offline[offlineInd].Sub(time.Date(stopDate.Year(), stopDate.Month(), stopDate.Day(), 0,
+				0, 0, 0, stopDate.Location()))
+			totalDurationPerDay[stopDate] += secondDayDuration.Hours()
+		} else {
+			// if online and offline are the same date
+			durationOnline := offline[offlineInd].Sub(online[i])
+			totalDurationPerDay[startDate] += durationOnline.Hours()
+		}
+		offlineInd++
+		//fmt.Printf("Index: %d, Online: %v, Offline: %v, StartDate: %v, StopDate: %v, Duration: %v\n", i, online[i], offline[i], startDate, stopDate, totalDurationPerDay[startDate])
+	}
+	for date, totalOnlineTime := range totalDurationPerDay {
+		fmt.Printf("Date: %v, Total Online Time: %v\n", date.Format("2006-01-02"), totalOnlineTime)
+	}
+	return totalDurationPerDay
+}
+
+func (res *DeviceServiceImpl) getTotalOnlineDuration(onlineTimes, offlineTimes []time.Time) time.Duration {
+	total := time.Duration(0)
+	length := Min(len(onlineTimes), len(offlineTimes))
+
+	for i := 0; i < length; i++ {
+		duration := offlineTimes[i].Sub(onlineTimes[i])
+		total += duration
+	}
+
+	return total
+}
+
+func Min(firstNum, secondNum int) int {
+	if firstNum <= secondNum {
+		return firstNum
+	}
+	return secondNum
+}
+
+func GetNumOfPassedDays(start, end time.Time) float64 {
+	return end.Sub(start).Hours() / 24.0
+}
+
+func GetNumOfPassedHours(start, end time.Time) float64 {
+	return end.Sub(start).Hours()
+}
+
+func ParseDate(date string) time.Time {
+	parsedDate, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		fmt.Errorf("error happened %s", err)
+		return time.Time{}
+	}
+	return parsedDate
 }

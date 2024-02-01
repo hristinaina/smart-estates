@@ -1,13 +1,17 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"log"
 	"smarthome-back/dtos"
 	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices"
 	"smarthome-back/repositories"
+	"strconv"
+	"time"
 )
 
 type DeviceRepository interface {
@@ -20,14 +24,16 @@ type DeviceRepository interface {
 	GetConsumptionDevicesByEstateId(userID int) ([]models.ConsumptionDevice, error)
 	GetConsumptionDeviceDto(id int) (dtos.ConsumptionDeviceDto, error)
 	GetConsumptionDevice(id int) (models.ConsumptionDevice, error)
+	GetAvailability(dto dtos.ActionGraphRequest, isOnline string) []time.Time
 }
 
 type DeviceRepositoryImpl struct {
-	db *sql.DB
+	db       *sql.DB
+	influxDb influxdb2.Client
 }
 
-func NewDeviceRepository(db *sql.DB) DeviceRepository {
-	return &DeviceRepositoryImpl{db: db}
+func NewDeviceRepository(db *sql.DB, influx influxdb2.Client) DeviceRepository {
+	return &DeviceRepositoryImpl{db: db, influxDb: influx}
 }
 
 func (res *DeviceRepositoryImpl) GetAll() []models.Device {
@@ -280,4 +286,45 @@ func (res *DeviceRepositoryImpl) GetConsumptionDeviceDto(id int) (dtos.Consumpti
 	}
 	// TODO: check if here should be Autonomous power supply
 	return dtos.ConsumptionDeviceDto{PowerSupply: enumerations.Autonomous, PowerConsumption: 0}, nil
+}
+
+func (res *DeviceRepositoryImpl) GetAvailability(dto dtos.ActionGraphRequest, isOnline string) []time.Time {
+	influxOrg := "Smart Home"
+	influxBucket := "bucket"
+
+	var end string
+	if dto.EndDate == "-1" {
+		end = "now()"
+	} else {
+		end = dto.EndDate
+	}
+
+	// Create InfluxDB query API
+	queryAPI := res.influxDb.QueryAPI(influxOrg)
+	// Define your InfluxDB query with conditions
+	query := fmt.Sprintf(
+		`from(bucket: "%s")
+		  |> range(start: %s, stop: %s)
+		  |> filter(fn: (r) => r["_measurement"] == "device_status" and r["device_id"] == "%s" and r["_field"] == "status" and r["_value"] == %s)
+		  |> map(fn: (r) => ({
+			time: r["_time"]
+		  }))`,
+		influxBucket, dto.StartDate, end, strconv.Itoa(dto.DeviceId), isOnline,
+	)
+
+	result, err := queryAPI.Query(context.Background(), query)
+	if err != nil {
+		fmt.Printf("Error executing InfluxDB query: %v\n", err)
+		return nil
+	}
+
+	defer result.Close()
+	var times []time.Time
+	for result.Next() {
+		times = append(times, result.Record().ValueByKey("time").(time.Time))
+		if err := result.Err(); err != nil {
+			fmt.Println("ERROR happened")
+		}
+	}
+	return times
 }

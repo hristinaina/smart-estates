@@ -22,10 +22,10 @@ func NewDeviceController(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb infl
 		service: devices.NewDeviceService(db, mqtt, influxDb)}
 }
 
-func (uc DeviceController) Get(c *gin.Context) {
+func (dc DeviceController) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	controllers.CheckIfError(err, c)
-	device, err := uc.service.Get(id)
+	device, err := dc.service.Get(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Device not found"})
 		return
@@ -33,8 +33,8 @@ func (uc DeviceController) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, device)
 }
 
-func (uc DeviceController) GetAll(c *gin.Context) {
-	devices := uc.service.GetAll()
+func (dc DeviceController) GetAll(c *gin.Context) {
+	devices := dc.service.GetAll()
 	if devices == nil {
 		fmt.Println("No devices found")
 		c.JSON(http.StatusBadRequest, "No devices found")
@@ -42,21 +42,21 @@ func (uc DeviceController) GetAll(c *gin.Context) {
 	c.JSON(http.StatusOK, devices)
 }
 
-func (rec DeviceController) GetAllByEstateId(c *gin.Context) {
+func (dc DeviceController) GetAllByEstateId(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("estateId"))
 	controllers.CheckIfError(err, c)
-	devices := rec.service.GetAllByEstateId(id)
+	devices := dc.service.GetAllByEstateId(id)
 	c.JSON(http.StatusOK, devices)
 }
 
-func (rec DeviceController) Add(c *gin.Context) {
+func (dc DeviceController) Add(c *gin.Context) {
 	var deviceDTO dtos.DeviceDTO
 	// convert json object to model device
 	if err := c.BindJSON(&deviceDTO); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid JSON"})
 		return
 	}
-	device, err := rec.service.Add(deviceDTO)
+	device, err := dc.service.Add(deviceDTO)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 	} else {
@@ -64,10 +64,10 @@ func (rec DeviceController) Add(c *gin.Context) {
 	}
 }
 
-func (rec DeviceController) GetConsumptionDeviceDto(c *gin.Context) {
+func (dc DeviceController) GetConsumptionDeviceDto(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	controllers.CheckIfError(err, c)
-	dto, err := rec.service.GetConsumptionDeviceDto(id)
+	dto, err := dc.service.GetConsumptionDeviceDto(id)
 	if controllers.CheckIfError(err, c) {
 		return
 	}
@@ -75,10 +75,10 @@ func (rec DeviceController) GetConsumptionDeviceDto(c *gin.Context) {
 	c.JSON(200, dto)
 }
 
-func (rec DeviceController) GetConsumptionDevice(c *gin.Context) {
+func (dc DeviceController) GetConsumptionDevice(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	controllers.CheckIfError(err, c)
-	dto, err := rec.service.GetConsumptionDevice(id)
+	dto, err := dc.service.GetConsumptionDevice(id)
 	if controllers.CheckIfError(err, c) {
 		return
 	}
@@ -86,15 +86,14 @@ func (rec DeviceController) GetConsumptionDevice(c *gin.Context) {
 	c.JSON(200, dto)
 }
 
-func (rec DeviceController) GetAvailability(c *gin.Context) {
-	fmt.Println("Usaoooo")
+func (dc DeviceController) GetAvailability(c *gin.Context) {
 	var deviceDTO dtos.ActionGraphRequest
 	// convert json object to model device
 	if err := c.BindJSON(&deviceDTO); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid JSON"})
 		return
 	}
-	rec.service.GetAvailability(deviceDTO)
+	dc.service.GetAvailability(deviceDTO)
 
 	c.JSON(200, "ok")
 }

@@ -53,7 +53,7 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 	}
 	return &MQTTClient{
 		client:                client,
-		deviceRepository:      repositories2.NewDeviceRepository(db),
+		deviceRepository:      repositories2.NewDeviceRepository(db, influxDb),
 		solarPanelRepository:  repositories2.NewSolarPanelRepository(db),
 		lampRepository:        repositories2.NewLampRepository(db, influxDb),
 		homeBatteryRepository: repositories2.NewHomeBatteryRepository(db),
