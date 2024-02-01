@@ -4,18 +4,21 @@ import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"net/http"
 	"smarthome-back/controllers"
 	"smarthome-back/dtos"
+	"smarthome-back/mqtt_client"
 	services "smarthome-back/services/devices/outside"
 	"strconv"
 )
 
 type SprinklerController struct {
 	service services.SprinklerService
+	mqtt    *mqtt_client.MQTTClient
 }
 
-func NewSprinklerController(db *sql.DB, client influxdb2.Client) SprinklerController {
-	return SprinklerController{service: services.NewSprinklerService(db, client)}
+func NewSprinklerController(db *sql.DB, client influxdb2.Client, mqtt *mqtt_client.MQTTClient) SprinklerController {
+	return SprinklerController{service: services.NewSprinklerService(db, client), mqtt: mqtt}
 }
 
 func (controller SprinklerController) Get(c *gin.Context) {
@@ -144,4 +147,15 @@ func ExtractId(c *gin.Context) int {
 		return -1
 	}
 	return id
+}
+
+func (controller SprinklerController) GetHistoryData(c *gin.Context) {
+	var data dtos.ActionGraphRequest
+	// convert json object to model device
+	if err := c.BindJSON(&data); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid JSON"})
+		return
+	}
+	results := mqtt_client.SprinklerQueryDeviceData(controller.mqtt.GetInflux(), data)
+	c.JSON(http.StatusOK, gin.H{"result": results})
 }

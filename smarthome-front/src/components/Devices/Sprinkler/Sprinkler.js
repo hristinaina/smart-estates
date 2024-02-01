@@ -87,8 +87,6 @@ export class Sprinkler extends Component {
     }
 
     async handleMqttMessage(topic, message) {
-        console.log("topic");
-        console.log(topic);
         var parts = topic.split("/");
         var lastPart = parts[parts.length - 1];
         var parsedNumber = parseInt(lastPart, 10);
@@ -96,8 +94,6 @@ export class Sprinkler extends Component {
             console.log(parsedNumber);
             return;
         }
-        console.log("STIGLA JE PORUKA");
-        console.log(this.state.switchOn);
         if (this.state.switchOn == false) {
             this.handleSwitchToggle();
         }
@@ -111,8 +107,6 @@ export class Sprinkler extends Component {
             console.log(parsedNumber);
             return;
         }
-        console.log("STIGLA JE PORUKA2");
-        console.log(this.state.switchOn);
         if (this.state.switchOn == true) {
             this.handleSwitchToggle();
         }
@@ -141,6 +135,13 @@ export class Sprinkler extends Component {
             this.handleClick();
             return 
         }
+
+        const logData = await SprinklerService.getHistoryData(this.id, pickedValue, startDate, endDate);
+        console.log(logData.result)
+        // const data = this.setAction(logData.result)
+        this.setState({
+            logData: logData.result,
+        });
     }
 
     handleDelete = () => {

@@ -52,7 +52,7 @@ func (sim *SprinklerSimulator) ConnectSprinkler() {
 func (sim *SprinklerSimulator) CheckScheduledModes() {
 	// TODO: ovdje while petlja koja svakih 60 sekundi dobavlja zakazane termine i provjerava da li treba upaliti prskalicu
 	// ukoliko je treba upaliti, objavi na topic koji ce hvatati front i back
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(60 * time.Second)
 	defer ticker.Stop()
 	for {
 		select {
@@ -164,7 +164,7 @@ func (sim *SprinklerSimulator) isCurrentTimeWithin70SecondsAfterEndTime(modes []
 			end = time.Date(current.Year(), current.Month(), current.Day(), end.Hour(), end.Minute(), end.Second(), current.Nanosecond(), current.Location())
 			diff := current.Sub(end).Seconds()
 			// TODO: change this to 100 + smth later (between 60 and 120)
-			if (diff <= 69) && (diff >= 0) {
+			if (diff <= 119) && (diff >= 0) {
 				return true
 			}
 		}
