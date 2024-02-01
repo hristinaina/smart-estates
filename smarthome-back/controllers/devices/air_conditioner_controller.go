@@ -45,22 +45,13 @@ func (ac AirConditionerController) GetHistoryData(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 
-type SpecialModeDTO struct {
-	Start        string   `json:"start"`
-	End          string   `json:"end"`
-	SelectedMode string   `json:"selectedMode"`
-	Temperature  float32  `json:"temperature"`
-	SelectedDays []string `json:"selectedDays"`
-}
-
 func (ac AirConditionerController) EditSpecialModes(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return
 	}
 
-	var input []SpecialModeDTO
-	fmt.Println(input)
+	var input []dtos.SpecialModeDTO
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		fmt.Println("greskaaaaaaa")
@@ -69,18 +60,15 @@ func (ac AirConditionerController) EditSpecialModes(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(input)
-	if len(input) == 0 {
-		// todo ako je prazno brisi
-	}
-
 	for _, mode := range input {
 		// temp, err := strconv.ParseFloat(mode.Temperature, 32)
-		err = ac.service.AddNewSpecialModes(id, mode.SelectedMode, mode.Start, mode.End, mode.Temperature, strings.Join(mode.SelectedDays, ","))
+		err = ac.service.AddSpecialModes(id, mode.SelectedMode, mode.Start, mode.End, mode.Temperature, strings.Join(mode.SelectedDays, ","))
 		if err != nil {
 			fmt.Println("greskurina")
 		}
 	}
+
+	ac.service.DeleteSpecialMode(id, input)
 
 	c.JSON(http.StatusOK, gin.H{"message": "You have successfully scheduled the mode"})
 }

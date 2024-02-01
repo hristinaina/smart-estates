@@ -159,7 +159,7 @@ class SpecialModeForm extends Component {
 
         if(this.props.fromDevice) {
             await this.sendValues()
-            this.setState({snackbarMessage: "Successfully added mode!"})
+            this.setState({snackbarMessage: "Successfully chaged mode!"})
             this.handleClick();
         }
     }
