@@ -78,6 +78,8 @@ export class EVCharger extends Component {
                 // Subscribe to the MQTT topic
                 this.mqttClient.on('connect', () => {
                     this.mqttClient.subscribe('ev/data/' + this.id);
+                    this.mqttClient.subscribe('ev/start/' + this.id);
+                    this.mqttClient.subscribe('ev/end/' + this.id);
                 });
 
                 // Handle incoming MQTT messages
@@ -99,17 +101,16 @@ export class EVCharger extends Component {
     }
 
     // Handle incoming MQTT messages
-    // todo change this with full data for a car
     handleMqttMessage(topic, message) {
-        const { device } = this.state;
-        const newValue = message.toString();
-        const updatedData =
-        {
-            ...device,
-            Value: newValue,
+        const result = JSON.parse(message.toString())
+        const { connectionData } = this.state;
+        connectionData[result.PlugId] = {
+            active: result.Active,
+            maxCapacity: parseInt(result.MaxCapacity),
+            currentCapacity: result.CurrentCapacity.toFixed(1),
         }
         this.setState({
-            device: updatedData,
+            connectionData: connectionData,
         });
     }
 
@@ -197,7 +198,7 @@ export class EVCharger extends Component {
                                         (<div className='box-container'>
                                             <img src="/images/car.png" alt={`Car ${index}`} className="car-image" />
                                             <p style={{marginLeft: "20px" }}>{connectionData[index-1].currentCapacity}/{connectionData[index-1].maxCapacity}kwh</p>
-                                            <p className='ev-right-data'><b>{connectionData[index-1].currentCapacity/connectionData[index-1].maxCapacity}%</b></p>
+                                            <p className='ev-right-data'><b>{parseInt(connectionData[index-1].currentCapacity/connectionData[index-1].maxCapacity*100)}%</b></p>
                                             <img src="/images/charging.png" className='charger-image' alt={`Charging ${index}`}/>
                                         </div>)}
                                     {!connectionData[index-1].active && (<p style={{marginLeft: "45px" }}>Free</p>)}

@@ -88,13 +88,13 @@ func (ev *EVChargerSimulator) StartConnections() {
 	defer ticker.Stop()
 
 	for {
-		// svakih 15 sekundi provjeravaj ima li slobodan prikljucak i 50/50 kreiraj nit/auto za taj prikljucak
+		// svakih 15 sekundi provjeravaj ima li slobodan prikljucak i 30/70 kreiraj nit/auto za taj prikljucak
 		select {
 		case <-ticker.C:
 			for connectionId, car := range ev.connections {
 				if !car.active {
 					fmt.Println("Choosing whether to create new electrical car simulator or not ")
-					randomNumber := rand.Intn(2)
+					randomNumber := rand.Intn(3)
 					if randomNumber == 0 {
 						car := createCarSimulator()
 						ev.connections[connectionId] = car
