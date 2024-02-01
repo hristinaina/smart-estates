@@ -18,6 +18,7 @@ const (
 	// topicApproached = "device/approached/"
 	// TopicVGOpenClose = "vg/open/"
 	TurnSprinklerON = "sprinkler/on/"
+	TurnSprinklerOFF = "sprinkler/off/"
 )
 
 type SprinklerSimulator struct {
@@ -58,18 +59,23 @@ func (sim *SprinklerSimulator) CheckScheduledModes() {
 		case <-ticker.C:
 			scheduledModes := sim.getSheduledModes();
 			mode := sim.checkScheduledMode(scheduledModes);
-			fmt.Println("MODEEEEEE")
-			fmt.Println(mode)
 			if mode.Id != 0 {
-				fmt.Println("PUBLISHINGGGG")
 				err := config.PublishToTopic(sim.client, config.TurnSprinklerON+strconv.Itoa(sim.device.ID), strconv.Itoa(mode.Id))
 				if err != nil {
 					fmt.Printf("Error publishing message with the device: %s \n", sim.device.Name)
 				} else {
-					fmt.Println("Successfully publishedddd")
 					fmt.Println(config.TurnSprinklerON+strconv.Itoa(sim.device.ID))
 				}
-			}
+			} else {
+				if sim.isCurrentTimeWithin70SecondsAfterEndTime(scheduledModes) {
+					err := config.PublishToTopic(sim.client, config.TurnSprinklerOFF+strconv.Itoa(sim.device.ID), strconv.Itoa(mode.Id))
+					if err != nil {
+						fmt.Printf("Error publishing message with the device: %s \n", sim.device.Name)
+					} else {
+						fmt.Println(config.TurnSprinklerOFF+strconv.Itoa(sim.device.ID))
+					}
+				}
+			} 
 		}
 	}
 }
@@ -98,8 +104,6 @@ func (sim *SprinklerSimulator) getSheduledModes() []models.SprinklerSpecialMode 
 			return nil
 		}
 	
-		// Print the parsed data
-		fmt.Printf("Parsed SprinklerSpecialModes: %+v\n", modes)
 		return modes
 }
 
@@ -121,7 +125,13 @@ func (sim *SprinklerSimulator) isTimeInRange(current, start, end time.Time) bool
 	startTime := start.Hour()*60 + start.Minute()
 	endTime := end.Hour()*60 + end.Minute()
 
-	return (currentTime >= startTime && currentTime <= endTime) || (currentTime <= startTime && currentTime <= endTime)
+	// Check if the range spans across two different days
+	if startTime > endTime {
+		return currentTime >= startTime || currentTime <= endTime
+	}
+
+	// Check if the current time is within the range
+	return currentTime >= startTime && currentTime <= endTime
 }
 
 func (sim *SprinklerSimulator) isDayInSchedule(currentDay time.Weekday, days string) bool {
@@ -142,4 +152,22 @@ func (sim *SprinklerSimulator) parseTime(timeString string) time.Time {
 		panic(err)
 	}
 	return t
+}
+
+func (sim *SprinklerSimulator) isCurrentTimeWithin70SecondsAfterEndTime(modes []models.SprinklerSpecialMode) bool {
+    current := time.Now()
+	currentDay := current.Weekday()
+
+	for _, s := range modes {
+		if sim.isDayInSchedule(currentDay, s.SelectedDays) {
+			end := sim.parseTime(s.EndTime)
+			end = time.Date(current.Year(), current.Month(), current.Day(), end.Hour(), end.Minute(), end.Second(), current.Nanosecond(), current.Location())
+			diff := current.Sub(end).Seconds()
+			// TODO: change this to 100 + smth later (between 60 and 120)
+			if (diff <= 69) && (diff >= 0) {
+				return true
+			}
+		}
+	}
+	return false
 }

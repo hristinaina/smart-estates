@@ -64,10 +64,15 @@ export class Sprinkler extends Component {
                     console.log("iddddd");
                     console.log(this.id);
                     this.mqttClient.subscribe('sprinkler/on/' + this.id);
+                    this.mqttClient.subscribe('sprinkler/off/' + this.id);
                 });
     
                 this.mqttClient.on('message', (topic, message) => {
-                    this.handleMqttMessage(topic, message);
+                    if (topic === 'sprinkler/on/' + this.id) {
+                        this.handleMqttMessage(topic);
+                    } else if (topic === 'sprinkler/off/' + this.id) {
+                        this.handleMqttOffMessage(topic);
+                    }
                 });
             }
 
@@ -82,12 +87,10 @@ export class Sprinkler extends Component {
     }
 
     async handleMqttMessage(topic, message) {
+        console.log("topic");
+        console.log(topic);
         var parts = topic.split("/");
-
-        // Get the last part (after the last "/")
         var lastPart = parts[parts.length - 1];
-
-        // Parse the last part to an integer
         var parsedNumber = parseInt(lastPart, 10);
         if (parsedNumber != this.id) {
             console.log(parsedNumber);
@@ -96,6 +99,21 @@ export class Sprinkler extends Component {
         console.log("STIGLA JE PORUKA");
         console.log(this.state.switchOn);
         if (this.state.switchOn == false) {
+            this.handleSwitchToggle();
+        }
+    }
+
+    async handleMqttOffMessage(topic, message) {
+        var parts = topic.split("/");
+        var lastPart = parts[parts.length - 1];
+        var parsedNumber = parseInt(lastPart, 10);
+        if (parsedNumber != this.id) {
+            console.log(parsedNumber);
+            return;
+        }
+        console.log("STIGLA JE PORUKA2");
+        console.log(this.state.switchOn);
+        if (this.state.switchOn == true) {
             this.handleSwitchToggle();
         }
     }

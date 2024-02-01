@@ -17,9 +17,24 @@ func (mc *MQTTClient) HandleSprinklerMessage(client mqtt.Client, msg mqtt.Messag
 		fmt.Println(err)
 	}
 	fmt.Println("PRIMLJENA PORUKA")
+	fmt.Println(msg.Topic())
 	fmt.Println("DEVICE IDDDD " + strconv.Itoa(deviceId))
 	saveSprinklerToInfluxDb(mc.influxDb, deviceId, "on", "auto")
 }
+
+func (mc *MQTTClient) HandleSprinklerOffMessage(client mqtt.Client, msg mqtt.Message) {
+	fmt.Println("STIGLOOOOO2")
+	parts := strings.Split(msg.Topic(), "/")
+	deviceId, err := strconv.Atoi(parts[len(parts)-1])
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("PRIMLJENA PORUKA2")
+	fmt.Println(msg.Topic())
+	fmt.Println("DEVICE IDDDD " + strconv.Itoa(deviceId))
+	saveSprinklerToInfluxDb(mc.influxDb, deviceId, "off", "auto")
+}
+
 func saveSprinklerToInfluxDb(client influxdb2.Client, deviceId int, mode, user string) {
 	Org := "Smart Home"
 	Bucket := "bucket"

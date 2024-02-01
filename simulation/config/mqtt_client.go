@@ -14,6 +14,7 @@ const (
 	TopicApproached = "device/approached/"  //vehcile-gate/approached/{deviceId}
 	TopicVGOpenClose = "vg/open/" // vg/open/{deviceId} -> this is to know who entered
 	TurnSprinklerON = "sprinkler/on/"  //sprinkler/on/{deviceId}
+	TurnSprinklerOFF = "sprinkler/off/"  //sprinkler/off/{deviceId}
 )
 
 func CreateConnection() mqtt.Client {
