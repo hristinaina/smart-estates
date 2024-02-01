@@ -26,6 +26,7 @@ export class EVCharger extends Component {
             email: '',
             startDate: '',
             endDate: '',
+            inputPercentage: '',
             snackbarMessage: '',
             showSnackbar: false,
             open: false,
@@ -128,6 +129,17 @@ export class EVCharger extends Component {
         return parts[parts.length - 1];
     }
 
+    handleDateChange = (fieldName, event) => {
+        this.setState({ [fieldName]: event.target.value });
+    };
+
+    handleButtonPercentageClick(){
+        //todo javiti preko mqtt i beku i simulaciji da se izmjenio percentage
+        //todo beku da se sacuva u influxu (jer je korisnicika akcija)
+        //todo simulaciji da bi znala kada da zavrsi
+        console.log(this.state.inputPercentage);
+    }
+
     handleBackArrow() {
         window.location.assign("/devices")
     }
@@ -145,7 +157,7 @@ export class EVCharger extends Component {
     };
 
     render() {
-        const { device, data, email, startDate, endDate, connectionData } = this.state;
+        const { device, data, email, startDate, endDate, inputPercentage, connectionData } = this.state;
         const connectionsArray = Array.from({ length: device.Connections }, (_, index) => index + 1);
         console.log(connectionData);
         return (
@@ -169,8 +181,8 @@ export class EVCharger extends Component {
                                         type="number"
                                         name="charging"
                                         maxLength="3"
-                                        value={device.Percentage}
-                                        onChange={this.handlePercentageInputChange}
+                                        value={inputPercentage}
+                                        onChange={(e) => this.setState({ inputPercentage: e.target.value })}
                                         style={{ display: "inline", width: "70px", marginLeft: "20px" }}
                                     />
                                     <Button className="ev-button" style={{ width: "80px", marginLeft: "15px" }}>Update</Button>
@@ -211,7 +223,7 @@ export class EVCharger extends Component {
                                 <TextField style={{ backgroundColor: "white" }} type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
                             </label>
                             <br />
-                            <Button type="submit" id='sp-data-button'>Fetch Data</Button>
+                            <Button type="submit" id='sp-data-button' onClick={this.handleButtonPercentageClick}>Fetch Data</Button>
                         </form>
                         <SPGraph data={data} />
                     </div>

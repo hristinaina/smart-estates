@@ -3,14 +3,13 @@ package energetic
 import (
 	"database/sql"
 	_ "database/sql"
-	"fmt"
 	_ "fmt"
 	_ "github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"smarthome-back/dtos"
-	models "smarthome-back/models/devices"
 	"smarthome-back/models/devices/energetic"
+	repositories "smarthome-back/repositories/devices"
 )
 
 type EVChargerService interface {
@@ -19,94 +18,19 @@ type EVChargerService interface {
 }
 
 type EVChargerServiceImpl struct {
-	db       *sql.DB
-	influxDb influxdb2.Client
+	db         *sql.DB
+	influxDb   influxdb2.Client
+	repository repositories.EVChargerRepository
 }
 
 func NewEVChargerService(db *sql.DB, influxdb influxdb2.Client) EVChargerService {
-	return &EVChargerServiceImpl{db: db, influxDb: influxdb}
+	return &EVChargerServiceImpl{db: db, influxDb: influxdb, repository: repositories.NewEVChargerRepository(db)}
 }
 
 func (s *EVChargerServiceImpl) Get(id int) energetic.EVCharger {
-	query := `SELECT
-				d.id,
-				d.name,
-				d.type,
-				d.realEstate,
-				d.isOnline,
-				hb.chargingPower,
-				hb.connections
-			FROM
-				device d
-			JOIN
-				evCharger hb ON d.id = hb.deviceId
-			WHERE
-				d.id = ?`
-
-	// Execute the query
-	row := s.db.QueryRow(query, id)
-
-	var sp energetic.EVCharger
-	var device models.Device
-
-	err := row.Scan(
-		&device.Id,
-		&device.Name,
-		&device.Type,
-		&device.RealEstate,
-		&device.IsOnline,
-		&sp.ChargingPower,
-		&sp.Connections,
-	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			fmt.Println("No charger found with the specified ID")
-		} else {
-			fmt.Println("Error retrieving charger:", err)
-		}
-		return energetic.EVCharger{}
-	}
-	sp.Device = device
-	return sp
+	return s.repository.Get(id)
 }
 
 func (s *EVChargerServiceImpl) Add(dto dtos.DeviceDTO) energetic.EVCharger {
-	device := dto.ToEVCharger()
-	tx, err := s.db.Begin()
-	if err != nil {
-		return energetic.EVCharger{}
-	}
-	defer tx.Rollback()
-
-	// Insert the new device into the Device table
-	result, err := tx.Exec(`
-		INSERT INTO Device (Name, Type, RealEstate, IsOnline)
-		VALUES (?, ?, ?, ?)
-	`, device.Device.Name, device.Device.Type, device.Device.RealEstate,
-		device.Device.IsOnline)
-	if err != nil {
-		return energetic.EVCharger{}
-	}
-
-	// Get the last inserted device ID
-	deviceID, err := result.LastInsertId()
-	if err != nil {
-		return energetic.EVCharger{}
-	}
-
-	// Insert the new EVCharger into the EVCharger table
-	result, err = tx.Exec(`
-		INSERT INTO EvCharger (DeviceId, ChargingPower, Connections)
-		VALUES (?, ?, ?)
-	`, deviceID, device.ChargingPower, device.Connections)
-	if err != nil {
-		return energetic.EVCharger{}
-	}
-
-	// Commit the transaction
-	if err := tx.Commit(); err != nil {
-		return energetic.EVCharger{}
-	}
-	device.Device.Id = int(deviceID)
-	return device
+	return s.repository.Add(dto)
 }

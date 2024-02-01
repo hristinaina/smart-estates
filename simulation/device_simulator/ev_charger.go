@@ -1,17 +1,21 @@
 package device_simulator
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"simulation/config"
 	"simulation/models"
+	"strconv"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 const (
-	topicEVData = "ev/data/"
+	topicEVData  = "ev/data/" //used to send updates only for front
+	topicEVStart = "ev/start/"
+	topicEVEnd   = "ev/end/"
 )
 
 type CarSimulator struct {
@@ -65,7 +69,7 @@ func NewEVChargerSimulator(client mqtt.Client, device models.Device) *EVChargerS
 		client:                client,
 		device:                ev,
 		connections:           make(map[int]CarSimulator),
-		maxChargingPercentage: 0.9, //todo ne mora biti na beku, front moze kad udje na stranicu iz baze uzeti posljenu izmjenu (ako je nema onda je defaultna 90)
+		maxChargingPercentage: 0.9, //todo ne mora biti u sql, front moze kad udje na stranicu iz baze(influxa) uzeti posljenu izmjenu (ako je nema onda je defaultna 90)
 	}
 }
 
@@ -79,20 +83,36 @@ func (ev *EVChargerSimulator) StartConnections() {
 		ev.connections[i] = initCar()
 	}
 
-	rand.Seed(time.Now().UnixNano())
-	ticker := time.NewTicker(10 * time.Second)
+	rand.Seed(time.Now().UnixNano()) //todo da li je okej da bude van petlje
+	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
 
 	for {
-		// svakih 10 sekundi provjeravaj ima li slobodan prikljucak i 50/50 kreiraj nit/auto za taj prikljucak
+		// svakih 15 sekundi provjeravaj ima li slobodan prikljucak i 50/50 kreiraj nit/auto za taj prikljucak
 		select {
 		case <-ticker.C:
 			for connectionId, car := range ev.connections {
 				if !car.active {
-					fmt.Println("Poziv funkcije koja razmislja da li startovati novo auto")
+					fmt.Println("Choosing whether to create new electrical car simulator or not ")
 					randomNumber := rand.Intn(2)
 					if randomNumber == 0 {
-						//todo poslati frontu i beku pocetak akcije punjenja sa svim podacima auta
+						car := createCarSimulator()
+						ev.connections[connectionId] = car
+						// send action to front and back (start of charging)
+						fmt.Printf("Car created. Electrical charger: id=%d, plugId %d, percentage %f \n", ev.device.Device.ID, connectionId, car.currentCapacity)
+						data := map[string]interface{}{
+							"PlugId":          connectionId,
+							"MaxCapacity":     car.maxCapacity,
+							"CurrentCapacity": car.currentCapacity,
+							"Active":          true,
+							"Action":          "start",
+							"Email":           "auto",
+						}
+						jsonString, err := json.Marshal(data)
+						if err != nil {
+							fmt.Println("greska")
+						}
+						config.PublishToTopic(ev.client, topicEVStart+strconv.Itoa(ev.device.Device.ID), string(jsonString))
 						go ev.simulateCarCharging(connectionId)
 					}
 				}
@@ -102,7 +122,7 @@ func (ev *EVChargerSimulator) StartConnections() {
 }
 
 func (ev *EVChargerSimulator) simulateCarCharging(connectionId int) {
-	ev.connections[connectionId] = createCarSimulator()
+	rand.Seed(time.Now().UnixNano())
 
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
@@ -113,17 +133,81 @@ func (ev *EVChargerSimulator) simulateCarCharging(connectionId int) {
 			car := ev.connections[connectionId]
 			toCharge := ev.device.ChargingPower / 60 / 6 // inace je po satu, 60 je za po minuti i 6 za 10s
 			allowedMaxCapacity := float64(car.maxCapacity) * ev.maxChargingPercentage
+			//send to back and front that car has reached maximum capacity allowed
 			if car.currentCapacity+toCharge >= allowedMaxCapacity {
-				//todo javi beku i frontu da je zavrseno punjene auta i posalji id prikljucka i id punjaca ofc i naziv akcije
-				ev.connections[connectionId] = initCar()
-				break
+				shouldEnd := ev.handleMaxCapacityReached(car, connectionId, allowedMaxCapacity)
+				if shouldEnd {
+					break
+				}
+				//send to front updates about capacity (maximum not reached)
 			} else {
-				ev.connections[connectionId] = updateCarSimulator(car, car.currentCapacity+toCharge)
-				//todo poslati beku koliko je potroseno struje tj toCharge (na onaj consumption topic)
-				//todo poslati frontu novu vrijednost sa svim podacima o bateriji (jer je mozda korisnik prvi put usao)
+				ev.handleCurrentCapacity(car, connectionId, toCharge)
 			}
 		}
 	}
+}
+
+func (ev *EVChargerSimulator) handleMaxCapacityReached(car CarSimulator, connectionId int, allowedMaxCapacity float64) bool {
+	randomNumber := rand.Intn(3)
+	car = updateCarSimulator(car, float64(car.maxCapacity))
+	ev.connections[connectionId] = car
+
+	// although car battery has reached it's maximum capacity, the car can still stay pluged to the charger
+	data := map[string]interface{}{
+		"PlugId":          connectionId,
+		"MaxCapacity":     car.maxCapacity,
+		"CurrentCapacity": allowedMaxCapacity,
+		"Active":          true,
+		"Action":          "update",
+		"Email":           "auto",
+	}
+
+	//send to back and front that car has left the station
+	if randomNumber == 0 {
+		fmt.Printf("Car left the station. Electrical charger: id=%d, plugId %d, percentage %f \n", ev.device.Device.ID, connectionId, car.currentCapacity)
+		data["Active"] = false
+		jsonString, err := json.Marshal(data)
+		if err != nil {
+			fmt.Println("greska")
+		}
+		config.PublishToTopic(ev.client, topicEVEnd+strconv.Itoa(ev.device.Device.ID), string(jsonString))
+		ev.connections[connectionId] = initCar()
+		return true
+
+	} else { // car is still pluged
+		fmt.Printf("Car is full but not leaving. Electrical charger: id=%d, plugId %d, percentage %f \n", ev.device.Device.ID, connectionId, car.currentCapacity)
+		jsonString, err := json.Marshal(data)
+		if err != nil {
+			fmt.Println("greska")
+		}
+		config.PublishToTopic(ev.client, topicEVData+strconv.Itoa(ev.device.Device.ID), string(jsonString))
+		return false
+	}
+}
+
+func (ev *EVChargerSimulator) handleCurrentCapacity(car CarSimulator, connectionId int, toCharge float64) {
+	car = updateCarSimulator(car, car.currentCapacity+toCharge)
+	ev.connections[connectionId] = car
+
+	// send to back how much electricity has been consumed
+	err := config.PublishToTopic(ev.client, config.TopicConsumption+strconv.Itoa(ev.device.Device.ID), strconv.FormatFloat(toCharge,
+		'f', -1, 64))
+
+	// send updated data to front
+	data := map[string]interface{}{
+		"PlugId":          connectionId,
+		"MaxCapacity":     car.maxCapacity,
+		"CurrentCapacity": car.currentCapacity,
+		"Active":          true,
+		"Action":          "update",
+		"Email":           "auto",
+	}
+	jsonString, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println("greska")
+	}
+	config.PublishToTopic(ev.client, topicEVData+strconv.Itoa(ev.device.Device.ID), string(jsonString))
+	fmt.Printf("Car capacity updated. Electrical charger: id=%d, plugId %d, percentage %f \n", ev.device.Device.ID, connectionId, car.currentCapacity)
 }
 
 //todo mijenjanje maxChargingPercentage

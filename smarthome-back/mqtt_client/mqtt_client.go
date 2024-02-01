@@ -29,6 +29,8 @@ const (
 	TopicConsumption   = "device/consumption/"
 	TopicApproached    = "device/approached/"
 	TopicVGOpenClose   = "vg/open/"
+	TopicEVCStart      = "ev/start/"
+	TopicEVCEnd        = "ev/end/"
 )
 
 type MQTTClient struct {
@@ -40,6 +42,7 @@ type MQTTClient struct {
 	realEstateRepository  repositories.RealEstateRepository
 	homeBatteryRepository repositories2.HomeBatteryRepository
 	vehicleGateRepository repositories2.VehicleGateRepository
+	evChargerRepository   repositories2.EVChargerRepository
 }
 
 func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
@@ -59,6 +62,7 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 		homeBatteryRepository: repositories2.NewHomeBatteryRepository(db),
 		realEstateRepository:  *repositories.NewRealEstateRepository(db),
 		vehicleGateRepository: repositories2.NewVehicleGateRepository(db, influxDb),
+		evChargerRepository:   repositories2.NewEVChargerRepository(db),
 		influxDb:              influxDb,
 	}
 }
@@ -73,6 +77,8 @@ func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicPayload+"+", mc.HandleValueChange)
 	mc.SubscribeToTopic(TopicConsumption+"+", mc.HandleHBData)
 	mc.SubscribeToTopic(TopicApproached+"+", mc.HandleVehicleApproached)
+	mc.SubscribeToTopic(TopicEVCStart+"+", mc.HandleAutoActionsForCharger)
+	mc.SubscribeToTopic(TopicEVCEnd+"+", mc.HandleAutoActionsForCharger)
 	//todo subscribe here to other topics. Create your callback functions in other file
 
 	mc.StartDeviceStatusThread()
