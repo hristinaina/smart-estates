@@ -17,6 +17,7 @@ export class Sprinkler extends Component {
 
         this.state = {
             specialModes: [],
+            allSpecialModes: [],
             startDate: '',
             endDate: '',
             pickedValue: '',
@@ -116,8 +117,10 @@ export class Sprinkler extends Component {
         window.location.assign("/devices")
     }
 
-    handleAddSpecialMode = (specialModes) => {
-        this.setState({specialModes: specialModes});
+    handleAddSpecialMode = (newSpecialModes) => {
+        this.setState(prevState => ({
+            specialModes: [...prevState.specialModes, ...newSpecialModes],
+          }));
     }
 
     handleFormSubmit = async(e) => {
@@ -137,9 +140,24 @@ export class Sprinkler extends Component {
         });
     }
 
-    handleDelete = () => {
-        // TODO:
-        console.log("delete nije jos implementiran");
+    handleDelete = async(index) => {
+        const res = await SprinklerService.getSpecialModes(this.id);
+        let specials = [];
+        if (res !== null) {
+            res.forEach(element => {
+                const specialMode = {
+                    id: element.Id,
+                    start: element.StartTime,
+                    end: element.EndTime,
+                    selectedDays: this.getSelectedDays(element.SelectedDays),
+                };
+                specials.push(specialMode);
+            });
+        }
+        await SprinklerService.deleteMode(specials[index].id);
+        await this.setState(prevState => ({
+            specialModes: prevState.specialModes.filter((_, ind) => ind !== index),
+          }));
     }
 
     handleSwitchToggle = async() => {
@@ -169,8 +187,8 @@ export class Sprinkler extends Component {
                         </div>
                         {/* <p id="special-mode">Add special mode</p> */}
                         <AddSprinklerSpecialMode
-                         onAdd={this.handleAddSpecialMode} 
-                         isSprinkler='true'/>
+                            onAdd={this.handleAddSpecialMode} 
+                            modes={this.state.specialModes}/>
                          <TableContainer component={Paper}>
                             <Table>
                                 <TableHead>

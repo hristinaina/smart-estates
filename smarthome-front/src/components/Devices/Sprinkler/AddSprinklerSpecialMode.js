@@ -45,20 +45,6 @@ class AddSprinklerSpecialMode extends Component {
     }
 
     async componentDidMount() {
-        const res = await SprinklerService.getSpecialModes(this.id);
-        if (res !== null) {
-            let specials = [];
-            res.forEach(element => {
-                const specialMode = {
-                    start: element.StartTime,
-                    end: element.EndTime,
-                    selectedDays: this.getSelectedDays(element.SelectedDays),
-                };
-                specials.push(specialMode);
-            });
-           
-            await this.setState({specialModes: specials});
-        }
     }
 
     getSelectedDays(selectedDays) {
@@ -87,15 +73,32 @@ class AddSprinklerSpecialMode extends Component {
             return;
         }
         // check if something already exists for that day, if there is, check if the start or end is between those 2 times
+        const startDate = new Date(`2000-01-01 ${start}`);
+        const endDate = new Date(`2000-01-01 ${end}`);
+
+        // Check if end is before start, then adjust the date to the next day
+        if (endDate < startDate) {
+            endDate.setDate(endDate.getDate() + 1);
+        }
         const existingModeForDay = specialModes.find(
             (item) =>
+            {
+                const itemStartDate = new Date(`2000-01-01 ${item.start}`);
+                const itemEndDate = new Date(`2000-01-01 ${item.end}`);
+
+                // Check if item.end is before item.start, then adjust the date to the next day
+                if (itemEndDate < itemStartDate) {
+                    itemEndDate.setDate(itemEndDate.getDate() + 1);
+                }
+                return (
                 item.selectedDays.some((day) => selectedDays.includes(day)) &&
-                ((new Date(`2000-01-01 ${start}`) >= new Date(`2000-01-01 ${item.StartTime}`) &&
-                    new Date(`2000-01-01 ${start}`) <= new Date(`2000-01-01 ${item.EndTime}`)) ||
-                    (new Date(`2000-01-01 ${end}`) >= new Date(`2000-01-01 ${item.StartTime}`) &&
-                        new Date(`2000-01-01 ${end}`) <= new Date(`2000-01-01 ${item.EndTime}`)))
+                (((startDate >= itemStartDate && startDate <= itemEndDate)) ||
+                ((endDate >= itemStartDate && endDate <= itemEndDate)) ||
+                (startDate <= itemStartDate && endDate >= itemEndDate)))
+            }
+              
+                    
         );
-    
         if (existingModeForDay) {
             this.setState({ snackbarMessage: "There is already a mode for selected day and time" });
             this.handleClick();
@@ -121,8 +124,9 @@ class AddSprinklerSpecialMode extends Component {
         });
     };
 
-    openDialog = () => {
+    openDialog = async() => {
         this.setState({ showDialog: true });
+        await this.setState({specialModes: this.props.modes});
     };
 
     closeDialog = () => {
@@ -152,7 +156,7 @@ class AddSprinklerSpecialMode extends Component {
         this.state.newSpecialModes.forEach(mode => {
             SprinklerService.addMode(mode, this.id);
         });
-        this.props.onAdd(this.state.specialModes);
+        this.props.onAdd(this.state.newSpecialModes);
         this.setState({specialModes: [], newSpecialModes: []});
     }
 
@@ -218,11 +222,6 @@ class AddSprinklerSpecialMode extends Component {
                                         {item.selectedDays.map((day, dayIndex) => (
                                             <Chip key={dayIndex} label={day} />
                                         ))}
-                                    </TableCell>
-                                    <TableCell>
-                                        <IconButton color="secondary" onClick={() => this.handleDelete(index)}>
-                                            <CloseIcon />
-                                        </IconButton>
                                     </TableCell>
                                 </TableRow>
                             ))}
