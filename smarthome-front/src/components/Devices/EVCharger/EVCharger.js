@@ -245,7 +245,7 @@ export class EVCharger extends Component {
                                 <TextField style={{ backgroundColor: "white" }} type="date" value={endDate} onChange={(e) => this.setState({ endDate: e.target.value })} />
                             </label>
                             <br />
-                            <Button type="submit" id='sp-data-button'>Fetch Data</Button>
+                            <Button type="submit" id='sp-data-button' className='button-height'>Fetch Data</Button>
                         </form>
                         <TableOfActions logData={data} />
                     </div>

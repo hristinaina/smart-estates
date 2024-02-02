@@ -21,7 +21,7 @@
  }
 
 #connections-container{
-    margin: 30px;
+    margin: 15px;
 }
 
 .car-image{
@@ -33,12 +33,14 @@
 .connection-box {
     display: flex;
     flex-direction: row;
+    justify-content: center; /* Center items horizontally */
+    align-items: center;
     margin-top: 20px;
-    width: 100% !important;
+    width: 100%;    
 }
 
 .ev-right-data{
-    margin-left: 75px;
+    margin-left: 4em;
 }
 
 .charger-image{
@@ -46,4 +48,8 @@
     height: 25px;
     align-self: center;
     margin-left: 5px;
+}
+
+.button-height{
+    height: 45px;
 }
