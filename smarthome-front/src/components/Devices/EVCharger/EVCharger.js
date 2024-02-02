@@ -117,6 +117,9 @@ export class EVCharger extends Component {
         e.preventDefault();
         const { emailInput, startDate, endDate } = this.state;
         console.log(emailInput, startDate, endDate);
+        this.setState({
+            data: {},
+        });
         if(new Date(startDate) > new Date(endDate)) {
             this.setState({ snackbarMessage: "Start date must be before end date" });
             this.handleClick();

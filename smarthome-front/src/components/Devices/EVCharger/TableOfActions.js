@@ -107,7 +107,7 @@ class TableOfActions extends React.Component {
                     <TableBody>
                         {slicedData.map((entry) => {
                             return (
-                                <TableRow key={this.formatTimestamp(entry["timestamp"])}>
+                                <TableRow key={entry["timestamp"]}>
                                     <TableCell>{entry.User}</TableCell>
                                     <TableCell>{entry.Action}</TableCell>
                                     <TableCell>{parseInt(entry.Percentage * 100)}%</TableCell>
