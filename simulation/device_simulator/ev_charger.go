@@ -9,6 +9,7 @@ import (
 	"simulation/models"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -59,6 +60,7 @@ func updateCarSimulator(car CarSimulator, current float64) CarSimulator {
 type EVChargerSimulator struct {
 	client                mqtt.Client
 	device                models.EVCharger
+	connectionsMu         sync.RWMutex
 	connections           map[int]CarSimulator
 	maxChargingPercentage float64
 }
@@ -106,7 +108,9 @@ func (ev *EVChargerSimulator) StartConnections() {
 					randomNumber := rand.Intn(3)
 					if randomNumber == 0 {
 						car := createCarSimulator()
+						ev.connectionsMu.Lock()
 						ev.connections[connectionId] = car
+						ev.connectionsMu.Unlock()
 						// send action to front and back (start of charging)
 						fmt.Printf("Car created. Electrical charger: id=%d, plugId %d, currentCapacity %f \n", ev.device.Device.ID, connectionId, car.currentCapacity)
 						data := map[string]interface{}{
@@ -162,7 +166,9 @@ func (ev *EVChargerSimulator) handleMaxCapacityReached(oldCar CarSimulator, conn
 		allowedMaxCapacity = oldCar.currentCapacity
 	}
 	car := updateCarSimulator(oldCar, allowedMaxCapacity)
+	ev.connectionsMu.Lock()
 	ev.connections[connectionId] = car
+	ev.connectionsMu.Unlock()
 	// although car battery has reached it's maximum capacity, the car can still stay pluged to the charger
 	data := map[string]interface{}{
 		"PlugId":          connectionId,
@@ -183,7 +189,9 @@ func (ev *EVChargerSimulator) handleMaxCapacityReached(oldCar CarSimulator, conn
 			fmt.Println("greska")
 		}
 		config.PublishToTopic(ev.client, topicEVEnd+strconv.Itoa(ev.device.Device.ID), string(jsonString))
+		ev.connectionsMu.Lock()
 		ev.connections[connectionId] = initCar()
+		ev.connectionsMu.Unlock()
 		return true
 
 	} else { // car is still pluged
@@ -199,7 +207,9 @@ func (ev *EVChargerSimulator) handleMaxCapacityReached(oldCar CarSimulator, conn
 
 func (ev *EVChargerSimulator) handleCurrentCapacity(oldCar CarSimulator, connectionId int, toCharge float64) {
 	car := updateCarSimulator(oldCar, oldCar.currentCapacity+toCharge)
+	ev.connectionsMu.Lock()
 	ev.connections[connectionId] = car
+	ev.connectionsMu.Unlock()
 
 	// send to back how much electricity has been consumed
 	err := config.PublishToTopic(ev.client, config.TopicConsumption+strconv.Itoa(ev.device.Device.ID), strconv.FormatFloat(toCharge,
