@@ -158,8 +158,6 @@ func (res *DeviceServiceImpl) GetTotalOnlineOfflineHours(dto dtos.ActionGraphReq
 		}
 		return totalOnlineDuration, float64(passedTime)*(-1) - totalOnlineDuration
 	} else {
-		// TODO:
-		fmt.Println("Not implemented yet")
 		totalHours := GetNumOfPassedHours(ParseDate(dto.StartDate), ParseDate(dto.EndDate))
 		return totalOnlineDuration, totalHours - totalOnlineDuration
 	}
@@ -173,24 +171,36 @@ func (res *DeviceServiceImpl) getAvailabilityPerHour(online, offline []time.Time
 		startHour := online[i].Truncate(time.Hour)
 		stopHour := offline[i].Truncate(time.Hour)
 
-		for currentHour := startHour; currentHour.Before(stopHour); currentHour = currentHour.Add(time.Hour) {
-			nextHour := currentHour.Add(time.Hour)
-			if nextHour.After(stopHour) {
-				nextHour = stopHour // this is why if hoursOnline > 1 ... is needed
-			}
+		flag := false
+		if (online[i].Day() != offline[i].Day()) || (online[i].Month() != offline[i].Month()) {
+			flag = true
+		}
 
-			durationOnline := nextHour.Sub(online[i])
-			hoursOnline := durationOnline.Hours()
-			if hoursOnline > 1 {
-				hoursOnline = 1 // because in one hour, online time can't be greater than hour
+		if (online[i].Hour() != offline[i].Hour()) || flag {
+			for currentHour := startHour; currentHour.Before(stopHour); currentHour = currentHour.Add(time.Hour) {
+				nextHour := currentHour.Add(time.Hour)
+				if nextHour.After(stopHour) {
+					nextHour = stopHour // this is why 'if totalDurationPerHour[...] > 1' ... is needed
+				}
+
+				durationOnline := nextHour.Sub(online[i])
+				hoursOnline := durationOnline.Hours()
+				totalDurationPerHour[currentHour] += hoursOnline
+				if totalDurationPerHour[currentHour] > 1 {
+					totalDurationPerHour[currentHour] = 1
+				}
 			}
-			totalDurationPerHour[currentHour] += hoursOnline
+		} else {
+			startTime := max(online[i], offline[i])
+			endTime := min(offline[i], online[i])
+			durationOnline := max(endTime, startTime).Sub(min(online[i], offline[i]))
+			totalDurationPerHour[startHour] += durationOnline.Hours()
 		}
 	}
 
-	for hour, totalOnlineTime := range totalDurationPerHour {
-		fmt.Printf("Hour: %v, Total Online Time: %.2f\n", hour.Format("2006-01-02 15:04:05"), totalOnlineTime)
-	}
+	//for hour, totalOnlineTime := range totalDurationPerHour {
+	//	fmt.Printf("Hour: %v, Total Online Time: %.2f\n", hour.Format("2006-01-02 15:04:05"), totalOnlineTime)
+	//}
 
 	return totalDurationPerHour
 }
@@ -223,6 +233,7 @@ func (res *DeviceServiceImpl) getAvailabilityPerDay(online, offline []time.Time)
 		if stopDate.After(startDate) {
 			if GetNumOfPassedDays(online[i], offline[offlineInd]) > 1 {
 				// TODO: won't work for every case (offline more than 1 day after)
+				// problem is our data in influx is not right
 				continue
 			}
 			// total time for first date
@@ -282,4 +293,19 @@ func ParseDate(date string) time.Time {
 		return time.Time{}
 	}
 	return parsedDate
+}
+
+func max(a, b time.Time) time.Time {
+	if a.After(b) {
+		return a
+	}
+	return b
+}
+
+// Utility function to find the minimum of two times
+func min(a, b time.Time) time.Time {
+	if a.Before(b) {
+		return a
+	}
+	return b
 }

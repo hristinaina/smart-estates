@@ -93,7 +93,7 @@ func (dc DeviceController) GetAvailability(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "Invalid JSON"})
 		return
 	}
-	dc.service.GetAvailability(deviceDTO)
+	res := dc.service.GetAvailability(deviceDTO)
 
-	c.JSON(200, "ok")
+	c.JSON(200, res)
 }
