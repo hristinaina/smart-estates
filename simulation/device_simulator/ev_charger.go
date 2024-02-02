@@ -72,6 +72,7 @@ func NewEVChargerSimulator(client mqtt.Client, device models.Device) *EVChargerS
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println(percentage)
 	return &EVChargerSimulator{
 		client:                client,
 		device:                ev,

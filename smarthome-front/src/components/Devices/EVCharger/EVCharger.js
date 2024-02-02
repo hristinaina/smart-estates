@@ -12,6 +12,7 @@ import './EVCharger.css'
 import { Snackbar } from "@mui/material";
 import SolarPanelService from '../../../services/SolarPanelService';
 import EVChargerService from '../../../services/EVChargerService';
+import TableOfActions from './TableOfActions';
 
 // todo prepraviti na tabelu umjesto grafa i uzimanje mejla kao sto je Tasija uradila
 export class EVCharger extends Component {
@@ -23,7 +24,7 @@ export class EVCharger extends Component {
             device: {},
             data: [],  //za tabelu
             connectionData: [],  // lista objekata car-simulation
-            email: '',
+            emailInput: '',
             startDate: '',
             endDate: '',
             inputPercentage: 90,
@@ -34,6 +35,7 @@ export class EVCharger extends Component {
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
         this.Name = "";
+        this.email = "";
     }
 
     async componentDidMount() {
@@ -50,15 +52,16 @@ export class EVCharger extends Component {
         const percentage = await EVChargerService.getLastPercentage(this.id);
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
-        const historyData = await SolarPanelService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
-
+        this.email =  user.Email;
+        const historyData = await EVChargerService.getTableActions(this.id, user.Email, "2023-12-12", "2024-02-07");
+        //todo change this upper method
         this.setState({
             device: device,
             connectionData: connectionData,
             data: historyData,
-            email: user.Email,
+            emailInput: user.Email,
             startDate: "2023-12-12",
-            endDate: "2023-12-23",
+            endDate: "2024-02-07",
             inputPercentage: parseInt(percentage *100),
         });
 
@@ -112,10 +115,15 @@ export class EVCharger extends Component {
 
     handleFormSubmit = async (e) => {
         e.preventDefault();
+        const { emailInput, startDate, endDate } = this.state;
+        console.log(emailInput, startDate, endDate);
+        if(new Date(startDate) > new Date(endDate)) {
+            this.setState({ snackbarMessage: "Start date must be before end date" });
+            this.handleClick();
+            return 
+        }
 
-        const { email, startDate, endDate } = this.state;
-        console.log(email, startDate, endDate);
-        const historyData = await SolarPanelService.getSPGraphData(this.id, email, startDate, endDate);
+        const historyData = await EVChargerService.getTableActions(this.id, emailInput, startDate, endDate);
         this.setState({
             data: historyData,
         });
@@ -161,7 +169,7 @@ export class EVCharger extends Component {
     };
 
     render() {
-        const { device, data, email, startDate, endDate, inputPercentage, connectionData } = this.state;
+        const { device, data, emailInput, startDate, endDate, inputPercentage, connectionData } = this.state;
         const connectionsArray = Array.from({ length: device.Connections }, (_, index) => index + 1);
         console.log(connectionData);
         return (
@@ -214,7 +222,14 @@ export class EVCharger extends Component {
                         <form onSubmit={this.handleFormSubmit} className='sp-container'>
                             <label>
                                 Email:
-                                <TextField style={{ backgroundColor: "white" }} type="text" value={email} onChange={(e) => this.setState({ email: e.target.value })} />
+                                <select style={{width: "200px", cursor: "pointer"}}
+                                    className="new-real-estate-select"
+                                    value={emailInput}
+                                    onChange={(e) => this.setState({ emailInput: e.target.value })}>
+                                    <option value={this.email}>{ this.email }</option>
+                                    <option value="auto">auto</option>
+                                    <option value="all">all</option>
+                                </select>
                             </label>
                             <br />
                             <label>
@@ -229,7 +244,7 @@ export class EVCharger extends Component {
                             <br />
                             <Button type="submit" id='sp-data-button'>Fetch Data</Button>
                         </form>
-                        <SPGraph data={data} />
+                        <TableOfActions logData={data} />
                     </div>
                 </div>
                 <Snackbar

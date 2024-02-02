@@ -127,7 +127,7 @@ func GetLastPercentage(id int) (float64, error) {
 	var lastPercentage float64
 	err = json.NewDecoder(response.Body).Decode(&lastPercentage)
 	if err != nil {
-		return 0.0, fmt.Errorf("error decoding JSON: %v", err)
+		return 0.9, fmt.Errorf("error decoding JSON: %v", err)
 	}
 
 	return math.Round(lastPercentage*100) / 100, nil

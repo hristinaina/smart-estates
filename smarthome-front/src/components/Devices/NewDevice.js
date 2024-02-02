@@ -23,7 +23,7 @@ export class NewDevice extends Component {
             acModes: [],
             specialModes: [],
             batterySize: 13,
-            chargingPower: 2.3,
+            chargingPower: 7,
             connections: 1,
             selectedPowerSupply: 0,
             efficiency: 20,
@@ -526,7 +526,7 @@ export class NewDevice extends Component {
                                     value={this.state.chargingPower}
                                     onChange={this.handleChargingPower}
                                 />
-                                <p className="new-real-estate-label">Number of connections:</p>
+                                <p className="new-real-estate-label">Number of plugs:</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"

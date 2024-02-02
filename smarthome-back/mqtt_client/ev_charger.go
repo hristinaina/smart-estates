@@ -11,7 +11,6 @@ import (
 	"time"
 )
 
-// todo add topic subscription and this method should be a handler
 func (mc *MQTTClient) HandleInputPercentageChange(client mqtt.Client, msg mqtt.Message) {
 	// Retrieve the last part of the split string, which is the device ID
 	parts := strings.Split(msg.Topic(), "/")
@@ -27,6 +26,7 @@ func (mc *MQTTClient) HandleInputPercentageChange(client mqtt.Client, msg mqtt.M
 		fmt.Println("Error unmarshaling JSON:", err)
 		return
 	}
+	fmt.Println(data.Email)
 	saveActionToInflux(mc.influxDb, deviceId, data.Email, "percentageChange", -1, data.CurrentCapacity)
 }
 

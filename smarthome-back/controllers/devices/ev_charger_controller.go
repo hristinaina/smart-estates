@@ -6,6 +6,7 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
 	"smarthome-back/controllers"
+	"smarthome-back/dtos"
 	"smarthome-back/services/devices/energetic"
 	"strconv"
 )
@@ -38,4 +39,15 @@ func (uc EVChargerController) GetLastPercentage(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, lastPercentage)
+}
+
+func (uc EVChargerController) GetHistoryActions(c *gin.Context) {
+	var data dtos.ActionGraphRequest
+	// convert json object to model device
+	if err := c.BindJSON(&data); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid JSON"})
+		return
+	}
+	results, _ := uc.service.GetHistoryActions(data)
+	c.JSON(http.StatusOK, gin.H{"result": results})
 }
