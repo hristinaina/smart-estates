@@ -149,7 +149,7 @@ export class Devices extends Component {
         else if (device.Type === 'Battery storage')
             window.location.assign("/hb/" + device.Id)
         else if (device.Type === 'Electric vehicle charger')
-            window.location.assign("/lamp/" + device.Id)
+            window.location.assign("/ev-charger/" + device.Id)
     }
 
     extractDeviceIdFromTopic(topic) {

@@ -19,6 +19,7 @@ import { VehicleGate } from './components/Devices/VehicleGate/VehicleGate';
 import { GrantPermission } from './components/Permission/GrantPermission';
 import { WashingMachine } from './components/Devices/WashingMachine/WashingMachine';
 import { ElectricityOverview } from './components/Admin/ElectricityOverview';
+import { EVCharger } from './components/Devices/EVCharger/EVCharger';
 
 const AppRoutes = [
   {
@@ -104,6 +105,10 @@ const AppRoutes = [
   {
     path: "/consumption",
     element: <ElectricityOverview />
+  },
+  {
+    path: "/ev-charger/:id",
+    element: <EVCharger />
   },
 ];
 
