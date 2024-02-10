@@ -155,7 +155,7 @@ INSERT INTO user (Id, Email, Password, Name, Surname, Role)
 VALUES
     (1, 'nesa@gmail.com', '$2a$10$/fbbLLHt7hEZpMq3rQiWz.oF6cJRRNdO5Vek/NIGzAIyJp99jebrO', 'Nenad', 'Peric', 0),
     (2, 'nata@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Natasa', 'Maric', 1),
-    (3, 'anastasijas557@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Anastasija', 'Savic', 1);
+    (3, 'anastasijas557@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Anastasija', 'Savic', 1),
     (4, 'kvucic6@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Kata', 'Vu', 1);
 
 INSERT INTO realestate (Id, Name, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId, DiscardReason)
@@ -207,10 +207,10 @@ VALUES
 
 INSERT INTO machineMode (Id, Name, Duration, Temp)
 VALUES
-    (1, "Cotton", 120, "60°C"),
-    (2, "Synthetic", 60, "40°C"),
-    (3, "Quick", 30, "30°C"),
-    (4, "Delicate", 90, "30°C");
+    (1, 'Cotton', 120, '60°C'),
+    (2, 'Synthetic', 60, '40°C'),
+    (3, 'Quick', 30, '30°C'),
+    (4, 'Delicate', 90, '30°C');
 
 INSERT INTO machineScheduledMode (Id, DeviceId, StartTime, ModeId)
 VALUES
