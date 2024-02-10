@@ -27,6 +27,7 @@ export class Sprinkler extends Component {
             open: false,
             snackbarMessage: '',
             showSnackbar: false,
+            username: '',
         };
         this.id = parseInt(this.extractDeviceIdFromUrl());
         this.mqttClient = null;
@@ -34,7 +35,7 @@ export class Sprinkler extends Component {
 
     async componentDidMount() {
         const user = authService.getCurrentUser();
-        await this.setState({email: user.Email});   
+        await this.setState({email: user.Email, username: user.Name + " " + user.Surname});   
         const res = await SprinklerService.getSpecialModes(this.id);
         if (res !== null) {
             let specials = [];
@@ -126,14 +127,21 @@ export class Sprinkler extends Component {
     handleFormSubmit = async(e) => {
         e.preventDefault();
 
-        const { email, startDate, endDate, pickedValue } = this.state;
+        let { email, startDate, endDate, pickedValue } = this.state;
         if(new Date(startDate) > new Date(endDate)) {
             this.setState({ snackbarMessage: "Start date must be before end date" });
             this.handleClick();
             return 
         }
-
+        if (pickedValue == ''){
+            pickedValue = email;
+        }
         const logData = await SprinklerService.getHistoryData(this.id, pickedValue, startDate, endDate);
+        for (const timestamp in logData.result) {
+            if (logData.result[timestamp].User == this.state.email) {
+                logData.result[timestamp].User = this.state.username;
+            }
+        }
         // const data = this.setAction(logData.result)
         this.setState({
             logData: logData.result,
@@ -228,7 +236,7 @@ export class Sprinkler extends Component {
                                     className="new-real-estate-select"
                                     value={this.state.pickedValue}
                                     onChange={(e) => this.setState({ pickedValue: e.target.value })}>
-                                    <option value={this.state.email}>{ this.state.email }</option>
+                                    <option value={this.state.email}>{ this.state.username }</option>
                                     <option value="auto">auto</option>
                                     <option value="none">none</option>
                                 </select>
@@ -244,7 +252,7 @@ export class Sprinkler extends Component {
                             <br />
                             <Button type="submit" id='sp-data-button'>Filter</Button>
                             </form>
-                            <LogTable logData={this.state.logData} />
+                            <LogTable logData={this.state.logData} hide={true}/>
                         </div>
                     </div>
                 <Snackbar
