@@ -166,4 +166,19 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		evChargerRoutes.GET("/lastPercentage/:id", evChargerController.GetLastPercentage)
 		evChargerRoutes.PUT("/actions", middleware.RequireAuth, evChargerController.GetHistoryActions)
 	}
+	SprinklerRoutes := r.Group("api/sprinkler")
+	{
+		middleware := middleware.NewMiddleware(db)
+		sprinklerController := devicesController.NewSprinklerController(db, influxDb, mqtt)
+		SprinklerRoutes.GET("/:id", sprinklerController.Get)
+		SprinklerRoutes.GET("/", sprinklerController.GetAll)
+		SprinklerRoutes.PUT("/:id/on", middleware.RequireAuth, sprinklerController.TurnOn)
+		SprinklerRoutes.PUT("/:id/off", middleware.RequireAuth, sprinklerController.TurnOff)
+		SprinklerRoutes.DELETE("/:id", sprinklerController.Delete)
+		SprinklerRoutes.POST("/mode/:id", sprinklerController.AddSpecialMode)
+		SprinklerRoutes.GET("/mode/:id", sprinklerController.GetSpecialModes)
+		SprinklerRoutes.DELETE("/mode/:id", sprinklerController.DeleteSpecialMode)
+		SprinklerRoutes.GET("/mode/one/:id", sprinklerController.GetSpecialMode)
+		SprinklerRoutes.PUT("/history", middleware.RequireAuth, sprinklerController.GetHistoryData)
+	}
 }

@@ -82,6 +82,21 @@ CREATE TABLE machineScheduledMode (
     FOREIGN KEY (ModeId) REFERENCES machineMode(Id)
 );
 
+CREATE TABLE sprinkler (
+    DeviceId INT PRIMARY KEY,
+    IsOn BOOL,
+    FOREIGN KEY (DeviceId) REFERENCES consumptiondevice(DeviceId)
+);
+
+CREATE TABLE sprinklerSpecialMode(
+    Id INT PRIMARY KEY AUTO_INCREMENT,
+    DeviceId INT NOT NULL,
+    StartTime TIME NOT NULL,
+    EndTiME TIME NOT NULL,
+    SelectedDays VARCHAR(255) NOT NULL,
+    FOREIGN KEY (DeviceId) REFERENCES sprinkler(DeviceId)
+);
+
 CREATE TABLE evCharger (
     DeviceId INT PRIMARY KEY,
     ChargingPower DOUBLE NOT NULL,
@@ -141,6 +156,7 @@ VALUES
     (1, 'nesa@gmail.com', '$2a$10$/fbbLLHt7hEZpMq3rQiWz.oF6cJRRNdO5Vek/NIGzAIyJp99jebrO', 'Nenad', 'Peric', 0),
     (2, 'nata@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Natasa', 'Maric', 1),
     (3, 'anastasijas557@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Anastasija', 'Savic', 1);
+    (4, 'kvucic6@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Kata', 'Vu', 1);
 
 INSERT INTO realestate (Id, Name, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId, DiscardReason)
 VALUES
@@ -162,7 +178,8 @@ VALUES
 	(7, 'Lampica u sobici', 3, 1, false, '2023-12-06 15:30:00', -1),
     (8, 'Lampetina', 3, 1, false, '2023-12-06 15:30:00', -1),
     (9, 'Kapijica', 4, 1, false, '2023-12-06 15:30:00', -1),
-    (10, 'Kapijetina', 4, 1, false, '2023-12-06 15:30:00', -1);
+    (10, 'Kapijetina', 4, 1, false, '2023-12-06 15:30:00', -1),
+    (11, 'Prskalica', 5, 1, false, '2024-01-29 15:30:00', -1);
 
 
 INSERT INTO consumptionDevice (DeviceId, PowerSupply, PowerConsumption)
@@ -173,7 +190,8 @@ VALUES
 	(7, 0, 50),
     (8, 1, 75),
     (9, 1, 223),
-    (10, 0, 0);
+    (10, 0, 0),
+    (11, 0, 0);
 
 INSERT INTO airConditioner (DeviceId, MinTemperature, MaxTemperature, Mode)
 VALUES
@@ -198,6 +216,13 @@ INSERT INTO machineScheduledMode (Id, DeviceId, StartTime, ModeId)
 VALUES
     (1, 1, '2023-12-06 15:30:00', 1),
     (2, 1, '2024-01-28 23:00:00', 1);
+INSERT INTO sprinkler (DeviceId, IsOn)
+VALUES
+    (11, false);
+
+INSERT INTO sprinklerSpecialMode (Id, DeviceId, StartTime, EndTime, SelectedDays)
+VALUES
+    (1, 11, '08:00:00', '10:00:00', 'Thursday,Sunday');
 
 INSERT INTO evCharger (DeviceId, ChargingPower, Connections)
 VALUES

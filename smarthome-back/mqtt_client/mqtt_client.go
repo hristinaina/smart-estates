@@ -32,6 +32,8 @@ const (
 	TopicEVCStart      = "ev/start/"
 	TopicEVCEnd        = "ev/end/"
 	TopicEVCPercentage = "ev/percentage/"
+	TurnSprinklerON    = "sprinkler/on/"
+	TurnSprinklerOFF   = "sprinkler/off/"
 )
 
 type MQTTClient struct {
@@ -44,6 +46,7 @@ type MQTTClient struct {
 	homeBatteryRepository repositories2.HomeBatteryRepository
 	vehicleGateRepository repositories2.VehicleGateRepository
 	evChargerRepository   repositories2.EVChargerRepository
+	sprinkleRepository    repositories2.SprinklerRepository
 }
 
 func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
@@ -64,6 +67,7 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 		realEstateRepository:  *repositories.NewRealEstateRepository(db),
 		vehicleGateRepository: repositories2.NewVehicleGateRepository(db, influxDb),
 		evChargerRepository:   repositories2.NewEVChargerRepository(db),
+		sprinkleRepository:    repositories2.NewSprinklerRepository(db, influxDb),
 		influxDb:              influxDb,
 	}
 }
@@ -81,6 +85,8 @@ func (mc *MQTTClient) StartListening() {
 	mc.SubscribeToTopic(TopicEVCStart+"+", mc.HandleAutoActionsForCharger)
 	mc.SubscribeToTopic(TopicEVCEnd+"+", mc.HandleAutoActionsForCharger)
 	mc.SubscribeToTopic(TopicEVCPercentage+"+", mc.HandleInputPercentageChange)
+	mc.SubscribeToTopic(TurnSprinklerON+"+", mc.HandleSprinklerMessage)
+	mc.SubscribeToTopic(TurnSprinklerOFF+"+", mc.HandleSprinklerOffMessage)
 	//todo subscribe here to other topics. Create your callback functions in other file
 
 	mc.StartDeviceStatusThread()

@@ -143,7 +143,7 @@ export class Devices extends Component {
         else if (device.Type === 'Vehicle gate')
             window.location.assign("/vehicle-gate/" + device.Id)
         else if (device.Type === 'Sprinkler')
-            window.location.assign("/lamp/" + device.Id)
+            window.location.assign("/sprinkler/" + device.Id)
         else if (device.Type === 'Solar panel')
             window.location.assign("/sp/" + device.Id)
         else if (device.Type === 'Battery storage')
@@ -207,6 +207,7 @@ const DevicesList = ({ devices, deviceImages, onClick, connecting }) => {
                                 alt='device'
                                 src={deviceImages[device.Id]}
                                 className='device-img'
+                                style={{ width: '100%', height: '300px' }}
                             />
                             <div className='device-info'>
                                 <p className='device-title'>{device.Name}</p>

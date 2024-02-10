@@ -203,6 +203,23 @@ func (dto *DeviceDTO) ToSpecialMode() []inside.SpecialMode {
 	return result
 }
 
+func (dto *DeviceDTO) ToSprinkler() m.Sprinkler {
+	return m.Sprinkler{
+		ConsumptionDevice: models.ConsumptionDevice{
+			Device: models.Device{
+				Id:         dto.Id,
+				Name:       dto.Name,
+				Type:       dto.Type,
+				RealEstate: dto.RealEstate,
+				IsOnline:   dto.IsOnline,
+			},
+			PowerSupply:      dto.PowerSupply,
+			PowerConsumption: dto.PowerConsumption,
+		},
+		IsOn: false,
+	}
+}
+
 func (dto *DeviceDTO) ToString() string {
 	return "[Device] = Name: " + dto.Name
 }

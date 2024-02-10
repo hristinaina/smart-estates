@@ -1,0 +1,8 @@
+#special-mode {
+    margin-top: 2em;
+    font-weight: bold;
+}
+
+#special-mode:hover {
+    cursor: pointer;
+}
