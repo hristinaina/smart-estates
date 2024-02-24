@@ -13,6 +13,7 @@ import LampService from '../../services/LampService';
 import CustomDateRangeDialog from '../Dialog/CustomDateRangeDialog';
 import { containerClasses } from '@mui/material';
 import DeviceService from '../../services/DeviceService';
+import DeviceHeader from './DeviceHeader/DeviceHeader';
 
 
 export class Lamp extends Component {
@@ -226,8 +227,7 @@ export class Lamp extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
-                <p id='device-name'>{this.state.device.Name}</p>
+                <DeviceHeader handleBackArrow={this.handleBackArrow} name={this.state.device.Name}/>
                 <div className='sp-container'>
                     <div id='sp-left-card'>
                         <p className='sp-card-title' style={{marginTop:"3.5em"}}>Id: {this.id}</p>
