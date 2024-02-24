@@ -9,6 +9,7 @@ import DeviceService from '../../../services/DeviceService';
 import LogTable from './LogTable';
 import PieChart from './PieChart';
 import SpecialModeForm from './SpecialModeForm';
+import DeviceHeader from '../DeviceHeader/DeviceHeader';
 
 
 export class AirConditioner extends Component {
@@ -262,7 +263,6 @@ export class AirConditioner extends Component {
                 currentTemp: result.temp
             });
             if(result.mode != null) {
-                console.log("ovde saaaaaaaaaaam")
                 this.handleScheduledToggle({
                     name: result.mode,
                     switchOn: !result.switch,
@@ -338,8 +338,7 @@ export class AirConditioner extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' alt='arrow' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
-                <span className='estate-title'>{this.Name}</span>
+                <DeviceHeader handleBackArrow={this.handleBackArrow} name={this.Name} />
                 <div className='sp-container'>
                     <div id="ac-left-card">
                         <p className='sp-card-title'>Supported Modes</p>

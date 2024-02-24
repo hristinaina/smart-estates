@@ -14,6 +14,7 @@ import { Button } from 'reactstrap';
 import './SolarPanel.css'
 import { Snackbar } from "@mui/material";
 import SolarPanelService from '../../../services/SolarPanelService';
+import DeviceHeader from '../DeviceHeader/DeviceHeader';
 
 
 export class SolarPanel extends Component {
@@ -165,8 +166,7 @@ export class SolarPanel extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
-                <span className='estate-title'>{this.Name}</span>
+                <DeviceHeader handleBackArrow={this.handleBackArrow} name={this.Name} />
                 <div className='sp-container'>
                     <div id="sp-left-card">
                         <p className='sp-card-title'>Device Data</p>

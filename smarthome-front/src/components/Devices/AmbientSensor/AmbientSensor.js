@@ -11,6 +11,7 @@ import { Autocomplete, TextField, Button, IconButton, Snackbar } from '@mui/mate
 import CloseIcon from '@mui/icons-material/Close';
 import DeviceService from '../../../services/DeviceService';
 import SensorDataTable from './SensorDataTable';
+import DeviceHeader from '../DeviceHeader/DeviceHeader';
 
 
 export class AmbientSensor extends Component {
@@ -298,9 +299,8 @@ export class AmbientSensor extends Component {
         return (
             <div>
                 <Navigation />
-                <div style={{marginRight: "250px"}}>
-                <img src='/images/arrow.png' id='arrow' alt='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer"}} onClick={this.handleBackArrow} />
-                <span className='ambient-sensor-title'>{this.Name}</span>
+                <div>
+                <DeviceHeader handleBackArrow={this.handleBackArrow} name={this.Name} />
                 </div>
                 
     

@@ -9,7 +9,8 @@ import AmbientSensorService from '../../../services/AmbientSensorService';
 import { Autocomplete, TextField, Button, Box, Grid, IconButton, Snackbar } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import HomeBatteryService from '../../../services/HomeBatteryService';
-import "./HomeBattery.css"
+import "./HomeBattery.css";
+import DeviceHeader from '../DeviceHeader/DeviceHeader';
 
 
 export class HomeBattery extends Component {
@@ -230,8 +231,7 @@ export class HomeBattery extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
-                <span className='estate-title'>{this.Name}</span>
+                <DeviceHeader handleBackArrow={this.handleBackArrow} name={this.Name} />
                 <div className='sp-container'>
                     <div id="sp-left-card">
                         <p className='sp-card-title'>Device Data</p>
