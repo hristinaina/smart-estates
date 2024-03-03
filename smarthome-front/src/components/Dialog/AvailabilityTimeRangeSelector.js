@@ -4,13 +4,14 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'; 
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { Line } from "react-chartjs-2";
+import DeviceAvailabilityService from '../../services/DeviceAvailabilityService';
 
 
 const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
     const [selectedTimeRange, setSelectedTimeRange] = useState({
         startTime: '',
         endTime: '',
-        lastXitem: [],
+        lastXitem: null,
     });
 
     const [isGraphVisible, setIsGraphVisible] = useState(false);
@@ -27,6 +28,11 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
           },
         ],
       };
+
+    const getDeviceId = () => {
+        const parts = window.location.href.split('/');
+        return parseInt(parts[parts.length - 1], 10);
+    }
 
     // fn to handle changes in the input fields
     const handleTimeRangeChange = (field, value) => {
@@ -48,7 +54,14 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
         setIsGraphVisible(false);
     };
 
-    const confirm = () => {
+    const confirm = async() => {
+        // TODO: communication with backend
+        console.log("Selected value:", selectedTimeRange.lastXitem);
+
+        let data = await DeviceAvailabilityService.get(getDeviceId(), "-" + selectedTimeRange.lastXitem, "-1");
+        console.log("DATAAAAAA");
+        console.log(data);
+
         setIsGraphVisible(true);
     };
 
@@ -83,16 +96,14 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
                             
                             <div>
                                 <p><b>OR</b> choose predefined time range:</p>
-                                {[6, 12, 24, '1w', '1m'].map(item => (
+                                {['6h', '12h', '24h', '1w', '1m'].map(item => (
                                     <label key={item} style={{marginRight: '10px'}}>
                                         <input
-                                            type="checkbox"
-                                            checked={selectedTimeRange.lastXitem.includes(item)}
-                                            onChange={() => handleLastXitemChange(
-                                                selectedTimeRange.lastXitem.includes(item)
-                                                    ? selectedTimeRange.lastXitem.filter(h => h !== item)
-                                                    : [...selectedTimeRange.lastXitem, item]
-                                            )}
+                                            type="radio"
+                                            name='lastXitem'
+                                            checked={selectedTimeRange.lastXitem === item}
+                                            onChange={() => handleLastXitemChange(item)
+                                            }
                                         />
                                         {typeof item === 'number' ? `${item}h` : item}
                                     </label>

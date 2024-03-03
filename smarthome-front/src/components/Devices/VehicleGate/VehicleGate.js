@@ -80,8 +80,6 @@ export class VehicleGate extends Component {
                         keepalive: 60
                 });
                 this.mqttClient.on('connect', () => {
-                    console.log("iddddd");
-                    console.log(this.id);
                     this.mqttClient.subscribe('vg/open/' + this.id);
                 });
     

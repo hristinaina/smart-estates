@@ -125,8 +125,6 @@ class VehicleGateService {
 
     addNewGraphData(graphType, oldData, newData) {
             // license plate entries count graph
-            console.log("dataaaa");
-            console.log(oldData);
             if (!this.checkDates(newData["start_date"], newData["end_date"])) {
                 return oldData;
             }
