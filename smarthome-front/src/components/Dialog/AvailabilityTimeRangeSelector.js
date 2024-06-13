@@ -18,11 +18,11 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
     const [isGraphVisible, setIsGraphVisible] = useState(false);
 
     const [chartData, setChartData] = useState({
-        labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+        labels: [],
         datasets: [
             {
                 label: 'Device availability',
-                data: [65, 59, 80, 81, 56, 55, 40],
+                data: [],
                 fill: false,
                 borderColor: 'rgba(75,192,192,1)',
                 borderWidth: 2,
@@ -64,28 +64,22 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
     };
 
     const goBack = () => {
+        handleTimeRangeChange("startTime", '');
+        handleTimeRangeChange("endTime", '');
         setIsGraphVisible(false);
     };
 
     const confirm = async() => {
-        // TODO: communication with backend
-        console.log("Selected value:", selectedTimeRange.lastXitem);
-        console.log(selectedTimeRange.startTime);
-        console.log(selectedTimeRange.endTime);
-
-        if ((selectedTimeRange.startTime == '') || (selectedTimeRange.endTime == '')) {
+        if ((selectedTimeRange.startTime === null || selectedTimeRange.startTime === '') || 
+        (selectedTimeRange.endTime === null || selectedTimeRange.endTime === '')) {
             let data = await DeviceAvailabilityService.get(getDeviceId(), "-" + selectedTimeRange.lastXitem, "-1");
-            console.log("DATAAAAAA");
-            console.log(data);
-            console.log(Object.keys(data));
-            fetchNewData(Object.keys(data), Object.values(data));
+            let labels = formatLables(Object.keys(data));
+            fetchNewData(labels, Object.values(data));
         } else {
             let data = await DeviceAvailabilityService.get(getDeviceId(), selectedTimeRange.startTime.toISOString(), 
                                                            selectedTimeRange.endTime.toISOString());
-            console.log("DATAAAAAA");
-            console.log(data);
-            handleTimeRangeChange("startTime", "");
-            handleTimeRangeChange("endTime", "");
+            let labels = formatLables(Object.keys(data));
+            fetchNewData(labels, Object.values(data));
         }
 
 
@@ -96,6 +90,16 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
         setIsGraphVisible(false);
         onCancel();
     }
+
+    const formatLables = (labels) => {
+        let formattedLabels = [];
+        Object.keys(labels).forEach(element => {
+            console.log("ELEMENT " + labels[element]);
+            const date = new Date(labels[element]);
+            formattedLabels.push(format(date, "dd.MM.yyyy. hh:mm a"));
+        });
+        return formattedLabels;
+    } 
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -148,9 +152,22 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
                     {isGraphVisible && (
                         <div id="dialog" >
                             <p id="dialog-title">Availability graph</p>
-                            <div>
-                                <p id='dialog-message'>Start Date: {format(selectedTimeRange.startTime, 'MMMM do, yyyy')}</p>
-                                <p id='dialog-message'>End Date: {format(selectedTimeRange.endTime, 'MMMM do, yyyy')}</p>
+                            <div> 
+                                {((selectedTimeRange.startTime === null || selectedTimeRange.startTime === '') || 
+                                (selectedTimeRange.endTime === null || selectedTimeRange.endTime === '')) ? (
+                                    <p>
+                                        {selectedTimeRange.lastXitem === null ? (
+                                            <span>No time data chosen. Go back and choose time.</span>
+                                        ) : (
+                                            <span>In the last: {selectedTimeRange.lastXitem}</span>
+                                        )}
+                                    </p>
+                                ) : (
+                                <React.Fragment>
+                                    <p id='dialog-message'>Start Date: {format(selectedTimeRange.startTime, 'MMMM do, yyyy')}</p>
+                                    <p id='dialog-message'>End Date: {format(selectedTimeRange.endTime, 'MMMM do, yyyy')}</p>
+                                </React.Fragment>
+                                )}
                             </div>
                             <div style={{ width: '800px', height: '400px' }}>
                             <Line data={chartData}/>
