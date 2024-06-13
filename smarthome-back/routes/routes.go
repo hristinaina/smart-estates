@@ -99,7 +99,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 
 	lampRoutes := r.Group("api/lamp")
 	{
-		lampController := devicesController.NewLampController(db, influxDb)
+		lampController := devicesController.NewLampController(db, influxDb, cacheService)
 		lampRoutes.GET("/:id", lampController.Get)
 		lampRoutes.GET("/", lampController.GetAll)
 		lampRoutes.PUT("/on/:id", lampController.TurnOn)
@@ -112,7 +112,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 
 	vehicleGateRoutes := r.Group("api/vehicle-gate")
 	{
-		vehicleGateController := devicesController.NewVehicleGateController(db, influxDb)
+		vehicleGateController := devicesController.NewVehicleGateController(db, influxDb, cacheService)
 		vehicleGateRoutes.GET("/:id", vehicleGateController.Get)
 		vehicleGateRoutes.GET("/", vehicleGateController.GetAll)
 		vehicleGateRoutes.PUT("/open/:id", vehicleGateController.Open)
@@ -170,7 +170,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	SprinklerRoutes := r.Group("api/sprinkler")
 	{
 		middleware := middleware.NewMiddleware(db, cacheService)
-		sprinklerController := devicesController.NewSprinklerController(db, influxDb, mqtt)
+		sprinklerController := devicesController.NewSprinklerController(db, influxDb, mqtt, cacheService)
 		SprinklerRoutes.GET("/:id", sprinklerController.Get)
 		SprinklerRoutes.GET("/", sprinklerController.GetAll)
 		SprinklerRoutes.PUT("/:id/on", middleware.RequireAuth, sprinklerController.TurnOn)

@@ -3,12 +3,14 @@ package outside
 import (
 	"database/sql"
 	"fmt"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"log"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices/outside"
 	repositories "smarthome-back/repositories/devices"
 	"sort"
+
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type LampService interface {
@@ -28,8 +30,8 @@ type LampServiceImpl struct {
 	repository repositories.LampRepository
 }
 
-func NewLampService(db *sql.DB, influxDb influxdb2.Client) LampService {
-	return &LampServiceImpl{db: db, repository: repositories.NewLampRepository(db, influxDb)}
+func NewLampService(db *sql.DB, influxDb influxdb2.Client, cacheService cache.CacheService) LampService {
+	return &LampServiceImpl{db: db, repository: repositories.NewLampRepository(db, influxDb, cacheService)}
 }
 
 func (ls *LampServiceImpl) Get(id int) (models.Lamp, error) {

@@ -64,12 +64,12 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client, cacheService *cache.Ca
 		client:                client,
 		deviceRepository:      repositories2.NewDeviceRepository(db, cacheService),
 		solarPanelRepository:  repositories2.NewSolarPanelRepository(db),
-		lampRepository:        repositories2.NewLampRepository(db, influxDb),
+		lampRepository:        repositories2.NewLampRepository(db, influxDb, *cacheService),
 		homeBatteryRepository: repositories2.NewHomeBatteryRepository(db),
 		realEstateRepository:  *repositories.NewRealEstateRepository(db, cacheService),
-		vehicleGateRepository: repositories2.NewVehicleGateRepository(db, influxDb),
+		vehicleGateRepository: repositories2.NewVehicleGateRepository(db, influxDb, *cacheService),
 		evChargerRepository:   repositories2.NewEVChargerRepository(db),
-		sprinkleRepository:    repositories2.NewSprinklerRepository(db, influxDb),
+		sprinkleRepository:    repositories2.NewSprinklerRepository(db, influxDb, *cacheService),
 		influxDb:              influxDb,
 	}
 }
