@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/controllers"
 	"smarthome-back/dtos"
 	"smarthome-back/mqtt_client"
@@ -17,8 +18,8 @@ type WashingMachineController struct {
 	mqtt    *mqtt_client.MQTTClient
 }
 
-func NewWashingMachineController(db *sql.DB, mqtt *mqtt_client.MQTTClient) WashingMachineController {
-	return WashingMachineController{service: inside.NewWashingMachineService(db), mqtt: mqtt}
+func NewWashingMachineController(db *sql.DB, mqtt *mqtt_client.MQTTClient, cacheService cache.CacheService) WashingMachineController {
+	return WashingMachineController{service: inside.NewWashingMachineService(db, &cacheService), mqtt: mqtt}
 }
 
 func (uc WashingMachineController) Get(c *gin.Context) {

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/controllers"
 	"smarthome-back/dtos"
 	"smarthome-back/mqtt_client"
@@ -19,8 +20,8 @@ type AirConditionerController struct {
 	mqtt    *mqtt_client.MQTTClient
 }
 
-func NewAirConditionerController(db *sql.DB, mqtt *mqtt_client.MQTTClient) AirConditionerController {
-	return AirConditionerController{service: inside.NewAirConditionerService(db), mqtt: mqtt}
+func NewAirConditionerController(db *sql.DB, mqtt *mqtt_client.MQTTClient, cacheService cache.CacheService) AirConditionerController {
+	return AirConditionerController{service: inside.NewAirConditionerService(db, &cacheService), mqtt: mqtt}
 }
 
 func (uc AirConditionerController) Get(c *gin.Context) {

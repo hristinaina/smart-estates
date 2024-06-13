@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/controllers"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/services/devices/inside"
@@ -18,8 +19,8 @@ type AmbientSensorController struct {
 	mqtt    *mqtt_client.MQTTClient
 }
 
-func NewAmbientSensorController(db *sql.DB, mqtt *mqtt_client.MQTTClient) AmbientSensorController {
-	return AmbientSensorController{service: inside.NewAmbientSensorService(db), mqtt: mqtt}
+func NewAmbientSensorController(db *sql.DB, mqtt *mqtt_client.MQTTClient, cacheService cache.CacheService) AmbientSensorController {
+	return AmbientSensorController{service: inside.NewAmbientSensorService(db, &cacheService), mqtt: mqtt}
 }
 
 func (as AmbientSensorController) Get(c *gin.Context) {

@@ -3,6 +3,7 @@ package inside
 import (
 	"database/sql"
 	"fmt"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
 	"smarthome-back/models/devices/inside"
@@ -18,14 +19,22 @@ type WashingMachineService interface {
 }
 
 type WashingMachineServiceImpl struct {
-	db *sql.DB
+	db           *sql.DB
+	cacheService cache.CacheService
 }
 
-func NewWashingMachineService(db *sql.DB) WashingMachineService {
-	return &WashingMachineServiceImpl{db: db}
+func NewWashingMachineService(db *sql.DB, cacheService *cache.CacheService) WashingMachineService {
+	return &WashingMachineServiceImpl{db: db, cacheService: *cacheService}
 }
 
 func (s *WashingMachineServiceImpl) Get(id int) inside.WashingMachine {
+	cacheKey := fmt.Sprintf("wm_%d", id)
+
+	var wm inside.WashingMachine
+	if found, _ := s.cacheService.GetFromCache(cacheKey, &wm); found {
+		return wm
+	}
+
 	query := `
 		SELECT
 		Device.Id,
@@ -63,7 +72,6 @@ func (s *WashingMachineServiceImpl) Get(id int) inside.WashingMachine {
 	}
 	defer rows.Close()
 
-	var wm inside.WashingMachine
 	var device models.Device
 	var consDevice models.ConsumptionDevice
 
@@ -101,6 +109,12 @@ func (s *WashingMachineServiceImpl) Get(id int) inside.WashingMachine {
 
 		modes := s.findModeBasedOnName(modeNames.String)
 		wm.Mode = modes
+	}
+
+	if err := s.cacheService.SetToCache(cacheKey, wm); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
 	}
 
 	return wm

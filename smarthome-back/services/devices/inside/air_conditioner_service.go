@@ -3,6 +3,7 @@ package inside
 import (
 	"database/sql"
 	"fmt"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
 	"smarthome-back/models/devices/inside"
@@ -18,14 +19,22 @@ type AirConditionerService interface {
 }
 
 type AirConditionerServiceImpl struct {
-	db *sql.DB
+	db           *sql.DB
+	cacheService *cache.CacheService
 }
 
-func NewAirConditionerService(db *sql.DB) AirConditionerService {
-	return &AirConditionerServiceImpl{db: db}
+func NewAirConditionerService(db *sql.DB, cacheService *cache.CacheService) AirConditionerService {
+	return &AirConditionerServiceImpl{db: db, cacheService: cacheService}
 }
 
 func (s *AirConditionerServiceImpl) Get(id int) inside.AirConditioner {
+	cacheKey := fmt.Sprintf("ac_%d", id)
+
+	var ac inside.AirConditioner
+	if found, _ := s.cacheService.GetFromCache(cacheKey, &ac); found {
+		return ac
+	}
+
 	query := `
 		SELECT
 			Device.Id,
@@ -61,7 +70,6 @@ func (s *AirConditionerServiceImpl) Get(id int) inside.AirConditioner {
 	}
 	defer rows.Close()
 
-	var ac inside.AirConditioner
 	var device models.Device
 	var consDevice models.ConsumptionDevice
 	var specialModes []inside.SpecialMode
@@ -118,6 +126,12 @@ func (s *AirConditionerServiceImpl) Get(id int) inside.AirConditioner {
 	}
 
 	ac.SpecialMode = specialModes
+
+	if err := s.cacheService.SetToCache(cacheKey, ac); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
 
 	return ac
 }
