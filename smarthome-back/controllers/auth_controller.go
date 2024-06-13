@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 	"os"
+	"smarthome-back/cache"
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
@@ -21,8 +22,8 @@ type AuthController struct {
 	mail_service services.MailService
 }
 
-func NewAuthController(db *sql.DB) AuthController {
-	return AuthController{repo: repositories.NewUserRepository(db), mail_service: services.NewMailService(db)}
+func NewAuthController(db *sql.DB, cacheService cache.CacheService) AuthController {
+	return AuthController{repo: repositories.NewUserRepository(db, &cacheService), mail_service: services.NewMailService(db)}
 }
 
 // request body

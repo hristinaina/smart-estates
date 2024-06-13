@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"smarthome-back/cache"
 	"smarthome-back/models"
 )
 
@@ -18,13 +19,14 @@ type UserRepository interface {
 }
 
 type UserRepositoryImpl struct {
-	db *sql.DB
+	db           *sql.DB
+	cacheService *cache.CacheService
 }
 
 var ErrUserNotFound = errors.New("User not found")
 
-func NewUserRepository(db *sql.DB) UserRepository {
-	return &UserRepositoryImpl{db: db}
+func NewUserRepository(db *sql.DB, cacheService *cache.CacheService) UserRepository {
+	return &UserRepositoryImpl{db: db, cacheService: cacheService}
 }
 
 func (res *UserRepositoryImpl) GetAll() []models.User {
@@ -66,10 +68,15 @@ func (res *UserRepositoryImpl) SaveUser(user models.User) error {
 }
 
 func (res *UserRepositoryImpl) GetUserByEmail(email string) (*models.User, error) {
-	query := "SELECT * FROM user WHERE email = ?"
-	row := res.db.QueryRow(query, email)
+	cacheKey := fmt.Sprintf("user_%s", email)
 
 	var user models.User
+	if found, err := res.cacheService.GetFromCache(cacheKey, &user); found {
+		return &user, err
+	}
+
+	query := "SELECT * FROM user WHERE email = ?"
+	row := res.db.QueryRow(query, email)
 
 	err := row.Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Surname, &user.Role, &user.IsLogin)
 	if err != nil {
@@ -78,14 +85,26 @@ func (res *UserRepositoryImpl) GetUserByEmail(email string) (*models.User, error
 		}
 		return nil, err
 	}
+
+	if err := res.cacheService.SetToCache(cacheKey, user); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return &user, nil
 }
 
 func (res *UserRepositoryImpl) GetUserById(id int) (*models.User, error) {
-	query := "SELECT * FROM user WHERE id = ?"
-	row := res.db.QueryRow(query, id)
+	cacheKey := fmt.Sprintf("user_%d", id)
 
 	var user models.User
+	if found, err := res.cacheService.GetFromCache(cacheKey, &user); found {
+		return &user, err
+	}
+
+	query := "SELECT * FROM user WHERE id = ?"
+	row := res.db.QueryRow(query, id)
 
 	err := row.Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Surname, &user.Role, &user.IsLogin)
 	if err != nil {
@@ -94,6 +113,13 @@ func (res *UserRepositoryImpl) GetUserById(id int) (*models.User, error) {
 		}
 		return nil, err
 	}
+
+	if err := res.cacheService.SetToCache(cacheKey, user); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return &user, nil
 }
 

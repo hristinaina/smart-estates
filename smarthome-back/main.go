@@ -60,7 +60,7 @@ func main() {
 	}()
 
 	routes.SetupRoutes(r, db, mqttClient, influxDb, *cacheService)
-	gs := services.NewGenerateSuperAdmin(db)
+	gs := services.NewGenerateSuperAdmin(db, *cacheService)
 	gs.GenerateSuperadmin()
 
 	r.Run(":8081")

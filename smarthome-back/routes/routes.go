@@ -16,19 +16,19 @@ import (
 func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client, cacheService cache.CacheService) {
 	userRoutes := r.Group("/api/users")
 	{
-		userController := controllers.NewUserController(db)
+		userController := controllers.NewUserController(db, cacheService)
 		userRoutes.POST("/verify-email", userController.SendResetPasswordEmail)
 		userRoutes.POST("/reset-password", userController.ResetPassword)
 
-		authController := controllers.NewAuthController(db)
-		middleware := middleware.NewMiddleware(db)
+		authController := controllers.NewAuthController(db, cacheService)
+		middleware := middleware.NewMiddleware(db, cacheService)
 		userRoutes.POST("/login", authController.Login)
 		userRoutes.GET("/validate", middleware.RequireAuth, authController.Validate)
 		userRoutes.POST("/logout", middleware.RequireAuth, authController.Logout)
 		userRoutes.POST("/verificationMail", authController.SendVerificationMail)
 		userRoutes.POST("/activate", authController.ActivateAccount)
 
-		superadminController := controllers.NewSuperAdminController(db)
+		superadminController := controllers.NewSuperAdminController(db, cacheService)
 		userRoutes.POST("/reset-superadmin-password", middleware.SuperAdminMiddleware, superadminController.ResetPassword)
 		userRoutes.POST("/add-admin", middleware.SuperAdminMiddleware, superadminController.AddAdmin)
 		userRoutes.POST("/edit-admin", middleware.SuperAdminMiddleware, superadminController.EditSuperAdmin)
@@ -49,7 +49,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	deviceRoutes := r.Group("/api/devices")
 	{
 		deviceController := devicesController.NewDeviceController(db, mqtt, influxDb, cacheService)
-		middleware := middleware.NewMiddleware(db)
+		middleware := middleware.NewMiddleware(db, cacheService)
 		deviceRoutes.GET("/:id", deviceController.Get)
 		deviceRoutes.GET("/", deviceController.GetAll)
 		deviceRoutes.GET("/estate/:estateId", middleware.RequireAuth, deviceController.GetAllByEstateId)
@@ -59,14 +59,14 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	airConditionerRoutes := r.Group("/api/ac")
 	{
 		airConditionerController := devicesController.NewAirConditionerController(db, mqtt)
-		middleware := middleware.NewMiddleware(db)
+		middleware := middleware.NewMiddleware(db, cacheService)
 		airConditionerRoutes.GET("/:id", airConditionerController.Get)
 		airConditionerRoutes.PUT("history", middleware.RequireAuth, airConditionerController.GetHistoryData)
 		airConditionerRoutes.POST("/edit/:id", middleware.RequireAuth, airConditionerController.EditSpecialModes)
 	}
 	solarPanelRoutes := r.Group("/api/sp")
 	{
-		middleware := middleware.NewMiddleware(db)
+		middleware := middleware.NewMiddleware(db, cacheService)
 		SolarPanelController := devicesController.NewSolarPanelController(db, influxDb)
 		solarPanelRoutes.GET("/:id", SolarPanelController.Get)
 		solarPanelRoutes.PUT("/graphData", middleware.RequireAuth, SolarPanelController.GetGraphData)
@@ -74,7 +74,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	}
 	homeBatteryRoutes := r.Group("/api/hb")
 	{
-		middleware := middleware.NewMiddleware(db)
+		middleware := middleware.NewMiddleware(db, cacheService)
 		HomeBatteryController := devicesController.NewHomeBatteryController(db, influxDb)
 		homeBatteryRoutes.GET("/:id", middleware.RequireAuth, HomeBatteryController.Get)
 		homeBatteryRoutes.GET("/last-hour/:id", middleware.RequireAuth, HomeBatteryController.GetConsumptionForLastHour)
@@ -129,8 +129,8 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 
 	permissionRoutes := r.Group("/api/permission")
 	{
-		middleware := middleware.NewMiddleware(db)
-		permissionController := controllers.NewPermissionController(db)
+		middleware := middleware.NewMiddleware(db, cacheService)
+		permissionController := controllers.NewPermissionController(db, cacheService)
 		permissionRoutes.POST("", middleware.RequireAuth, permissionController.ReceiveGrantPermission)
 		permissionRoutes.POST("/verify", permissionController.VerifyAccount)
 		permissionRoutes.GET("/:id", middleware.RequireAuth, permissionController.GetPermissionForRealEstate)
@@ -141,7 +141,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 
 	washingMachineRoutes := r.Group("/api/wm")
 	{
-		middleware := middleware.NewMiddleware(db)
+		middleware := middleware.NewMiddleware(db, cacheService)
 		washingMachineController := devicesController.NewWashingMachineController(db, mqtt)
 		washingMachineRoutes.GET("/:id", washingMachineController.Get)
 		washingMachineRoutes.POST("/schedule", middleware.RequireAuth, washingMachineController.AddScheduledMode)
@@ -151,7 +151,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 
 	electricityRoutes := r.Group("/api/consumption")
 	{
-		middleware := middleware.NewMiddleware(db)
+		middleware := middleware.NewMiddleware(db, cacheService)
 		ElectricityController := controllers.NewElectricityController(db, influxDb, &cacheService)
 		electricityRoutes.POST("/selected-time", middleware.RequireAuth, ElectricityController.GetElectricityForSelectedTime)
 		electricityRoutes.POST("/selected-date", middleware.RequireAuth, ElectricityController.GetElectricityForSelectedDate)
@@ -161,7 +161,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 
 	evChargerRoutes := r.Group("/api/ev")
 	{
-		middleware := middleware.NewMiddleware(db)
+		middleware := middleware.NewMiddleware(db, cacheService)
 		evChargerController := devicesController.NewEVChargerController(db, influxDb)
 		evChargerRoutes.GET("/:id", evChargerController.Get)
 		evChargerRoutes.GET("/lastPercentage/:id", evChargerController.GetLastPercentage)
@@ -169,7 +169,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	}
 	SprinklerRoutes := r.Group("api/sprinkler")
 	{
-		middleware := middleware.NewMiddleware(db)
+		middleware := middleware.NewMiddleware(db, cacheService)
 		sprinklerController := devicesController.NewSprinklerController(db, influxDb, mqtt)
 		SprinklerRoutes.GET("/:id", sprinklerController.Get)
 		SprinklerRoutes.GET("/", sprinklerController.GetAll)

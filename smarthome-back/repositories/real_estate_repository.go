@@ -43,7 +43,7 @@ func (rer *RealEstateRepository) GetByUserId(id int) ([]models.RealEstate, error
 	}
 	defer rows.Close()
 
-	realEstates, err = ScanRows(rows)
+	realEstates, _ = ScanRows(rows)
 
 	if err := rer.cacheService.SetToCache(cacheKey, realEstates); err != nil {
 		fmt.Println("Cache error:", err)

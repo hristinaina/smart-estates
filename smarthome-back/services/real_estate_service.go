@@ -30,7 +30,7 @@ type RealEstateServiceImpl struct {
 }
 
 func NewRealEstateService(db *sql.DB, cacheService *cache.CacheService) RealEstateService {
-	return &RealEstateServiceImpl{db: db, mailService: NewMailService(db), repository: *repositories.NewRealEstateRepository(db, cacheService), userRepository: repositories.NewUserRepository(db)}
+	return &RealEstateServiceImpl{db: db, mailService: NewMailService(db), repository: *repositories.NewRealEstateRepository(db, cacheService), userRepository: repositories.NewUserRepository(db, cacheService)}
 }
 
 func (res *RealEstateServiceImpl) GetAll() ([]models.RealEstate, error) {
