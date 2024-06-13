@@ -5,6 +5,7 @@ import (
 	_ "database/sql"
 	"errors"
 	_ "fmt"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
 	"smarthome-back/mqtt_client"
@@ -43,10 +44,10 @@ type DeviceServiceImpl struct {
 	sprinklerService      outside.SprinklerService
 	mqtt                  *mqtt_client.MQTTClient
 	deviceRepository      repositories.DeviceRepository
-	cacheService          services.CacheService
+	cacheService          cache.CacheService
 }
 
-func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client, cacheService services.CacheService) DeviceService {
+func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client, cacheService cache.CacheService) DeviceService {
 	return &DeviceServiceImpl{db: db, airConditionerService: inside.NewAirConditionerService(db), washingMachineService: inside.NewWashingMachineService(db), evChargerService: energetic.NewEVChargerService(db, influxDb),
 		homeBatteryService: energetic.NewHomeBatteryService(db, influxDb), lampService: outside.NewLampService(db, influxDb),
 		vehicleGateService: outside.NewVehicleGateService(db, influxDb), sprinklerService: outside.NewSprinklerService(db, influxDb),

@@ -2,18 +2,18 @@ package routes
 
 import (
 	"database/sql"
+	"smarthome-back/cache"
 	"smarthome-back/controllers"
 	devicesController "smarthome-back/controllers/devices"
 	"smarthome-back/middleware"
 	"smarthome-back/mqtt_client"
-	"smarthome-back/services"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client, cacheService services.CacheService) {
+func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client, cacheService cache.CacheService) {
 	userRoutes := r.Group("/api/users")
 	{
 		userController := controllers.NewUserController(db)
@@ -36,7 +36,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 
 	realEstateRoutes := r.Group("/api/real-estates")
 	{
-		realEstateController := controllers.NewRealEstateController(db)
+		realEstateController := controllers.NewRealEstateController(db, &cacheService)
 		realEstateRoutes.GET("/", realEstateController.GetAll)
 		realEstateRoutes.GET("/cities", realEstateController.GetAllCities)
 		realEstateRoutes.GET("/user/:userId", realEstateController.GetAllByUserId)
@@ -152,7 +152,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	electricityRoutes := r.Group("/api/consumption")
 	{
 		middleware := middleware.NewMiddleware(db)
-		ElectricityController := controllers.NewElectricityController(db, influxDb)
+		ElectricityController := controllers.NewElectricityController(db, influxDb, &cacheService)
 		electricityRoutes.POST("/selected-time", middleware.RequireAuth, ElectricityController.GetElectricityForSelectedTime)
 		electricityRoutes.POST("/selected-date", middleware.RequireAuth, ElectricityController.GetElectricityForSelectedDate)
 		electricityRoutes.POST("/ratio/selected-time", middleware.RequireAuth, ElectricityController.GetRatioForSelectedTime)

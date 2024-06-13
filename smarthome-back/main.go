@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/config"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/routes"
@@ -24,16 +25,6 @@ func main() {
 	// 	Credentials: credentials.NewStaticCredentials("AKIAXTEDOKGSGESVDNWJ", "fXig4kJtKpMBK9q1NxGDpcVrm1xD+IqW1JeCOI7J", ""),
 	// })
 
-	//if err != nil {
-	//	fmt.Println("Error while opening session on aws")
-	//	panic(err)
-	//}
-	// redisClient := redis.NewClient(&redis.Options{
-	// 	Addr:     "localhost:6379", // Adresa i port Redis servera
-	// 	Password: "",               // Lozinka, ako je postavljena
-	// 	DB:       0,                // Broj baze podataka, ako koristite više baza
-	// })
-
 	configCache := bigcache.Config{
 		Shards:             1024,
 		LifeWindow:         24 * time.Hour,
@@ -46,8 +37,8 @@ func main() {
 		OnRemoveWithReason: nil,
 	}
 
-	cache, _ := bigcache.NewBigCache(configCache)
-	cacheService := services.NewCacheService(cache)
+	cacheSetup, _ := bigcache.NewBigCache(configCache)
+	cacheService := cache.NewCacheService(cacheSetup)
 
 	influxDb, err := config.SetupInfluxDb()
 	if err != nil {
@@ -64,7 +55,7 @@ func main() {
 
 	// web socket
 	go func() {
-		config.SetupWebSocketRoutes(db, influxDb)
+		config.SetupWebSocketRoutes(db, influxDb, cacheService)
 		http.ListenAndServe(":8082", nil)
 	}()
 

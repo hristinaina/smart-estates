@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"smarthome-back/cache"
 	"smarthome-back/repositories"
 	repositories2 "smarthome-back/repositories/devices"
-	"smarthome-back/services"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
@@ -48,10 +48,10 @@ type MQTTClient struct {
 	vehicleGateRepository repositories2.VehicleGateRepository
 	evChargerRepository   repositories2.EVChargerRepository
 	sprinkleRepository    repositories2.SprinklerRepository
-	cacheService          services.CacheService
+	cacheService          cache.CacheService
 }
 
-func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client, cacheService *services.CacheService) *MQTTClient {
+func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client, cacheService *cache.CacheService) *MQTTClient {
 	opts := mqtt.NewClientOptions().AddBroker("ws://localhost:9001/mqtt")
 	opts.SetClientID("go-server-nvt-2023")
 
@@ -66,7 +66,7 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client, cacheService *services
 		solarPanelRepository:  repositories2.NewSolarPanelRepository(db),
 		lampRepository:        repositories2.NewLampRepository(db, influxDb),
 		homeBatteryRepository: repositories2.NewHomeBatteryRepository(db),
-		realEstateRepository:  *repositories.NewRealEstateRepository(db),
+		realEstateRepository:  *repositories.NewRealEstateRepository(db, cacheService),
 		vehicleGateRepository: repositories2.NewVehicleGateRepository(db, influxDb),
 		evChargerRepository:   repositories2.NewEVChargerRepository(db),
 		sprinkleRepository:    repositories2.NewSprinklerRepository(db, influxDb),

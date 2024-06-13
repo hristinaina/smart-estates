@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"smarthome-back/cache"
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
@@ -28,8 +29,8 @@ type RealEstateServiceImpl struct {
 	mailService    MailService
 }
 
-func NewRealEstateService(db *sql.DB) RealEstateService {
-	return &RealEstateServiceImpl{db: db, mailService: NewMailService(db), repository: *repositories.NewRealEstateRepository(db), userRepository: repositories.NewUserRepository(db)}
+func NewRealEstateService(db *sql.DB, cacheService *cache.CacheService) RealEstateService {
+	return &RealEstateServiceImpl{db: db, mailService: NewMailService(db), repository: *repositories.NewRealEstateRepository(db, cacheService), userRepository: repositories.NewUserRepository(db)}
 }
 
 func (res *RealEstateServiceImpl) GetAll() ([]models.RealEstate, error) {

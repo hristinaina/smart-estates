@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"smarthome-back/cache"
 	"strconv"
 	"time"
+
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type ElectricityService interface {
@@ -22,8 +24,8 @@ type ElectricityServiceImpl struct {
 	realEstateService RealEstateService
 }
 
-func NewElectricityService(db *sql.DB, influxDb influxdb2.Client) ElectricityService {
-	return &ElectricityServiceImpl{db: db, influxDb: influxDb, realEstateService: NewRealEstateService(db)}
+func NewElectricityService(db *sql.DB, influxDb influxdb2.Client, cacheService *cache.CacheService) ElectricityService {
+	return &ElectricityServiceImpl{db: db, influxDb: influxDb, realEstateService: NewRealEstateService(db, cacheService)}
 }
 
 func (uc *ElectricityServiceImpl) GetRatioForSelectedDate(startDate, endDate string, inputType string, selectedOptions []string, batteryId string) interface{} {

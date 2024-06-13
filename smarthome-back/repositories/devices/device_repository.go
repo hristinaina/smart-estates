@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices"
 	"smarthome-back/repositories"
-	"smarthome-back/services"
 )
 
 type DeviceRepository interface {
@@ -25,10 +25,10 @@ type DeviceRepository interface {
 
 type DeviceRepositoryImpl struct {
 	db           *sql.DB
-	cacheService *services.CacheService
+	cacheService *cache.CacheService
 }
 
-func NewDeviceRepository(db *sql.DB, cacheService *services.CacheService) DeviceRepository {
+func NewDeviceRepository(db *sql.DB, cacheService *cache.CacheService) DeviceRepository {
 	return &DeviceRepositoryImpl{db: db, cacheService: cacheService}
 }
 
@@ -229,7 +229,7 @@ func (res *DeviceRepositoryImpl) Get(id int) (models.Device, error) {
 }
 
 func (res *DeviceRepositoryImpl) GetDevicesByUserID(userID int) ([]models.Device, error) {
-	cacheKey := fmt.Sprintf("devices_%d", userID)
+	cacheKey := fmt.Sprintf("devices_user_%d", userID)
 
 	var devices []models.Device
 	if found, err := res.cacheService.GetFromCache(cacheKey, &devices); found {

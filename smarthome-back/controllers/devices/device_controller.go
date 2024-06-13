@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/controllers"
 	"smarthome-back/dtos"
 	"smarthome-back/mqtt_client"
-	"smarthome-back/services"
 	"smarthome-back/services/devices"
 	"strconv"
 
@@ -19,7 +19,7 @@ type DeviceController struct {
 	service devices.DeviceService
 }
 
-func NewDeviceController(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client, cacheService services.CacheService) DeviceController {
+func NewDeviceController(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client, cacheService cache.CacheService) DeviceController {
 	return DeviceController{
 		service: devices.NewDeviceService(db, mqtt, influxDb, cacheService)}
 }
