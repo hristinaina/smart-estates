@@ -43,13 +43,14 @@ type DeviceServiceImpl struct {
 	sprinklerService      outside.SprinklerService
 	mqtt                  *mqtt_client.MQTTClient
 	deviceRepository      repositories.DeviceRepository
+	cacheService          services.CacheService
 }
 
-func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceService {
+func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client, cacheService services.CacheService) DeviceService {
 	return &DeviceServiceImpl{db: db, airConditionerService: inside.NewAirConditionerService(db), washingMachineService: inside.NewWashingMachineService(db), evChargerService: energetic.NewEVChargerService(db, influxDb),
 		homeBatteryService: energetic.NewHomeBatteryService(db, influxDb), lampService: outside.NewLampService(db, influxDb),
 		vehicleGateService: outside.NewVehicleGateService(db, influxDb), sprinklerService: outside.NewSprinklerService(db, influxDb),
-		mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db),
+		mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db, &cacheService),
 		solarPanelService: energetic.NewSolarPanelService(db, influxDb), ambientSensorService: inside.NewAmbientSensorService(db)}
 }
 

@@ -23,6 +23,7 @@ require (
 )
 
 require (
+	github.com/allegro/bigcache v1.2.1
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/deepmap/oapi-codegen v1.12.4 // indirect

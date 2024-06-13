@@ -6,13 +6,14 @@ import (
 	devicesController "smarthome-back/controllers/devices"
 	"smarthome-back/middleware"
 	"smarthome-back/mqtt_client"
+	"smarthome-back/services"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) {
+func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client, cacheService services.CacheService) {
 	userRoutes := r.Group("/api/users")
 	{
 		userController := controllers.NewUserController(db)
@@ -47,7 +48,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 
 	deviceRoutes := r.Group("/api/devices")
 	{
-		deviceController := devicesController.NewDeviceController(db, mqtt, influxDb)
+		deviceController := devicesController.NewDeviceController(db, mqtt, influxDb, cacheService)
 		middleware := middleware.NewMiddleware(db)
 		deviceRoutes.GET("/:id", deviceController.Get)
 		deviceRoutes.GET("/", deviceController.GetAll)

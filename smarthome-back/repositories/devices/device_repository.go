@@ -8,6 +8,7 @@ import (
 	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices"
 	"smarthome-back/repositories"
+	"smarthome-back/services"
 )
 
 type DeviceRepository interface {
@@ -23,11 +24,12 @@ type DeviceRepository interface {
 }
 
 type DeviceRepositoryImpl struct {
-	db *sql.DB
+	db           *sql.DB
+	cacheService *services.CacheService
 }
 
-func NewDeviceRepository(db *sql.DB) DeviceRepository {
-	return &DeviceRepositoryImpl{db: db}
+func NewDeviceRepository(db *sql.DB, cacheService *services.CacheService) DeviceRepository {
+	return &DeviceRepositoryImpl{db: db, cacheService: cacheService}
 }
 
 func (res *DeviceRepositoryImpl) GetAll() []models.Device {
@@ -155,6 +157,13 @@ func (res *DeviceRepositoryImpl) GetConsumptionDevicesByEstateId(id int) ([]mode
 }
 
 func (res *DeviceRepositoryImpl) GetAllByEstateId(estateId int) []models.Device {
+	cacheKey := fmt.Sprintf("devices_%d", estateId)
+
+	var devices []models.Device
+	if found, _ := res.cacheService.GetFromCache(cacheKey, &devices); found {
+		return devices
+	}
+
 	query := "SELECT * FROM device WHERE REALESTATE = ?"
 	rows, err := res.db.Query(query, estateId)
 	if repositories.CheckIfError(err) {
@@ -163,7 +172,6 @@ func (res *DeviceRepositoryImpl) GetAllByEstateId(estateId int) []models.Device 
 	}
 	defer rows.Close()
 
-	var devices []models.Device
 	for rows.Next() {
 		var device models.Device
 		if err := rows.Scan(&device.Id, &device.Name, &device.Type,
@@ -174,10 +182,23 @@ func (res *DeviceRepositoryImpl) GetAllByEstateId(estateId int) []models.Device 
 		devices = append(devices, device)
 	}
 
+	if err := res.cacheService.SetToCache(cacheKey, devices); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return devices
 }
 
 func (res *DeviceRepositoryImpl) Get(id int) (models.Device, error) {
+	cacheKey := fmt.Sprintf("device_%d", id)
+
+	var device models.Device
+	if found, err := res.cacheService.GetFromCache(cacheKey, &device); found {
+		return device, err
+	}
+
 	query := "SELECT * FROM device WHERE ID = ?"
 	rows, err := res.db.Query(query, id)
 
@@ -195,12 +216,26 @@ func (res *DeviceRepositoryImpl) Get(id int) (models.Device, error) {
 			fmt.Println("Error: ", err.Error())
 			return models.Device{}, err
 		}
+
+		if err := res.cacheService.SetToCache(cacheKey, device); err != nil {
+			fmt.Println("Cache error:", err)
+		} else {
+			fmt.Println("Saved data in cache.")
+		}
 		return device, nil
 	}
+
 	return models.Device{}, err
 }
 
 func (res *DeviceRepositoryImpl) GetDevicesByUserID(userID int) ([]models.Device, error) {
+	cacheKey := fmt.Sprintf("devices_%d", userID)
+
+	var devices []models.Device
+	if found, err := res.cacheService.GetFromCache(cacheKey, &devices); found {
+		return devices, err
+	}
+
 	// Perform a database query to get devices by user ID
 	rows, err := res.db.Query("SELECT id, name, type, realestate, isonline FROM device WHERE realestate IN (SELECT id FROM realestate WHERE userid = ?)", userID)
 	if err != nil {
@@ -209,7 +244,6 @@ func (res *DeviceRepositoryImpl) GetDevicesByUserID(userID int) ([]models.Device
 	defer rows.Close()
 
 	// Iterate over the query result and populate the devices slice
-	var devices []models.Device
 	for rows.Next() {
 		var device models.Device
 		err := rows.Scan(&device.Id, &device.Name, &device.Type, &device.RealEstate, &device.IsOnline)
@@ -222,6 +256,12 @@ func (res *DeviceRepositoryImpl) GetDevicesByUserID(userID int) ([]models.Device
 	// Check for errors during iteration
 	if err := rows.Err(); err != nil {
 		return nil, err
+	}
+
+	if err := res.cacheService.SetToCache(cacheKey, devices); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
 	}
 
 	return devices, nil

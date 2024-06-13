@@ -3,23 +3,25 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
 	"smarthome-back/controllers"
 	"smarthome-back/dtos"
 	"smarthome-back/mqtt_client"
+	"smarthome-back/services"
 	"smarthome-back/services/devices"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type DeviceController struct {
 	service devices.DeviceService
 }
 
-func NewDeviceController(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceController {
+func NewDeviceController(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client, cacheService services.CacheService) DeviceController {
 	return DeviceController{
-		service: devices.NewDeviceService(db, mqtt, influxDb)}
+		service: devices.NewDeviceService(db, mqtt, influxDb, cacheService)}
 }
 
 func (uc DeviceController) Get(c *gin.Context) {
