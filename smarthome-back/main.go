@@ -9,6 +9,7 @@ import (
 	"smarthome-back/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 )
 
 func main() {
@@ -26,12 +27,18 @@ func main() {
 	//	fmt.Println("Error while opening session on aws")
 	//	panic(err)
 	//}
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379", // Adresa i port Redis servera
+		Password: "",               // Lozinka, ako je postavljena
+		DB:       0,                // Broj baze podataka, ako koristite više baza
+	})
+
 	influxDb, err := config.SetupInfluxDb()
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	mqttClient := mqtt_client.NewMQTTClient(db, influxDb)
+	mqttClient := mqtt_client.NewMQTTClient(db, influxDb, redisClient)
 	if mqttClient == nil {
 		fmt.Println("Failed to connect to mqtt broker")
 	} else {

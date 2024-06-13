@@ -1,13 +1,17 @@
 package mqtt_client
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"smarthome-back/repositories"
 	repositories2 "smarthome-back/repositories/devices"
+	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/go-redis/redis/v8"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
@@ -47,9 +51,10 @@ type MQTTClient struct {
 	vehicleGateRepository repositories2.VehicleGateRepository
 	evChargerRepository   repositories2.EVChargerRepository
 	sprinkleRepository    repositories2.SprinklerRepository
+	redisClient           *redis.Client
 }
 
-func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
+func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client, redisClient *redis.Client) *MQTTClient {
 	opts := mqtt.NewClientOptions().AddBroker("ws://localhost:9001/mqtt")
 	opts.SetClientID("go-server-nvt-2023")
 
@@ -69,6 +74,7 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 		evChargerRepository:   repositories2.NewEVChargerRepository(db),
 		sprinkleRepository:    repositories2.NewSprinklerRepository(db, influxDb),
 		influxDb:              influxDb,
+		redisClient:           redisClient,
 	}
 }
 
@@ -114,4 +120,14 @@ func (mc *MQTTClient) Publish(topic string, message string) error {
 
 func (mc *MQTTClient) GetInflux() influxdb2.Client {
 	return mc.influxDb
+}
+
+func (mc *MQTTClient) CacheData(data string, result map[time.Time]AmbientSensor) {
+	redisTx := mc.redisClient.TxPipeline()
+	redisTx.Set(context.Background(), "naziv_pod_kojim_je_kesirano", result, 24*time.Hour) // Primer: keširati rezultat na 24 sata
+	_, err := redisTx.Exec(context.Background())
+	if err != nil {
+		log.Printf("Greška pri čuvanju podataka u Redis kešu: %v", err)
+	}
+	fmt.Println("Podaci su sačuvani u Redis kešu.")
 }
