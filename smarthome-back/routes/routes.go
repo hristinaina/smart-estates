@@ -67,7 +67,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	solarPanelRoutes := r.Group("/api/sp")
 	{
 		middleware := middleware.NewMiddleware(db, cacheService)
-		SolarPanelController := devicesController.NewSolarPanelController(db, influxDb)
+		SolarPanelController := devicesController.NewSolarPanelController(db, influxDb, cacheService)
 		solarPanelRoutes.GET("/:id", SolarPanelController.Get)
 		solarPanelRoutes.PUT("/graphData", middleware.RequireAuth, SolarPanelController.GetGraphData)
 		solarPanelRoutes.GET("/lastValue/:id", middleware.RequireAuth, SolarPanelController.GetValueFromLastMinute)
@@ -75,7 +75,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	homeBatteryRoutes := r.Group("/api/hb")
 	{
 		middleware := middleware.NewMiddleware(db, cacheService)
-		HomeBatteryController := devicesController.NewHomeBatteryController(db, influxDb)
+		HomeBatteryController := devicesController.NewHomeBatteryController(db, influxDb, cacheService)
 		homeBatteryRoutes.GET("/:id", middleware.RequireAuth, HomeBatteryController.Get)
 		homeBatteryRoutes.GET("/last-hour/:id", middleware.RequireAuth, HomeBatteryController.GetConsumptionForLastHour)
 		homeBatteryRoutes.POST("/selected-time/:id", middleware.RequireAuth, HomeBatteryController.GetConsumptionForSelectedTime)
@@ -162,7 +162,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	evChargerRoutes := r.Group("/api/ev")
 	{
 		middleware := middleware.NewMiddleware(db, cacheService)
-		evChargerController := devicesController.NewEVChargerController(db, influxDb)
+		evChargerController := devicesController.NewEVChargerController(db, influxDb, cacheService)
 		evChargerRoutes.GET("/:id", evChargerController.Get)
 		evChargerRoutes.GET("/lastPercentage/:id", evChargerController.GetLastPercentage)
 		evChargerRoutes.PUT("/actions", middleware.RequireAuth, evChargerController.GetHistoryActions)

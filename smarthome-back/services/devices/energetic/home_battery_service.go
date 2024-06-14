@@ -6,13 +6,15 @@ import (
 	_ "database/sql"
 	"fmt"
 	_ "fmt"
+	"smarthome-back/cache"
+	"smarthome-back/dtos"
+	"smarthome-back/models/devices/energetic"
+	repositories "smarthome-back/repositories/devices"
+	"time"
+
 	_ "github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"smarthome-back/dtos"
-	"smarthome-back/models/devices/energetic"
-	"smarthome-back/repositories/devices"
-	"time"
 )
 
 type HomeBatteryService interface {
@@ -26,13 +28,14 @@ type HomeBatteryService interface {
 }
 
 type HomeBatteryServiceImpl struct {
-	db         *sql.DB
-	repository repositories.HomeBatteryRepository
-	influxDb   influxdb2.Client
+	db           *sql.DB
+	repository   repositories.HomeBatteryRepository
+	influxDb     influxdb2.Client
+	cacheService cache.CacheService
 }
 
-func NewHomeBatteryService(db *sql.DB, influxDb influxdb2.Client) HomeBatteryService {
-	return &HomeBatteryServiceImpl{db: db, repository: repositories.NewHomeBatteryRepository(db), influxDb: influxDb}
+func NewHomeBatteryService(db *sql.DB, influxDb influxdb2.Client, cacheService cache.CacheService) HomeBatteryService {
+	return &HomeBatteryServiceImpl{db: db, repository: repositories.NewHomeBatteryRepository(db, cacheService), influxDb: influxDb}
 }
 
 func (s *HomeBatteryServiceImpl) GetAllByEstateId(id int) ([]energetic.HomeBattery, error) {

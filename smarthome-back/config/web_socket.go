@@ -99,7 +99,7 @@ func SendConsumptionValues(db *sql.DB, influxDb influxdb2.Client, w http.Respons
 
 	fmt.Println("Client Successfully Connected...")
 	realEstateRepository := repositories.NewRealEstateRepository(db, cacheService)
-	homeBatteryService := energetic.NewHomeBatteryService(db, influxDb)
+	homeBatteryService := energetic.NewHomeBatteryService(db, influxDb, *cacheService)
 
 	ticker := time.NewTicker(60 * time.Second)
 	defer ticker.Stop()

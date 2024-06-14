@@ -6,13 +6,15 @@ import (
 	_ "database/sql"
 	"fmt"
 	_ "fmt"
+	"smarthome-back/cache"
+	"smarthome-back/dtos"
+	"smarthome-back/models/devices/energetic"
+	repositories "smarthome-back/repositories/devices"
+	"time"
+
 	_ "github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"smarthome-back/dtos"
-	"smarthome-back/models/devices/energetic"
-	"smarthome-back/repositories/devices"
-	"time"
 )
 
 type SolarPanelService interface {
@@ -24,13 +26,14 @@ type SolarPanelService interface {
 }
 
 type SolarPanelServiceImpl struct {
-	db         *sql.DB
-	repository repositories.SolarPanelRepository
-	influxDb   influxdb2.Client
+	db           *sql.DB
+	repository   repositories.SolarPanelRepository
+	influxDb     influxdb2.Client
+	cacheService cache.CacheService
 }
 
-func NewSolarPanelService(db *sql.DB, influxDb influxdb2.Client) SolarPanelService {
-	return &SolarPanelServiceImpl{db: db, repository: repositories.NewSolarPanelRepository(db), influxDb: influxDb}
+func NewSolarPanelService(db *sql.DB, influxDb influxdb2.Client, cacheService cache.CacheService) SolarPanelService {
+	return &SolarPanelServiceImpl{db: db, repository: repositories.NewSolarPanelRepository(db, cacheService), influxDb: influxDb}
 }
 
 func (s *SolarPanelServiceImpl) Get(id int) energetic.SolarPanel {

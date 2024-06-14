@@ -48,11 +48,11 @@ type DeviceServiceImpl struct {
 }
 
 func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client, cacheService cache.CacheService) DeviceService {
-	return &DeviceServiceImpl{db: db, airConditionerService: inside.NewAirConditionerService(db, &cacheService), washingMachineService: inside.NewWashingMachineService(db, &cacheService), evChargerService: energetic.NewEVChargerService(db, influxDb),
-		homeBatteryService: energetic.NewHomeBatteryService(db, influxDb), lampService: outside.NewLampService(db, influxDb, cacheService),
+	return &DeviceServiceImpl{db: db, airConditionerService: inside.NewAirConditionerService(db, &cacheService), washingMachineService: inside.NewWashingMachineService(db, &cacheService), evChargerService: energetic.NewEVChargerService(db, influxDb, cacheService),
+		homeBatteryService: energetic.NewHomeBatteryService(db, influxDb, cacheService), lampService: outside.NewLampService(db, influxDb, cacheService),
 		vehicleGateService: outside.NewVehicleGateService(db, influxDb, cacheService), sprinklerService: outside.NewSprinklerService(db, influxDb, cacheService),
 		mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db, &cacheService),
-		solarPanelService: energetic.NewSolarPanelService(db, influxDb), ambientSensorService: inside.NewAmbientSensorService(db, &cacheService)}
+		solarPanelService: energetic.NewSolarPanelService(db, influxDb, cacheService), ambientSensorService: inside.NewAmbientSensorService(db, &cacheService)}
 }
 
 func (res *DeviceServiceImpl) GetAll() []models.Device {

@@ -63,12 +63,12 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client, cacheService *cache.Ca
 	return &MQTTClient{
 		client:                client,
 		deviceRepository:      repositories2.NewDeviceRepository(db, cacheService),
-		solarPanelRepository:  repositories2.NewSolarPanelRepository(db),
+		solarPanelRepository:  repositories2.NewSolarPanelRepository(db, *cacheService),
 		lampRepository:        repositories2.NewLampRepository(db, influxDb, *cacheService),
-		homeBatteryRepository: repositories2.NewHomeBatteryRepository(db),
+		homeBatteryRepository: repositories2.NewHomeBatteryRepository(db, *cacheService),
 		realEstateRepository:  *repositories.NewRealEstateRepository(db, cacheService),
 		vehicleGateRepository: repositories2.NewVehicleGateRepository(db, influxDb, *cacheService),
-		evChargerRepository:   repositories2.NewEVChargerRepository(db),
+		evChargerRepository:   repositories2.NewEVChargerRepository(db, *cacheService),
 		sprinkleRepository:    repositories2.NewSprinklerRepository(db, influxDb, *cacheService),
 		influxDb:              influxDb,
 	}
@@ -117,13 +117,3 @@ func (mc *MQTTClient) Publish(topic string, message string) error {
 func (mc *MQTTClient) GetInflux() influxdb2.Client {
 	return mc.influxDb
 }
-
-// func (mc *MQTTClient) CacheData(data string, result map[time.Time]AmbientSensor) {
-// 	redisTx := mc.redisClient.TxPipeline()
-// 	redisTx.Set(context.Background(), "naziv_pod_kojim_je_kesirano", result, 24*time.Hour) // Primer: keširati rezultat na 24 sata
-// 	_, err := redisTx.Exec(context.Background())
-// 	if err != nil {
-// 		log.Printf("Greška pri čuvanju podataka u Redis kešu: %v", err)
-// 	}
-// 	fmt.Println("Podaci su sačuvani u Redis kešu.")
-// }

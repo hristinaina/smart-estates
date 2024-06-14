@@ -26,13 +26,13 @@ func main() {
 	// })
 
 	configCache := bigcache.Config{
-		Shards:             1024,
-		LifeWindow:         24 * time.Hour,
-		CleanWindow:        10 * time.Minute,
-		MaxEntriesInWindow: 1000 * 10 * 60,
-		MaxEntrySize:       500,
-		Verbose:            true,
-		HardMaxCacheSize:   8192,
+		Shards:             1024,             // Adjust based on the number of concurrent accesses
+		LifeWindow:         1 * time.Hour,    // Start with 1 hour and adjust based on your needs
+		CleanWindow:        10 * time.Minute, // Regular clean-up to manage memory usage
+		MaxEntriesInWindow: 1000 * 60,        // Adjust based on expected traffic and data access patterns
+		MaxEntrySize:       1024,             // Adjust based on the size of your data entries
+		Verbose:            false,            // Set to true for detailed logging during initial setup/debugging
+		HardMaxCacheSize:   8192,             // Adjust based on available memory
 		OnRemove:           nil,
 		OnRemoveWithReason: nil,
 	}
