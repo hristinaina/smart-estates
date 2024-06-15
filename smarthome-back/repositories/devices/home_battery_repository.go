@@ -148,6 +148,13 @@ func (res *HomeBatteryRepositoryImpl) Update(device energetic.HomeBattery) bool 
 		fmt.Println("Failed to update device:", err)
 		return false
 	}
+
+	cacheKey := fmt.Sprintf("battery_estate_%d", device.Device.Id)
+	if err := res.cacheService.SetToCache(cacheKey, device); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
 	return true
 }
 

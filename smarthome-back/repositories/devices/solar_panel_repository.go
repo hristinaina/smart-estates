@@ -145,5 +145,11 @@ func (s *SolarPanelRepositoryImpl) UpdateSP(device energetic.SolarPanel) bool {
 		return false
 	}
 
+	cacheKey := fmt.Sprintf("sp_%d", device.Device.Id)
+	if err := s.cacheService.SetToCache(cacheKey, device); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
 	return true
 }
