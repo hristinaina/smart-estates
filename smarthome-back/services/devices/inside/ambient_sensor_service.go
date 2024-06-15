@@ -128,5 +128,15 @@ func (as *AmbientSensorServiceImpl) Add(dto dtos.DeviceDTO) models.ConsumptionDe
 	}
 
 	device.Device.Id = int(deviceID)
+
+	cacheKey := fmt.Sprintf("as_%d", device.Device.Id)
+	if err := as.cacheService.SetToCache(cacheKey, device); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
+	err = as.cacheService.AddDevicesByRealEstate(device.Device.RealEstate, device.Device)
+
 	return device
 }

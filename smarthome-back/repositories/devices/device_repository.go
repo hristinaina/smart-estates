@@ -276,6 +276,28 @@ func (res *DeviceRepositoryImpl) Update(device models.Device) bool {
 		fmt.Println("Failed to update device:", err)
 		return false
 	}
+
+	cacheKey := fmt.Sprintf("devices_%d", device.RealEstate)
+
+	var devices []models.Device
+	found, _ := res.cacheService.GetFromCache(cacheKey, &devices)
+	if found {
+		var newDevices []models.Device
+		for _, d := range devices {
+			if d.Id == device.Id {
+				newDevices = append(newDevices, device)
+			} else {
+				newDevices = append(newDevices, d)
+			}
+		}
+
+		if err := res.cacheService.SetToCache(cacheKey, newDevices); err != nil {
+			fmt.Println("Cache error:", err)
+			return false
+		} else {
+			fmt.Println("Saved data in cache.")
+		}
+	}
 	return true
 }
 

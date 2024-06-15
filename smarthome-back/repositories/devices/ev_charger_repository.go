@@ -117,5 +117,13 @@ func (s *EVChargerRepositoryImpl) Add(dto dtos.DeviceDTO) energetic.EVCharger {
 		return energetic.EVCharger{}
 	}
 	device.Device.Id = int(deviceID)
+
+	cacheKey := fmt.Sprintf("charger_%d", device.Device.Id)
+	if err := s.cacheService.SetToCache(cacheKey, device); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+	err = s.cacheService.AddDevicesByRealEstate(device.Device.RealEstate, device.Device)
 	return device
 }

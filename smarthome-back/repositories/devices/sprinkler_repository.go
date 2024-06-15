@@ -199,6 +199,13 @@ func (repo *SprinklerRepositoryImpl) Add(device models.Sprinkler) (models.Sprink
 	}
 	device.ConsumptionDevice.Device.Id = int(deviceID)
 
+	cacheKey := fmt.Sprintf("sprinkler_%d", device.ConsumptionDevice.Device.Id)
+	if err := repo.cacheService.SetToCache(cacheKey, device); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+	err = repo.cacheService.AddDevicesByRealEstate(device.ConsumptionDevice.Device.RealEstate, device.ConsumptionDevice.Device)
 	return device, nil
 }
 

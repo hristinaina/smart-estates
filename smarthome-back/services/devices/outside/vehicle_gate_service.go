@@ -31,13 +31,14 @@ type VehicleGateService interface {
 }
 
 type VehicleGateServiceImpl struct {
-	db         *sql.DB
-	influx     influxdb2.Client
-	repository repositories.VehicleGateRepository
+	db           *sql.DB
+	influx       influxdb2.Client
+	repository   repositories.VehicleGateRepository
+	cacheService cache.CacheService
 }
 
 func NewVehicleGateService(db *sql.DB, influx influxdb2.Client, cacheService cache.CacheService) VehicleGateService {
-	return &VehicleGateServiceImpl{db: db, influx: influx, repository: repositories.NewVehicleGateRepository(db, influx, cacheService)}
+	return &VehicleGateServiceImpl{db: db, influx: influx, repository: repositories.NewVehicleGateRepository(db, influx, cacheService), cacheService: cacheService}
 }
 
 func (service *VehicleGateServiceImpl) Get(id int) (models.VehicleGate, error) {
@@ -141,6 +142,14 @@ func (service *VehicleGateServiceImpl) Add(dto dtos.DeviceDTO) (models.VehicleGa
 		return models.VehicleGate{}, err
 	}
 	device.ConsumptionDevice.Device.Id = int(deviceID)
+
+	cacheKey := fmt.Sprintf("gate_%d", device.ConsumptionDevice.Device.Id)
+	if err := service.cacheService.SetToCache(cacheKey, device); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+	err = service.cacheService.AddDevicesByRealEstate(device.ConsumptionDevice.Device.RealEstate, device.ConsumptionDevice.Device)
 	return device, nil
 }
 

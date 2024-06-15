@@ -25,13 +25,14 @@ type LampService interface {
 }
 
 type LampServiceImpl struct {
-	db         *sql.DB
-	influxDb   influxdb2.Client
-	repository repositories.LampRepository
+	db           *sql.DB
+	influxDb     influxdb2.Client
+	repository   repositories.LampRepository
+	cacheService cache.CacheService
 }
 
 func NewLampService(db *sql.DB, influxDb influxdb2.Client, cacheService cache.CacheService) LampService {
-	return &LampServiceImpl{db: db, repository: repositories.NewLampRepository(db, influxDb, cacheService)}
+	return &LampServiceImpl{db: db, repository: repositories.NewLampRepository(db, influxDb, cacheService), cacheService: cacheService}
 }
 
 func (ls *LampServiceImpl) Get(id int) (models.Lamp, error) {
@@ -115,6 +116,14 @@ func (ls *LampServiceImpl) Add(dto dtos.DeviceDTO) (models.Lamp, error) {
 		return models.Lamp{}, err
 	}
 	device.ConsumptionDevice.Device.Id = int(deviceID)
+
+	cacheKey := fmt.Sprintf("lamp_%d", device.ConsumptionDevice.Device.Id)
+	if err := ls.cacheService.SetToCache(cacheKey, device); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+	err = ls.cacheService.AddDevicesByRealEstate(device.ConsumptionDevice.Device.RealEstate, device.ConsumptionDevice.Device)
 	return device, nil
 }
 

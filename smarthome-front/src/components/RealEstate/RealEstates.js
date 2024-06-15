@@ -104,7 +104,7 @@ export class RealEstates extends Component {
         if (!this.state.isAdmin){
             localStorage.setItem("real-estate", realEstate.Id);
             localStorage.setItem("owner", realEstate.User);
-            window.location.assign("/devices")
+            if (realEstate.State === 1 ) window.location.assign("/devices")
         }
     }
 

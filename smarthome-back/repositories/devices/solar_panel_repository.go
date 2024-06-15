@@ -126,6 +126,14 @@ func (s *SolarPanelRepositoryImpl) Add(dto dtos.DeviceDTO) energetic.SolarPanel 
 		return energetic.SolarPanel{}
 	}
 	device.Device.Id = int(deviceID)
+
+	cacheKey := fmt.Sprintf("sp_%d", device.Device.Id)
+	if err := s.cacheService.SetToCache(cacheKey, device); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+	err = s.cacheService.AddDevicesByRealEstate(device.Device.RealEstate, device.Device)
 	return device
 }
 
@@ -136,5 +144,6 @@ func (s *SolarPanelRepositoryImpl) UpdateSP(device energetic.SolarPanel) bool {
 		fmt.Println("Failed to update device:", err)
 		return false
 	}
+
 	return true
 }

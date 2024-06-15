@@ -110,7 +110,7 @@ class TableOfActions extends React.Component {
                                 <TableRow key={entry["timestamp"]}>
                                     <TableCell>{entry.User}</TableCell>
                                     <TableCell>{entry.Action}</TableCell>
-                                    <TableCell>{parseInt(entry.Percentage * 100)}%</TableCell>
+                                    <TableCell>{parseInt(entry.Percentage)}%</TableCell>
                                     <TableCell>{entry.Plug != -1 ? entry.Plug + 1 : -1}</TableCell>
                                     <TableCell>{this.formatTimestamp(entry["timestamp"])}</TableCell>
                                 </TableRow>

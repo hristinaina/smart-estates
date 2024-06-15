@@ -206,6 +206,14 @@ func (s *WashingMachineServiceImpl) Add(dto dtos.DeviceDTO) inside.WashingMachin
 	}
 
 	device.Device.Device.Id = int(deviceID)
+
+	cacheKey := fmt.Sprintf("wm_%d", device.Device.Device.Id)
+	if err := s.cacheService.SetToCache(cacheKey, device); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+	err = s.cacheService.AddDevicesByRealEstate(device.Device.Device.RealEstate, device.Device.Device)
 	return device
 }
 

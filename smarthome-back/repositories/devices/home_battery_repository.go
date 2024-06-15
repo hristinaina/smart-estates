@@ -130,6 +130,14 @@ func (s *HomeBatteryRepositoryImpl) Add(dto dtos.DeviceDTO) energetic.HomeBatter
 		return energetic.HomeBattery{}
 	}
 	device.Device.Id = int(deviceID)
+
+	cacheKey := fmt.Sprintf("battery_estate_%d", device.Device.Id)
+	if err := s.cacheService.SetToCache(cacheKey, device); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+	err = s.cacheService.AddDevicesByRealEstate(device.Device.RealEstate, device.Device)
 	return device
 }
 

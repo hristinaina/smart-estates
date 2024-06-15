@@ -13,6 +13,7 @@ import { Snackbar } from "@mui/material";
 import SolarPanelService from '../../../services/SolarPanelService';
 import EVChargerService from '../../../services/EVChargerService';
 import TableOfActions from './TableOfActions';
+import PermissionService from '../../../services/PermissionService';
 
 // todo prepraviti na tabelu umjesto grafa i uzimanje mejla kao sto je Tasija uradila
 export class EVCharger extends Component {
@@ -25,6 +26,7 @@ export class EVCharger extends Component {
             data: [],  //za tabelu
             connectionData: [],  // lista objekata car-simulation
             emailInput: '',
+            userEmails: [],
             startDate: '',
             endDate: '',
             inputPercentage: 90,
@@ -55,11 +57,16 @@ export class EVCharger extends Component {
         this.email =  user.Email;
         const historyData = await EVChargerService.getTableActions(this.id, user.Email, "2023-12-12", "2024-02-07");
         //todo change this upper method
+        let users = await PermissionService.getPermissions(this.id, user.EstateId);
+        users.push(user.Email);
+        users.push("all");
+        users.push("none");
         this.setState({
             device: device,
             connectionData: connectionData,
             data: historyData,
             emailInput: user.Email,
+            userEmails: users,
             startDate: "2023-12-12",
             endDate: "2024-02-07",
             inputPercentage: parseInt(percentage *100),
@@ -172,7 +179,7 @@ export class EVCharger extends Component {
     };
 
     render() {
-        const { device, data, emailInput, startDate, endDate, inputPercentage, connectionData } = this.state;
+        const { device, data, emailInput, startDate, endDate, inputPercentage, connectionData, userEmails } = this.state;
         const connectionsArray = Array.from({ length: device.Connections }, (_, index) => index + 1);
         console.log(connectionData);
         return (
@@ -229,9 +236,11 @@ export class EVCharger extends Component {
                                     className="new-real-estate-select"
                                     value={emailInput}
                                     onChange={(e) => this.setState({ emailInput: e.target.value })}>
-                                    <option value={this.email}>{ this.email }</option>
-                                    <option value="auto">auto</option>
-                                    <option value="all">all</option>
+                                    {userEmails.map(email => (
+                                        <option key={email} value={email}>
+                                        {email}
+                                        </option>
+                                    ))}
                                 </select>
                             </label>
                             <br />
