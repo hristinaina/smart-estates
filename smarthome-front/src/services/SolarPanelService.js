@@ -24,6 +24,32 @@ class SolarPanelService {
         }
     }
 
+    
+    async getProduction(deviceId, startDate, endDate) {
+        const gdata = {
+            "DeviceId": deviceId,
+            "UserEmail": '',
+            "StartDate": startDate,
+            "EndDate": endDate
+        }
+        try {
+            const response = await fetch('http://localhost:8081/api/sp/production', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(gdata),
+                credentials: 'include',
+            });
+            const data = await response.json();
+            console.log(data);
+            return data;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            throw error;
+        }
+    }
+
     async getSPLastValue(deviceId) {
         try {
             const response = await fetch('http://localhost:8081/api/sp/lastValue/' + deviceId, {

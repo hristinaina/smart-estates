@@ -57,3 +57,15 @@ func (uc SolarPanelController) GetValueFromLastMinute(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, graphData)
 }
+
+func (uc SolarPanelController) GetProductionForSP(c *gin.Context) {
+	var data dtos.ActionGraphRequest
+	// convert json object to model device
+	if err := c.BindJSON(&data); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid JSON"})
+		return
+	}
+	graphData := uc.service.GetProductionForSP(data)
+
+	c.JSON(http.StatusOK, graphData)
+}

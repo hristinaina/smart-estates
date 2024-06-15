@@ -71,6 +71,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		solarPanelRoutes.GET("/:id", SolarPanelController.Get)
 		solarPanelRoutes.PUT("/graphData", middleware.RequireAuth, SolarPanelController.GetGraphData)
 		solarPanelRoutes.GET("/lastValue/:id", middleware.RequireAuth, SolarPanelController.GetValueFromLastMinute)
+		solarPanelRoutes.PUT("/production", middleware.RequireAuth, SolarPanelController.GetProductionForSP)
 	}
 	homeBatteryRoutes := r.Group("/api/hb")
 	{
