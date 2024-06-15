@@ -3,12 +3,14 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"log"
+	"smarthome-back/cache"
 	"smarthome-back/enumerations"
 	models2 "smarthome-back/models/devices"
 	models "smarthome-back/models/devices/outside"
 	"smarthome-back/repositories"
+
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type SprinklerRepository interface {
@@ -24,15 +26,23 @@ type SprinklerRepository interface {
 }
 
 type SprinklerRepositoryImpl struct {
-	db     *sql.DB
-	influx influxdb2.Client
+	db           *sql.DB
+	influx       influxdb2.Client
+	cacheService *cache.CacheService
 }
 
-func NewSprinklerRepository(db *sql.DB, influx influxdb2.Client) SprinklerRepository {
-	return &SprinklerRepositoryImpl{db: db, influx: influx}
+func NewSprinklerRepository(db *sql.DB, influx influxdb2.Client, cacheService cache.CacheService) SprinklerRepository {
+	return &SprinklerRepositoryImpl{db: db, influx: influx, cacheService: &cacheService}
 }
 
 func (repo *SprinklerRepositoryImpl) Get(id int) (models.Sprinkler, error) {
+	cacheKey := fmt.Sprintf("sprinkler_%d", id)
+
+	var sprinkler models.Sprinkler
+	if found, err := repo.cacheService.GetFromCache(cacheKey, &sprinkler); found {
+		return sprinkler, err
+	}
+
 	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, s.IsOn
 			  FROM Sprinkler s 
@@ -50,8 +60,15 @@ func (repo *SprinklerRepositoryImpl) Get(id int) (models.Sprinkler, error) {
 	if repositories.IsError(err) {
 		return models.Sprinkler{}, err
 	}
-	sprinkler := sprinklers[0]
+	sprinkler = sprinklers[0]
 	// TODO: add here modes
+
+	if err := repo.cacheService.SetToCache(cacheKey, sprinkler); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return sprinkler, nil
 
 }

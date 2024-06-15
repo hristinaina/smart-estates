@@ -3,8 +3,9 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
-	"smarthome-back/models/devices"
+	models "smarthome-back/models/devices"
 	"smarthome-back/models/devices/energetic"
 )
 
@@ -15,14 +16,22 @@ type SolarPanelRepository interface {
 }
 
 type SolarPanelRepositoryImpl struct {
-	db *sql.DB
+	db           *sql.DB
+	cacheService *cache.CacheService
 }
 
-func NewSolarPanelRepository(db *sql.DB) SolarPanelRepository {
-	return &SolarPanelRepositoryImpl{db: db}
+func NewSolarPanelRepository(db *sql.DB, cacheService cache.CacheService) SolarPanelRepository {
+	return &SolarPanelRepositoryImpl{db: db, cacheService: &cacheService}
 }
 
 func (s *SolarPanelRepositoryImpl) Get(id int) energetic.SolarPanel {
+	cacheKey := fmt.Sprintf("sp_%d", id)
+
+	var sp energetic.SolarPanel
+	if found, _ := s.cacheService.GetFromCache(cacheKey, &sp); found {
+		return sp
+	}
+
 	query := `
 		SELECT
 			Device.Id,
@@ -45,7 +54,6 @@ func (s *SolarPanelRepositoryImpl) Get(id int) energetic.SolarPanel {
 	// Execute the query
 	row := s.db.QueryRow(query, id)
 
-	var sp energetic.SolarPanel
 	var device models.Device
 
 	err := row.Scan(
@@ -69,6 +77,13 @@ func (s *SolarPanelRepositoryImpl) Get(id int) energetic.SolarPanel {
 		return energetic.SolarPanel{}
 	}
 	sp.Device = device
+
+	if err := s.cacheService.SetToCache(cacheKey, sp); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return sp
 }
 

@@ -4,13 +4,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"log"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/mqtt_client"
 	"smarthome-back/repositories"
 	"smarthome-back/services/devices/energetic"
 	"time"
+
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 
 	"github.com/gorilla/websocket"
 )
@@ -79,15 +81,15 @@ func SendAmbientValues(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func SetupWebSocketRoutes(db *sql.DB, influxDb influxdb2.Client) {
+func SetupWebSocketRoutes(db *sql.DB, influxDb influxdb2.Client, cacheService *cache.CacheService) {
 	// http.HandleFunc("/ws", HandleWebSocket)
 	http.HandleFunc("/ambient", SendAmbientValues)
 	http.HandleFunc("/consumption", func(w http.ResponseWriter, r *http.Request) {
-		SendConsumptionValues(db, influxDb, w, r)
+		SendConsumptionValues(db, influxDb, w, r, cacheService)
 	})
 }
 
-func SendConsumptionValues(db *sql.DB, influxDb influxdb2.Client, w http.ResponseWriter, r *http.Request) {
+func SendConsumptionValues(db *sql.DB, influxDb influxdb2.Client, w http.ResponseWriter, r *http.Request, cacheService *cache.CacheService) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
 	ws, err := upgrader.Upgrade(w, r, nil)
@@ -96,8 +98,8 @@ func SendConsumptionValues(db *sql.DB, influxDb influxdb2.Client, w http.Respons
 	}
 
 	fmt.Println("Client Successfully Connected...")
-	realEstateRepository := repositories.NewRealEstateRepository(db)
-	homeBatteryService := energetic.NewHomeBatteryService(db, influxDb)
+	realEstateRepository := repositories.NewRealEstateRepository(db, cacheService)
+	homeBatteryService := energetic.NewHomeBatteryService(db, influxDb, *cacheService)
 
 	ticker := time.NewTicker(60 * time.Second)
 	defer ticker.Stop()

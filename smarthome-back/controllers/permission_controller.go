@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
@@ -20,8 +21,8 @@ type PermissionController struct {
 	mailService          services.MailService
 }
 
-func NewPermissionController(db *sql.DB) PermissionController {
-	return PermissionController{userRepository: repositories.NewUserRepository(db), permissionRepository: repositories.NewPermissionRepository(db), mailService: services.NewMailService(db)}
+func NewPermissionController(db *sql.DB, cacheService cache.CacheService) PermissionController {
+	return PermissionController{userRepository: repositories.NewUserRepository(db, &cacheService), permissionRepository: repositories.NewPermissionRepository(db), mailService: services.NewMailService(db)}
 }
 
 // request body

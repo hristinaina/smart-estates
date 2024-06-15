@@ -2,22 +2,24 @@ package controllers
 
 import (
 	"database/sql"
-	"github.com/gin-gonic/gin"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/controllers"
 	dto "smarthome-back/dtos"
 	_ "smarthome-back/models/devices/outside"
 	services "smarthome-back/services/devices/outside"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type LampController struct {
 	service services.LampService
 }
 
-func NewLampController(db *sql.DB, influxDb influxdb2.Client) LampController {
-	return LampController{service: services.NewLampService(db, influxDb)}
+func NewLampController(db *sql.DB, influxDb influxdb2.Client, cacheService cache.CacheService) LampController {
+	return LampController{service: services.NewLampService(db, influxDb, cacheService)}
 }
 
 func (lc LampController) Get(c *gin.Context) {

@@ -3,21 +3,23 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
 	"smarthome-back/services"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type RealEstateController struct {
 	service services.RealEstateService
 }
 
-func NewRealEstateController(db *sql.DB) RealEstateController {
-	return RealEstateController{service: services.NewRealEstateService(db)}
+func NewRealEstateController(db *sql.DB, cacheService *cache.CacheService) RealEstateController {
+	return RealEstateController{service: services.NewRealEstateService(db, cacheService)}
 }
 
 func (rec RealEstateController) GetAll(c *gin.Context) {

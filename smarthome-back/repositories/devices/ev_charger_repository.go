@@ -3,8 +3,9 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
-	"smarthome-back/models/devices"
+	models "smarthome-back/models/devices"
 	"smarthome-back/models/devices/energetic"
 )
 
@@ -14,14 +15,22 @@ type EVChargerRepository interface {
 }
 
 type EVChargerRepositoryImpl struct {
-	db *sql.DB
+	db           *sql.DB
+	cacheService *cache.CacheService
 }
 
-func NewEVChargerRepository(db *sql.DB) EVChargerRepository {
-	return &EVChargerRepositoryImpl{db: db}
+func NewEVChargerRepository(db *sql.DB, cacheService cache.CacheService) EVChargerRepository {
+	return &EVChargerRepositoryImpl{db: db, cacheService: &cacheService}
 }
 
 func (s *EVChargerRepositoryImpl) Get(id int) energetic.EVCharger {
+	cacheKey := fmt.Sprintf("charger_%d", id)
+
+	var sp energetic.EVCharger
+	if found, _ := s.cacheService.GetFromCache(cacheKey, &sp); found {
+		return sp
+	}
+
 	query := `SELECT
 				d.id,
 				d.name,
@@ -40,7 +49,6 @@ func (s *EVChargerRepositoryImpl) Get(id int) energetic.EVCharger {
 	// Execute the query
 	row := s.db.QueryRow(query, id)
 
-	var sp energetic.EVCharger
 	var device models.Device
 
 	err := row.Scan(
@@ -61,6 +69,13 @@ func (s *EVChargerRepositoryImpl) Get(id int) energetic.EVCharger {
 		return energetic.EVCharger{}
 	}
 	sp.Device = device
+
+	if err := s.cacheService.SetToCache(cacheKey, sp); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return sp
 }
 

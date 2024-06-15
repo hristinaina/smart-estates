@@ -3,20 +3,22 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/dtos/consumption_graph"
 	"smarthome-back/services"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type ElectricityController struct {
 	service services.ElectricityService
 }
 
-func NewElectricityController(db *sql.DB, influxDb influxdb2.Client) ElectricityController {
-	return ElectricityController{service: services.NewElectricityService(db, influxDb)}
+func NewElectricityController(db *sql.DB, influxDb influxdb2.Client, cacheService *cache.CacheService) ElectricityController {
+	return ElectricityController{service: services.NewElectricityService(db, influxDb, cacheService)}
 }
 
 // GetElectricityForSelectedTime used to get production OR consumption

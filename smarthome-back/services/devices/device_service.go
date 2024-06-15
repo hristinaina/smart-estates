@@ -5,6 +5,7 @@ import (
 	_ "database/sql"
 	"errors"
 	_ "fmt"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
 	"smarthome-back/mqtt_client"
@@ -43,14 +44,15 @@ type DeviceServiceImpl struct {
 	sprinklerService      outside.SprinklerService
 	mqtt                  *mqtt_client.MQTTClient
 	deviceRepository      repositories.DeviceRepository
+	cacheService          cache.CacheService
 }
 
-func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client) DeviceService {
-	return &DeviceServiceImpl{db: db, airConditionerService: inside.NewAirConditionerService(db), washingMachineService: inside.NewWashingMachineService(db), evChargerService: energetic.NewEVChargerService(db, influxDb),
-		homeBatteryService: energetic.NewHomeBatteryService(db, influxDb), lampService: outside.NewLampService(db, influxDb),
-		vehicleGateService: outside.NewVehicleGateService(db, influxDb), sprinklerService: outside.NewSprinklerService(db, influxDb),
-		mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db),
-		solarPanelService: energetic.NewSolarPanelService(db, influxDb), ambientSensorService: inside.NewAmbientSensorService(db)}
+func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxdb2.Client, cacheService cache.CacheService) DeviceService {
+	return &DeviceServiceImpl{db: db, airConditionerService: inside.NewAirConditionerService(db, &cacheService), washingMachineService: inside.NewWashingMachineService(db, &cacheService), evChargerService: energetic.NewEVChargerService(db, influxDb, cacheService),
+		homeBatteryService: energetic.NewHomeBatteryService(db, influxDb, cacheService), lampService: outside.NewLampService(db, influxDb, cacheService),
+		vehicleGateService: outside.NewVehicleGateService(db, influxDb, cacheService), sprinklerService: outside.NewSprinklerService(db, influxDb, cacheService),
+		mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db, &cacheService),
+		solarPanelService: energetic.NewSolarPanelService(db, influxDb, cacheService), ambientSensorService: inside.NewAmbientSensorService(db, &cacheService)}
 }
 
 func (res *DeviceServiceImpl) GetAll() []models.Device {

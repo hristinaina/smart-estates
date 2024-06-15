@@ -2,12 +2,14 @@ package outside
 
 import (
 	"database/sql"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices/outside"
 	repositories "smarthome-back/repositories/devices"
 	"strconv"
 	"time"
+
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type SprinklerService interface {
@@ -28,8 +30,8 @@ type SprinklerServiceImpl struct {
 	repository repositories.SprinklerRepository
 }
 
-func NewSprinklerService(db *sql.DB, client influxdb2.Client) SprinklerService {
-	return &SprinklerServiceImpl{db: db, influx: client, repository: repositories.NewSprinklerRepository(db, client)}
+func NewSprinklerService(db *sql.DB, client influxdb2.Client, cacheService cache.CacheService) SprinklerService {
+	return &SprinklerServiceImpl{db: db, influx: client, repository: repositories.NewSprinklerRepository(db, client, cacheService)}
 }
 
 func (service *SprinklerServiceImpl) Get(id int) (models.Sprinkler, error) {

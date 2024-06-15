@@ -3,6 +3,7 @@ package inside
 import (
 	"database/sql"
 	"fmt"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
 )
@@ -13,14 +14,22 @@ type AmbientSensorService interface {
 }
 
 type AmbientSensorServiceImpl struct {
-	db *sql.DB
+	db           *sql.DB
+	cacheService cache.CacheService
 }
 
-func NewAmbientSensorService(db *sql.DB) AmbientSensorService {
-	return &AmbientSensorServiceImpl{db: db}
+func NewAmbientSensorService(db *sql.DB, cacheService *cache.CacheService) AmbientSensorService {
+	return &AmbientSensorServiceImpl{db: db, cacheService: *cacheService}
 }
 
 func (as *AmbientSensorServiceImpl) Get(id int) (models.ConsumptionDevice, error) {
+	cacheKey := fmt.Sprintf("as_%d", id)
+
+	var sensor models.ConsumptionDevice
+	if found, err := as.cacheService.GetFromCache(cacheKey, &sensor); found {
+		return sensor, err
+	}
+
 	query := `
 		SELECT
 			Device.Id,
@@ -66,6 +75,13 @@ func (as *AmbientSensorServiceImpl) Get(id int) (models.ConsumptionDevice, error
 		}
 		consDevice.Device = device
 	}
+
+	if err := as.cacheService.SetToCache(cacheKey, consDevice); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return consDevice, nil
 }
 

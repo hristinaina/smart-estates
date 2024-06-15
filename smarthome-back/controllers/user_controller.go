@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
 	"smarthome-back/services"
@@ -17,8 +18,8 @@ type UserController struct {
 	repo         repositories.UserRepository
 }
 
-func NewUserController(db *sql.DB) UserController {
-	return UserController{mail_service: services.NewMailService(db), repo: repositories.NewUserRepository(db)}
+func NewUserController(db *sql.DB, cacheService cache.CacheService) UserController {
+	return UserController{mail_service: services.NewMailService(db), repo: repositories.NewUserRepository(db, &cacheService)}
 }
 
 var user = models.User{}

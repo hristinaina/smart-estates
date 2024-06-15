@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
 	"smarthome-back/models/devices/energetic"
@@ -17,14 +18,22 @@ type HomeBatteryRepository interface {
 }
 
 type HomeBatteryRepositoryImpl struct {
-	db *sql.DB
+	db           *sql.DB
+	cacheService cache.CacheService
 }
 
-func NewHomeBatteryRepository(db *sql.DB) HomeBatteryRepository {
-	return &HomeBatteryRepositoryImpl{db: db}
+func NewHomeBatteryRepository(db *sql.DB, cacheService cache.CacheService) HomeBatteryRepository {
+	return &HomeBatteryRepositoryImpl{db: db, cacheService: cacheService}
 }
 
 func (s *HomeBatteryRepositoryImpl) GetAllByEstateId(id int) ([]energetic.HomeBattery, error) {
+	cacheKey := fmt.Sprintf("battery_estate_%d", id)
+
+	var batteries []energetic.HomeBattery
+	if found, err := s.cacheService.GetFromCache(cacheKey, &batteries); found {
+		return batteries, err
+	}
+
 	query := `
 		SELECT
 			d.id,
@@ -48,7 +57,6 @@ func (s *HomeBatteryRepositoryImpl) GetAllByEstateId(id int) ([]energetic.HomeBa
 	defer rows.Close()
 
 	// Iterate through the result set
-	var batteries []energetic.HomeBattery
 	for rows.Next() {
 		var device models.Device
 		var hb energetic.HomeBattery
@@ -73,6 +81,12 @@ func (s *HomeBatteryRepositoryImpl) GetAllByEstateId(id int) ([]energetic.HomeBa
 	// Check for errors from iterating over rows
 	if err := rows.Err(); err != nil {
 		log.Fatal(err)
+	}
+
+	if err := s.cacheService.SetToCache(cacheKey, batteries); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
 	}
 	return batteries, nil
 }
@@ -130,6 +144,13 @@ func (res *HomeBatteryRepositoryImpl) Update(device energetic.HomeBattery) bool 
 }
 
 func (res *HomeBatteryRepositoryImpl) Get(id int) energetic.HomeBattery {
+	cacheKey := fmt.Sprintf("battery_%d", id)
+
+	var hb energetic.HomeBattery
+	if found, _ := res.cacheService.GetFromCache(cacheKey, &hb); found {
+		return hb
+	}
+
 	query := `
 		SELECT
 			Device.Id,
@@ -150,7 +171,6 @@ func (res *HomeBatteryRepositoryImpl) Get(id int) energetic.HomeBattery {
 	// Execute the query
 	row := res.db.QueryRow(query, id)
 
-	var hb energetic.HomeBattery
 	var device models.Device
 
 	err := row.Scan(
@@ -172,5 +192,12 @@ func (res *HomeBatteryRepositoryImpl) Get(id int) energetic.HomeBattery {
 		return energetic.HomeBattery{}
 	}
 	hb.Device = device
+
+	if err := res.cacheService.SetToCache(cacheKey, hb); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return hb
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"smarthome-back/cache"
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
@@ -18,8 +19,8 @@ type GenerateSuperadmin struct {
 	repo repositories.UserRepository
 }
 
-func NewGenerateSuperAdmin(db *sql.DB) GenerateSuperadmin {
-	return GenerateSuperadmin{repo: repositories.NewUserRepository(db)}
+func NewGenerateSuperAdmin(db *sql.DB, cacheService cache.CacheService) GenerateSuperadmin {
+	return GenerateSuperadmin{repo: repositories.NewUserRepository(db, &cacheService)}
 }
 
 func (gs GenerateSuperadmin) GenerateSuperadmin() {

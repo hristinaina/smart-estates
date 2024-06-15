@@ -2,21 +2,23 @@ package controllers
 
 import (
 	"database/sql"
-	"github.com/gin-gonic/gin"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/controllers"
 	"smarthome-back/dtos"
 	"smarthome-back/services/devices/energetic"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type SolarPanelController struct {
 	service energetic.SolarPanelService
 }
 
-func NewSolarPanelController(db *sql.DB, influxDb influxdb2.Client) SolarPanelController {
-	return SolarPanelController{service: energetic.NewSolarPanelService(db, influxDb)}
+func NewSolarPanelController(db *sql.DB, influxDb influxdb2.Client, cacheService cache.CacheService) SolarPanelController {
+	return SolarPanelController{service: energetic.NewSolarPanelService(db, influxDb, cacheService)}
 }
 
 func (uc SolarPanelController) Get(c *gin.Context) {

@@ -6,14 +6,16 @@ import (
 	_ "database/sql"
 	"fmt"
 	_ "fmt"
-	_ "github.com/gin-gonic/gin"
-	_ "github.com/go-sql-driver/mysql"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	"smarthome-back/models/devices/energetic"
 	repositories "smarthome-back/repositories/devices"
 	"strconv"
 	"time"
+
+	_ "github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type EVChargerService interface {
@@ -24,13 +26,14 @@ type EVChargerService interface {
 }
 
 type EVChargerServiceImpl struct {
-	db         *sql.DB
-	influxDb   influxdb2.Client
-	repository repositories.EVChargerRepository
+	db           *sql.DB
+	influxDb     influxdb2.Client
+	repository   repositories.EVChargerRepository
+	cacheService cache.CacheService
 }
 
-func NewEVChargerService(db *sql.DB, influxdb influxdb2.Client) EVChargerService {
-	return &EVChargerServiceImpl{db: db, influxDb: influxdb, repository: repositories.NewEVChargerRepository(db)}
+func NewEVChargerService(db *sql.DB, influxdb influxdb2.Client, cacheService cache.CacheService) EVChargerService {
+	return &EVChargerServiceImpl{db: db, influxDb: influxdb, repository: repositories.NewEVChargerRepository(db, cacheService)}
 }
 
 func (s *EVChargerServiceImpl) Get(id int) energetic.EVCharger {

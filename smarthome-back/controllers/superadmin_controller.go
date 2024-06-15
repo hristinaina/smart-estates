@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"smarthome-back/cache"
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
@@ -27,8 +28,8 @@ type SuperAdminControllerImpl struct {
 	superadmin_service services.GenerateSuperadmin
 }
 
-func NewSuperAdminController(db *sql.DB) SuperAdminController {
-	return &SuperAdminControllerImpl{db: db, repo: repositories.NewUserRepository(db), mail_service: services.NewMailService(db), superadmin_service: services.NewGenerateSuperAdmin(db)}
+func NewSuperAdminController(db *sql.DB, cacheService cache.CacheService) SuperAdminController {
+	return &SuperAdminControllerImpl{db: db, repo: repositories.NewUserRepository(db, &cacheService), mail_service: services.NewMailService(db), superadmin_service: services.NewGenerateSuperAdmin(db, cacheService)}
 }
 
 // password dto

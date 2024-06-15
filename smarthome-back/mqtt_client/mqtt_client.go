@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"smarthome-back/cache"
 	"smarthome-back/repositories"
 	repositories2 "smarthome-back/repositories/devices"
 
@@ -47,9 +48,10 @@ type MQTTClient struct {
 	vehicleGateRepository repositories2.VehicleGateRepository
 	evChargerRepository   repositories2.EVChargerRepository
 	sprinkleRepository    repositories2.SprinklerRepository
+	cacheService          cache.CacheService
 }
 
-func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
+func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client, cacheService *cache.CacheService) *MQTTClient {
 	opts := mqtt.NewClientOptions().AddBroker("ws://localhost:9001/mqtt")
 	opts.SetClientID("go-server-nvt-2023")
 
@@ -60,14 +62,14 @@ func NewMQTTClient(db *sql.DB, influxDb influxdb2.Client) *MQTTClient {
 	}
 	return &MQTTClient{
 		client:                client,
-		deviceRepository:      repositories2.NewDeviceRepository(db),
-		solarPanelRepository:  repositories2.NewSolarPanelRepository(db),
-		lampRepository:        repositories2.NewLampRepository(db, influxDb),
-		homeBatteryRepository: repositories2.NewHomeBatteryRepository(db),
-		realEstateRepository:  *repositories.NewRealEstateRepository(db),
-		vehicleGateRepository: repositories2.NewVehicleGateRepository(db, influxDb),
-		evChargerRepository:   repositories2.NewEVChargerRepository(db),
-		sprinkleRepository:    repositories2.NewSprinklerRepository(db, influxDb),
+		deviceRepository:      repositories2.NewDeviceRepository(db, cacheService),
+		solarPanelRepository:  repositories2.NewSolarPanelRepository(db, *cacheService),
+		lampRepository:        repositories2.NewLampRepository(db, influxDb, *cacheService),
+		homeBatteryRepository: repositories2.NewHomeBatteryRepository(db, *cacheService),
+		realEstateRepository:  *repositories.NewRealEstateRepository(db, cacheService),
+		vehicleGateRepository: repositories2.NewVehicleGateRepository(db, influxDb, *cacheService),
+		evChargerRepository:   repositories2.NewEVChargerRepository(db, *cacheService),
+		sprinkleRepository:    repositories2.NewSprinklerRepository(db, influxDb, *cacheService),
 		influxDb:              influxDb,
 	}
 }

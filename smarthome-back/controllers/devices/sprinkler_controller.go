@@ -2,15 +2,17 @@ package controllers
 
 import (
 	"database/sql"
-	"github.com/gin-gonic/gin"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/controllers"
 	"smarthome-back/dtos"
 	"smarthome-back/models"
 	"smarthome-back/mqtt_client"
 	services "smarthome-back/services/devices/outside"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type SprinklerController struct {
@@ -18,8 +20,8 @@ type SprinklerController struct {
 	mqtt    *mqtt_client.MQTTClient
 }
 
-func NewSprinklerController(db *sql.DB, client influxdb2.Client, mqtt *mqtt_client.MQTTClient) SprinklerController {
-	return SprinklerController{service: services.NewSprinklerService(db, client), mqtt: mqtt}
+func NewSprinklerController(db *sql.DB, client influxdb2.Client, mqtt *mqtt_client.MQTTClient, cacheService cache.CacheService) SprinklerController {
+	return SprinklerController{service: services.NewSprinklerService(db, client, cacheService), mqtt: mqtt}
 }
 
 func (controller SprinklerController) Get(c *gin.Context) {

@@ -3,14 +3,16 @@ package outside
 import (
 	"database/sql"
 	"fmt"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"github.com/influxdata/influxdb-client-go/v2/api"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	"smarthome-back/dtos/vehicle_gate_graph"
 	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices/outside"
 	repositories "smarthome-back/repositories/devices"
 	"sort"
+
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
 )
 
 type VehicleGateService interface {
@@ -34,8 +36,8 @@ type VehicleGateServiceImpl struct {
 	repository repositories.VehicleGateRepository
 }
 
-func NewVehicleGateService(db *sql.DB, influx influxdb2.Client) VehicleGateService {
-	return &VehicleGateServiceImpl{db: db, influx: influx, repository: repositories.NewVehicleGateRepository(db, influx)}
+func NewVehicleGateService(db *sql.DB, influx influxdb2.Client, cacheService cache.CacheService) VehicleGateService {
+	return &VehicleGateServiceImpl{db: db, influx: influx, repository: repositories.NewVehicleGateRepository(db, influx, cacheService)}
 }
 
 func (service *VehicleGateServiceImpl) Get(id int) (models.VehicleGate, error) {

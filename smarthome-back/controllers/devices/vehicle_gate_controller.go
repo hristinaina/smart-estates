@@ -2,21 +2,23 @@ package controllers
 
 import (
 	"database/sql"
-	"github.com/gin-gonic/gin"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"smarthome-back/cache"
 	"smarthome-back/controllers"
 	"smarthome-back/dtos"
 	"smarthome-back/dtos/vehicle_gate_graph"
 	services "smarthome-back/services/devices/outside"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type VehicleGateController struct {
 	service services.VehicleGateService
 }
 
-func NewVehicleGateController(db *sql.DB, influx influxdb2.Client) VehicleGateController {
-	return VehicleGateController{service: services.NewVehicleGateService(db, influx)}
+func NewVehicleGateController(db *sql.DB, influx influxdb2.Client, cacheService cache.CacheService) VehicleGateController {
+	return VehicleGateController{service: services.NewVehicleGateService(db, influx, cacheService)}
 }
 
 func (controller VehicleGateController) Get(c *gin.Context) {

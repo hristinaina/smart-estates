@@ -4,16 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"github.com/influxdata/influxdb-client-go/v2/api"
-	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"log"
+	"smarthome-back/cache"
 	"smarthome-back/enumerations"
 	models2 "smarthome-back/models/devices"
 	models "smarthome-back/models/devices/outside"
 	"smarthome-back/repositories"
 	"strconv"
 	"time"
+
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
+	"github.com/influxdata/influxdb-client-go/v2/api/write"
 )
 
 type VehicleGateRepository interface {
@@ -30,15 +32,23 @@ type VehicleGateRepository interface {
 }
 
 type VehicleGateRepositoryImpl struct {
-	db     *sql.DB
-	influx influxdb2.Client
+	db           *sql.DB
+	influx       influxdb2.Client
+	cacheService cache.CacheService
 }
 
-func NewVehicleGateRepository(db *sql.DB, influx influxdb2.Client) VehicleGateRepository {
-	return &VehicleGateRepositoryImpl{db: db, influx: influx}
+func NewVehicleGateRepository(db *sql.DB, influx influxdb2.Client, cacheService cache.CacheService) VehicleGateRepository {
+	return &VehicleGateRepositoryImpl{db: db, influx: influx, cacheService: cacheService}
 }
 
 func (repo *VehicleGateRepositoryImpl) Get(id int) (models.VehicleGate, error) {
+	cacheKey := fmt.Sprintf("gate_%d", id)
+
+	var gate models.VehicleGate
+	if found, err := repo.cacheService.GetFromCache(cacheKey, &gate); found {
+		return gate, err
+	}
+
 	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, v.IsOpen, v.Mode
 			  FROM vehicleGate v 
@@ -56,12 +66,19 @@ func (repo *VehicleGateRepositoryImpl) Get(id int) (models.VehicleGate, error) {
 	if repositories.IsError(err) {
 		return models.VehicleGate{}, err
 	}
-	gate := gates[0]
+	gate = gates[0]
 	licensePlates, err := repo.GetLicensePlates(gate.ConsumptionDevice.Device.Id)
 	if repositories.CheckIfError(err) {
 		return models.VehicleGate{}, err
 	}
 	gate.LicensePlates = licensePlates
+
+	if err := repo.cacheService.SetToCache(cacheKey, gate); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return gate, nil
 }
 

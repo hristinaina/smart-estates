@@ -3,21 +3,23 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/controllers"
 	"smarthome-back/services/devices/energetic"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type HomeBatteryController struct {
 	service energetic.HomeBatteryService
 }
 
-func NewHomeBatteryController(db *sql.DB, influxDb influxdb2.Client) HomeBatteryController {
-	return HomeBatteryController{service: energetic.NewHomeBatteryService(db, influxDb)}
+func NewHomeBatteryController(db *sql.DB, influxDb influxdb2.Client, cacheService cache.CacheService) HomeBatteryController {
+	return HomeBatteryController{service: energetic.NewHomeBatteryService(db, influxDb, cacheService)}
 }
 
 func (uc HomeBatteryController) Get(c *gin.Context) {
