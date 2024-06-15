@@ -131,6 +131,26 @@ class PermissionService {
             throw error;
         }
     }
+
+    async getPermissions(deviceId) {
+        try {
+            const response = await fetch('http://localhost:8081/api/permission/get-permissions/' + deviceId, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+            const data = await response.json();
+            if (data == null)
+                return [];
+            else return data;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            throw error;
+        }
+    }
+
 }
 
 export default new PermissionService();

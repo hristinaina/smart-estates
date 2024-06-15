@@ -48,13 +48,21 @@ func (s *SolarPanelServiceImpl) GetGraphData(data dtos.ActionGraphRequest) (dtos
 	influxOrg := "Smart Home"
 	influxBucket := "bucket"
 
+	query := ""
 	// Create InfluxDB query API
 	queryAPI := s.influxDb.QueryAPI(influxOrg)
-	// Define your InfluxDB query with conditions
-	query := fmt.Sprintf(`from(bucket:"%s")|> range(start: %s, stop: %s) 
+	if data.UserEmail == "all" {
+		// Define your InfluxDB query with conditions
+		query = fmt.Sprintf(`from(bucket:"%s")|> range(start: %s, stop: %s) 
+			|> filter(fn: (r) => r["_measurement"] == "solar_panel"
+			and r["_field"] == "isOn" and r["device_id"] == "%d")`, influxBucket,
+			data.StartDate, data.EndDate, data.DeviceId)
+	} else {
+		query = fmt.Sprintf(`from(bucket:"%s")|> range(start: %s, stop: %s) 
 			|> filter(fn: (r) => r["_measurement"] == "solar_panel"
 			and r["_field"] == "isOn" and r["user_id"] == "%s" and r["device_id"] == "%d")`, influxBucket,
-		data.StartDate, data.EndDate, data.UserEmail, data.DeviceId)
+			data.StartDate, data.EndDate, data.UserEmail, data.DeviceId)
+	}
 
 	result, err := queryAPI.Query(context.Background(), query)
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	"smarthome-back/dtos"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
+	repositories2 "smarthome-back/repositories/devices"
 	"smarthome-back/services"
 	"strconv"
 	"time"
@@ -17,12 +18,13 @@ import (
 
 type PermissionController struct {
 	userRepository       repositories.UserRepository
+	deviceRepository     repositories2.DeviceRepository
 	permissionRepository repositories.PermissionRepository
 	mailService          services.MailService
 }
 
 func NewPermissionController(db *sql.DB, cacheService cache.CacheService) PermissionController {
-	return PermissionController{userRepository: repositories.NewUserRepository(db, &cacheService), permissionRepository: repositories.NewPermissionRepository(db), mailService: services.NewMailService(db)}
+	return PermissionController{userRepository: repositories.NewUserRepository(db, &cacheService), permissionRepository: repositories.NewPermissionRepository(db), mailService: services.NewMailService(db), deviceRepository: repositories2.NewDeviceRepository(db, &cacheService)}
 }
 
 // request body
@@ -174,4 +176,17 @@ func (pc PermissionController) GetDeviceForRealEstate(c *gin.Context) {
 	devices := pc.permissionRepository.GetDeviceForSharedRealEstate(user.Email, realEstateId)
 
 	c.JSON(http.StatusOK, devices)
+}
+
+func (pc PermissionController) GetPermissionsForDevice(c *gin.Context) {
+	deviceId, err := strconv.Atoi(c.Param("deviceId"))
+	if err != nil {
+		return
+	}
+
+	realEstateId, _ := pc.deviceRepository.GetRealEstateByDeviceId(deviceId)
+
+	users := pc.permissionRepository.GetPermissionsForDevice(deviceId, realEstateId)
+
+	c.JSON(http.StatusOK, users)
 }

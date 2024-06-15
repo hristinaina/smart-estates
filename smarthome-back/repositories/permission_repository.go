@@ -3,6 +3,7 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"smarthome-back/dtos"
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
@@ -18,6 +19,7 @@ type PermissionRepository interface {
 	DeletePermission(realEstateId int, permission dtos.PermissionDTO) error
 	GetPermitRealEstateByEmail(email string) []models.RealEstate
 	GetDeviceForSharedRealEstate(email string, realEstateId int) []PermissionDevice
+	GetPermissionsForDevice(deviceId int, estateId int) []string
 }
 
 type PermissionRepositoryImpl struct {
@@ -177,4 +179,34 @@ func (res *PermissionRepositoryImpl) GetDeviceForSharedRealEstate(email string, 
 	}
 
 	return devices
+}
+
+func (res *PermissionRepositoryImpl) GetPermissionsForDevice(deviceId int, estateId int) []string {
+	query := `SELECT DISTINCT p.userEmail
+	FROM smart_home.permission p
+	WHERE p.deviceId  = ? OR p.realEstateId =? and p.isDeleted=false`
+
+	rows, err := res.db.Query(query, deviceId, estateId)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	var userEmails []string
+
+	for rows.Next() {
+		var userEmail string
+		if err := rows.Scan(&userEmail); err != nil {
+			log.Printf("Row scan error: %v", err)
+			return nil
+		}
+		userEmails = append(userEmails, userEmail)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("Rows iteration error: %v", err)
+		return nil
+	}
+
+	return userEmails
 }

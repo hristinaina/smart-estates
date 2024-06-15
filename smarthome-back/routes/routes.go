@@ -137,6 +137,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		permissionRoutes.POST("/deny/:id", middleware.RequireAuth, permissionController.DeletePermit)
 		permissionRoutes.GET("/get-real-estate/:id", middleware.RequireAuth, permissionController.GetPermitRealEstate)
 		permissionRoutes.GET("/get-devices/:id/:userId", middleware.RequireAuth, permissionController.GetDeviceForRealEstate)
+		permissionRoutes.GET("/get-permissions/:deviceId", middleware.RequireAuth, permissionController.GetPermissionsForDevice)
 	}
 
 	washingMachineRoutes := r.Group("/api/wm")

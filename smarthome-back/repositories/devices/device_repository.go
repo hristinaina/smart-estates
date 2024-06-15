@@ -21,6 +21,7 @@ type DeviceRepository interface {
 	GetConsumptionDevicesByEstateId(userID int) ([]models.ConsumptionDevice, error)
 	GetConsumptionDeviceDto(id int) (dtos.ConsumptionDeviceDto, error)
 	GetConsumptionDevice(id int) (models.ConsumptionDevice, error)
+	GetRealEstateByDeviceId(deviceId int) (int, error)
 }
 
 type DeviceRepositoryImpl struct {
@@ -320,4 +321,20 @@ func (res *DeviceRepositoryImpl) GetConsumptionDeviceDto(id int) (dtos.Consumpti
 	}
 	// TODO: check if here should be Autonomous power supply
 	return dtos.ConsumptionDeviceDto{PowerSupply: enumerations.Autonomous, PowerConsumption: 0}, nil
+}
+
+// GetRealEstateByDeviceId retrieves the RealEstateId by DeviceId
+func (repo *DeviceRepositoryImpl) GetRealEstateByDeviceId(deviceId int) (int, error) {
+	var realEstateId int
+	query := `SELECT realestate FROM device WHERE Id = ?`
+
+	err := repo.db.QueryRow(query, deviceId).Scan(&realEstateId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("no device found with id %d", deviceId)
+		}
+		return 0, err
+	}
+
+	return realEstateId, nil
 }

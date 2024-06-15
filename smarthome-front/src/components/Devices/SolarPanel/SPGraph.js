@@ -17,12 +17,25 @@ const SPGraph = ({ data }) => {
     ],
   };
 
-    const options = {
-      scales: {
-        y: {
-          beginAtZero: false,
+  const options = {
+    scales: {
+      y: {
+        beginAtZero: true, 
+        min: 0, 
+        max: 1, 
+        ticks: {
+          stepSize: 1,
+          callback: function(value) {
+            // Display only 0 and 1 on the y-axis
+            if (value === 0) {
+              return "off";
+            } else if (value === 1){
+              return "on";
+            } else return null; // Skip other values
+          },
         },
       },
+    },
   };
 
   return <Line style={{marginTop: "30px", marginBottom: "5px"}} data={chartData} options={options} />;

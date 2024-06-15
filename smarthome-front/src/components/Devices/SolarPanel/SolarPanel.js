@@ -14,6 +14,7 @@ import { Button } from 'reactstrap';
 import './SolarPanel.css'
 import { Snackbar } from "@mui/material";
 import SolarPanelService from '../../../services/SolarPanelService';
+import PermissionService from '../../../services/PermissionService';
 
 
 export class SolarPanel extends Component {
@@ -25,7 +26,8 @@ export class SolarPanel extends Component {
             device: {},
             switchOn: false,
             data: [],
-            email: '',
+            email: '',  // email of the selected option from user emails
+            userEmails: [],
             startDate: '',
             endDate: '',
             snackbarMessage: '',
@@ -55,12 +57,16 @@ export class SolarPanel extends Component {
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
         const historyData = await SolarPanelService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
-    
+        let users = await PermissionService.getPermissions(this.id, user.EstateId);
+        users.push(user.Email);
+        users.push("all");
+        users.push("none");
         this.setState({
             device: updatedData,
             switchOn: device.IsOn,
             data: historyData,
             email: user.Email,
+            userEmails: users,
             startDate: "2023-12-12",
             endDate: "2023-12-23",
         });
@@ -160,7 +166,7 @@ export class SolarPanel extends Component {
     };
 
     render() {
-        const { device, switchOn, data, email, startDate, endDate } = this.state;
+        const { device, switchOn, data, email, startDate, endDate, userEmails } = this.state;
 
         return (
             <div>
@@ -193,8 +199,17 @@ export class SolarPanel extends Component {
                         <p className='sp-card-title'>Switch History</p>
                         <form onSubmit={this.handleFormSubmit} className='sp-container'>
                             <label>
-                                Email:
-                                <TextField style={{ backgroundColor: "white" }} type="text" value={email} onChange={(e) => this.setState({ email: e.target.value })} />
+                                User:
+                                <select style={{width: "200px", cursor: "pointer"}}
+                                    className="new-real-estate-select"
+                                    value={email}
+                                    onChange={(e) => this.setState({ email: e.target.value })}>
+                                    {userEmails.map(email => (
+                                        <option key={email} value={email}>
+                                        {email}
+                                        </option>
+                                    ))}
+                                </select>
                             </label>
                             <br />
                             <label>
