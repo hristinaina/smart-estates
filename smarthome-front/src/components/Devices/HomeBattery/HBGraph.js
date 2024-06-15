@@ -2,12 +2,12 @@
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 
-const HBGraph = ({ data }) => {
+const HBGraph = ({ data, name }) => {
     const chartData = {
         labels: data.timestamps,
         datasets: [
             {
-                label: 'Consumed (kWh)',
+                label: name,
                 data: data.consumptionData,
                 borderColor: 'rgba(75,192,192,1)',
                 borderWidth: 2,
@@ -18,14 +18,6 @@ const HBGraph = ({ data }) => {
 
     const options = {
         scales: {
-            x: {
-                type: 'time',
-                time: {
-                    displayFormats: {
-                        quarter: 'HH:MM'
-                    }
-                }
-            },
             y: {
                 beginAtZero: true,
             },

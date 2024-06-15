@@ -75,6 +75,41 @@ func (uc HomeBatteryController) GetConsumptionForSelectedDate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 
+func (uc HomeBatteryController) GetStatusForSelectedTime(c *gin.Context) {
+	var input TimeInput
+	id, err := strconv.Atoi(c.Param("id"))
+	controllers.CheckIfError(err, c)
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+	results := uc.service.GetStatusForSelectedTime(input.Time, id)
+	c.JSON(http.StatusOK, gin.H{"result": results})
+}
+
+func (uc HomeBatteryController) GetStatusForSelectedDate(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	controllers.CheckIfError(err, c)
+	var input DateInput
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+
+	startDate, err := time.Parse("2006-01-02", input.Start)
+	if err != nil {
+		fmt.Println("Error parsing date:", err)
+	}
+
+	endDate, err := time.Parse("2006-01-02", input.End)
+	if err != nil {
+		fmt.Println("Error parsing date:", err)
+	}
+	results := uc.service.GetStatusForSelectedDate(startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), id)
+	c.JSON(http.StatusOK, gin.H{"result": results})
+}
+
 //
 //func (uc SolarPanelController) GetValueFromLastMinute(c *gin.Context) {
 //	id, err := strconv.Atoi(c.Param("id"))

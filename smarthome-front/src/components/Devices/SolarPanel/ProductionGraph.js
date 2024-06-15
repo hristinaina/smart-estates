@@ -7,7 +7,7 @@ const ProductionGraph = ({ data }) => {
         labels: data.timestamps,
         datasets: [
             {
-                label: 'Consumed (kWh)',
+                label: 'Produced (kWh)',
                 data: data.consumptionData,
                 borderColor: 'rgba(75,192,192,1)',
                 borderWidth: 2,

@@ -21,6 +21,7 @@ export class HomeBattery extends Component {
             device: {},
             data: [],
             activeGraph: 1,
+            statusData: [],
             snackbarMessage: '',
             showSnackbar: false,
             open: false,
@@ -57,6 +58,7 @@ export class HomeBattery extends Component {
         this.Name = device.Device.Name;
 
         const historyData = await HomeBatteryService.getHBGraphDataByRS(device.Device.RealEstate);
+        
         console.log(historyData)
         const graphData = this.convertResultToGraphData(historyData.result);
         this.setState({
@@ -131,8 +133,11 @@ export class HomeBattery extends Component {
     updateGraph = async (value) => {
         const result = await HomeBatteryService.getGraphDataForDropdownSelect(this.rs, value);
         const graphData = this.convertResultToGraphData(result.result.result)
+        const resultStatus = await HomeBatteryService.getStatusDataForDropdownSelect(this.id, value);
+        const graphStatus = this.convertResultToGraphData(resultStatus.result.result)
         this.setState({
             data: graphData,
+            statusData: graphStatus
         });
     }
 
@@ -142,7 +147,7 @@ export class HomeBattery extends Component {
             const graphData = this.convertResultToGraphData(historyData.result);
             this.setState({
                 data: graphData,
-                activeGraph: graphNumber
+                activeGraph: graphNumber,
             });
         }
         else {
@@ -180,10 +185,13 @@ export class HomeBattery extends Component {
             return;
         }
         const result = await HomeBatteryService.getGraphDataForDates(this.rs, this.state.startDate, this.state.endDate);
+        const statusResult = await HomeBatteryService.getStatusDataForDates(this.id, this.state.startDate, this.state.endDate);
         console.log("datum graf ", result.result.result)
         const graphData = this.convertResultToGraphData(result.result.result)
+        const statusGraph = this.convertResultToGraphData(statusResult.result.result)
         this.setState({
             data: graphData,
+            statusData: statusGraph
         });
     }
 
@@ -225,7 +233,7 @@ export class HomeBattery extends Component {
     };
 
     render() {
-        const { device, data, startDate, endDate, selectedOption, options } = this.state;
+        const { device, data, startDate, endDate, selectedOption, options, statusData } = this.state;
 
         return (
             <div>
@@ -242,7 +250,6 @@ export class HomeBattery extends Component {
                         {this.renderBatteryIcon(device.CurrentValue, device.Size)}
                     </div>
                     <div id='sp-right-card'>
-                        <p className='sp-card-title'>Estate consumption</p>
                         <div id='hb-graph-tools'>
                             <span onClick={() => this.setActiveGraph(1)} className={this.state.activeGraph === 1 ? 'active-button' : 'non-active-button'}>Real Time</span>
                             <span onClick={() => { this.setActiveGraph(2); this.updateGraph(this.state.selectedOption.value) }} className={this.state.activeGraph === 2 ? 'active-button' : 'non-active-button'}>History</span>
@@ -311,12 +318,17 @@ export class HomeBattery extends Component {
                                 </Grid>
 
                             </div>}
-                        <div>
-                            {this.state.activeGraph === 1 && <HBGraph data={data} />}
-                            {this.state.activeGraph === 2 && <HBGraph data={data} />}
+                        <div className='card'>
+                            <p className='sp-card-title'>Estate consumption</p>
+                            {this.state.activeGraph === 1 && <HBGraph data={data} name='Consumed (kWh)' />}
+                            {this.state.activeGraph === 2 && <HBGraph data={data} name='Consumed (kWh)'/>}
                         </div>
                     </div>
                 </div>
+                {this.state.activeGraph === 2 &&  <div className='center-graph card'>
+                    <p className='sp-card-title'>Battery status</p>   
+                     <HBGraph data={statusData} name='Occupied size (kWh)'/>
+                </div>}
                 <Snackbar
                     open={this.state.open}
                     autoHideDuration={3000}
