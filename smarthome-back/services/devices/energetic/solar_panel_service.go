@@ -141,7 +141,7 @@ func (s *SolarPanelServiceImpl) GetProductionForSP(data dtos.ActionGraphRequest)
 	query := fmt.Sprintf(`from(bucket:"bucket") 
 		|> range(start: %s, stop: %s)
 		|> filter(fn: (r) => r._measurement == "solar_panel" and r["_field"] == "electricity" and r["device_id"] == "%d")
-		|> yield(name: "sum")`, data.StartDate, data.EndDate, data.DeviceId)
+		|> aggregateWindow(every: 12h, fn: sum)`, data.StartDate, data.EndDate, data.DeviceId)
 	return s.processingQuery(query)
 }
 

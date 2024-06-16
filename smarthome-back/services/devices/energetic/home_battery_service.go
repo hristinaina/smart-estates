@@ -92,7 +92,7 @@ func (s *HomeBatteryServiceImpl) GetConsumptionForSelectedTime(selectedTime stri
 	query := fmt.Sprintf(`from(bucket:"bucket") 
 	|> range(start: %s, stop: now())
 	|> filter(fn: (r) => r._measurement == "consumption" and r["_field"] == "electricity" and r["estate_id"] == "%d")
-	|> yield(name: "sum")`, selectedTime, estateId)
+ 	|> aggregateWindow(every: 1h, fn: sum)`, selectedTime, estateId)
 
 	return s.processingQuery(query)
 }
@@ -101,7 +101,7 @@ func (s *HomeBatteryServiceImpl) GetConsumptionForSelectedDate(startDate, endDat
 	query := fmt.Sprintf(`from(bucket:"bucket") 
 	|> range(start: %s, stop: %s)
 	|> filter(fn: (r) => r._measurement == "consumption" and r["_field"] == "electricity" and r["estate_id"] == "%d")
-	|> yield(name: "sum")`, startDate, endDate, estateId)
+ 	|> aggregateWindow(every: 12h, fn: sum)`, startDate, endDate, estateId)
 
 	return s.processingQuery(query)
 }
@@ -110,7 +110,7 @@ func (s *HomeBatteryServiceImpl) GetStatusForSelectedTime(selectedTime string, e
 	query := fmt.Sprintf(`from(bucket:"bucket") 
 	|> range(start: %s, stop: now())
 	|> filter(fn: (r) => r._measurement == "home_battery" and r["_field"] == "currentValue" and r["device_id"] == "%d")
-	|> yield(name: "sum")`, selectedTime, estateId)
+	|> aggregateWindow(every: 1h, fn: mean)`, selectedTime, estateId)
 
 	return s.processingQuery(query)
 }
@@ -119,7 +119,7 @@ func (s *HomeBatteryServiceImpl) GetStatusForSelectedDate(startDate, endDate str
 	query := fmt.Sprintf(`from(bucket:"bucket") 
 	|> range(start: %s, stop: %s)
 	|> filter(fn: (r) => r._measurement == "home_battery" and r["_field"] == "currentValue" and r["device_id"] == "%d")
-	|> yield(name: "sum")`, startDate, endDate, estateId)
+	|> aggregateWindow(every: 12h, fn: mean)`, startDate, endDate, estateId)
 
 	return s.processingQuery(query)
 }

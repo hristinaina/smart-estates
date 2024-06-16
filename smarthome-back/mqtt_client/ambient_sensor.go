@@ -60,54 +60,66 @@ func saveValueToInfluxDb(client influxdb2.Client, deviceId int, temperature, hum
 	fmt.Println("Ambient sensor influxdb")
 }
 
-// func (mc *MQTTClient) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
-// 	parts := strings.Split(msg.Topic(), "/")
-// 	deviceId, err := strconv.Atoi(parts[len(parts)-1])
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	status := string(msg.Payload())
-// 	switchOn = status == "true"
-// 	fmt.Printf("AmbientSensor id=%d, switch status: %s\n", deviceId, status)
-// }
-
+//	func (mc *MQTTClient) HandleSwitchChange(client mqtt.Client, msg mqtt.Message) {
+//		parts := strings.Split(msg.Topic(), "/")
+//		deviceId, err := strconv.Atoi(parts[len(parts)-1])
+//		if err != nil {
+//			fmt.Println(err)
+//		}
+//		status := string(msg.Payload())
+//		switchOn = status == "true"
+//		fmt.Printf("AmbientSensor id=%d, switch status: %s\n", deviceId, status)
+//	}
 func processingQuery(influxdb influxdb2.Client, query string) map[time.Time]AmbientSensor {
-	Org := "Smart Home"
-	queryAPI := influxdb.QueryAPI(Org)
+	// Initialize the InfluxDB query API
+	queryAPI := influxdb.QueryAPI("Smart Home")
 
+	// Execute the query
 	result, err := queryAPI.Query(context.Background(), query)
 	if err != nil {
 		fmt.Println("Error executing InfluxDB query:", err)
 		return nil
 	}
 
-	var resultPoints map[time.Time]AmbientSensor
-	resultPoints = make(map[time.Time]AmbientSensor)
+	// Initialize a map to store the processed data
+	resultPoints := make(map[time.Time]AmbientSensor)
 
-	if err == nil {
-		// Iterate over query response
-		for result.Next() {
+	// Iterate over the query response
+	for result.Next() {
+		// Extract the record
+		record := result.Record()
 
-			val, _ := resultPoints[result.Record().Time()]
+		// Retrieve or initialize the AmbientSensor value for the timestamp
+		val, ok := resultPoints[record.Time()]
+		if !ok {
+			val = AmbientSensor{} // Initialize if not present
+		}
 
-			switch field := result.Record().Field(); field {
-			case "temperature":
-				val.Temperature = result.Record().Value().(float64)
-			case "humidity":
-				val.Humidity = result.Record().Value().(float64)
-			default:
-				fmt.Printf("unrecognized field %s.\n", field)
+		// Process each field from the query result
+		switch field := record.Field(); field {
+		case "temperature":
+			if value, ok := record.Value().(float64); ok {
+				val.Temperature = value
+			} else {
+				fmt.Printf("temperature field value is not a float64: %v\n", record.Value())
 			}
-
-			resultPoints[result.Record().Time()] = val
-
+		case "humidity":
+			if value, ok := record.Value().(float64); ok {
+				val.Humidity = value
+			} else {
+				fmt.Printf("humidity field value is not a float64: %v\n", record.Value())
+			}
+		default:
+			fmt.Printf("unrecognized field %s.\n", field)
 		}
-		// check for an error
-		if result.Err() != nil {
-			fmt.Printf("query parsing error: %s\n", result.Err().Error())
-		}
-	} else {
-		panic(err)
+
+		// Store the processed AmbientSensor value back into the map
+		resultPoints[record.Time()] = val
+	}
+
+	// Check for errors during iteration
+	if result.Err() != nil {
+		fmt.Printf("query parsing error: %s\n", result.Err().Error())
 	}
 
 	return resultPoints
@@ -122,9 +134,11 @@ func GetLastOneHourValues(influxdb influxdb2.Client, deviceId string) map[time.T
 }
 
 func GetValuesForSelectedTime(influxdb influxdb2.Client, selectedTime, deviceId string) map[time.Time]AmbientSensor {
-	query := fmt.Sprintf(`from(bucket:"bucket") 
-	|> range(start: %s, stop: now())
-	|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`, selectedTime, deviceId)
+	query := fmt.Sprintf(`
+        from(bucket:"bucket") 
+        |> range(start: %s, stop: now())
+        |> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")
+        |> aggregateWindow(every: 1h, fn: mean)`, selectedTime, deviceId)
 
 	return processingQuery(influxdb, query)
 }
@@ -133,10 +147,12 @@ func GetValuesForDate(influxdb influxdb2.Client, start, end, deviceId string) ma
 	endDate, _ := time.Parse(time.RFC3339, end)
 	endDate = endDate.AddDate(0, 0, 1)
 	endDateStr := endDate.Format(time.RFC3339)
-	query := fmt.Sprintf(`from(bucket:"bucket") 
-	|> range(start: %s, stop: %s)
-	|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`,
-		start, endDateStr, deviceId)
+
+	query := fmt.Sprintf(`
+        from(bucket:"bucket") 
+        |> range(start: %s, stop: %s)
+        |> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")
+        |> aggregateWindow(every: 12h, fn: sum)`, start, endDateStr, deviceId)
 
 	return processingQuery(influxdb, query)
 }

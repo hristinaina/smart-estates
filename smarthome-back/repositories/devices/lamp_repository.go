@@ -124,11 +124,13 @@ func (rl *LampRepositoryImpl) GetLampData(id int, from, to string) *api.QueryTab
 	if to != "" {
 		query = fmt.Sprintf(`from(bucket: "bucket")
             |> range(start: %s, stop: %s)
-            |> filter(fn: (r) => r._measurement == "lamps" and r.Id == "%s")`, from, to, queryId)
+            |> filter(fn: (r) => r._measurement == "lamps" and r.Id == "%s")
+			|> aggregateWindow(every: 12h, fn: mean)`, from, to, queryId)
 	} else {
 		query = fmt.Sprintf(`from(bucket: "bucket")
             |> range(start: %s)
-            |> filter(fn: (r) => r._measurement == "lamps" and r["Id"] == "%s")`, from, queryId)
+            |> filter(fn: (r) => r._measurement == "lamps" and r["Id"] == "%s")
+			|> aggregateWindow(every: 12h, fn: mean)`, from, queryId)
 		fmt.Printf("Generated Flux query: %s\n", query)
 	}
 

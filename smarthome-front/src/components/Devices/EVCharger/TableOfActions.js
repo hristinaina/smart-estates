@@ -11,7 +11,7 @@ class TableOfActions extends React.Component {
         super(props);
 
         this.state = {
-            sortOrder: 'asc',
+            sortOrder: 'desc',
             sortBy: 'User',
             page: 0,
             rowsPerPage: 5,
