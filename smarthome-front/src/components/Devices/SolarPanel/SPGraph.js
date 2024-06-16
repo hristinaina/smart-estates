@@ -21,6 +21,10 @@ const SPGraph = ({ data }) => {
     scales: {
       y: {
         beginAtZero: true, 
+        title: {
+          display: true,
+          text: 'on/off',
+      },
         min: 0, 
         max: 1, 
         ticks: {

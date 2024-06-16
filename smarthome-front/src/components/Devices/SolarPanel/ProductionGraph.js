@@ -20,6 +20,10 @@ const ProductionGraph = ({ data }) => {
         scales: {
             y: {
                 beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'kWh',
+                },
             },
         },
     };

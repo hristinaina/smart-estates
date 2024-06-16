@@ -25,7 +25,6 @@ const AdminGraph = ({ data }) => {
         plugins: {
             title: {
                 display: true,
-                text: data.title,
                 padding: {
                     top: 10,
                     bottom: 10,

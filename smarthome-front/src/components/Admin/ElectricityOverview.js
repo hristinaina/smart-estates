@@ -304,12 +304,24 @@ export class ElectricityOverview extends Component {
                     </div>
                 </div>
                 <div className='sp-container'>
-                    <div className='c-left-card'><AdminGraph data={consumptionData} /></div>
-                    <div className='c-right-card'><AdminGraph data={productionData} /></div>
+                    <div className='c-left-card'>
+                        <p className='sp-card-title'>Consumed electricity </p>
+                        <AdminGraph data={consumptionData} />
+                    </div>
+                    <div className='c-right-card'>
+                        <p className='sp-card-title'>Produced electricity </p>
+                        <AdminGraph data={productionData} />
+                    </div>
                 </div>
                 <div className='sp-container'>
-                    <div className='c-left-card'><AdminGraph data={ratioData} /></div>
-                    <div className='c-right-card'><AdminGraph data={edData} /></div>
+                    <div className='c-left-card'>
+                        <p className='sp-card-title'>Production & Consumption Ratio </p>
+                        <AdminGraph data={ratioData} />
+                    </div>
+                    <div className='c-right-card'>
+                        <p className='sp-card-title'>Electricity that went into Electrical Distribution </p>
+                        <AdminGraph data={edData} />
+                    </div>
                 </div>
                 <Snackbar
                     open={this.state.open}

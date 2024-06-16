@@ -45,7 +45,7 @@ func (uc *ElectricityServiceImpl) GetRatioForSelectedTime(selectedTime string, i
 func (s *ElectricityServiceImpl) GetElectricityForSelectedTime(queryType string, selectedTime string, inputType string, selectedOptions []string, batteryId string) interface{} {
 	if inputType == "rs" {
 		startDate, endDate := calculateDates(selectedTime)
-		return s.getElectricityForRealEstates(queryType, startDate, endDate, selectedOptions, batteryId)
+		return s.getElectricityForRealEstates(queryType, startDate, endDate, selectedOptions, batteryId, true)
 
 	} else { // input type is "city"
 		// Initialize a map to store aggregated values for each city (there can be multiple cities in selectedOptions)
@@ -59,7 +59,7 @@ func (s *ElectricityServiceImpl) GetElectricityForSelectedTime(queryType string,
 			}
 			// [estate.Name][timestamp]value
 			startDate, endDate := calculateDates(selectedTime)
-			realEstatesMap := s.getElectricityForRealEstates(queryType, startDate, endDate, estateIds, "")
+			realEstatesMap := s.getElectricityForRealEstates(queryType, startDate, endDate, estateIds, "", true)
 			cityAggregatedValues := aggregateResults(realEstatesMap)
 			// Store the aggregated values for the city in the results map
 			if len(cityAggregatedValues) == 0 {
@@ -77,7 +77,7 @@ func (s *ElectricityServiceImpl) GetElectricityForSelectedTime(queryType string,
 
 func (s *ElectricityServiceImpl) GetElectricityForSelectedDate(queryType, startDate, endDate string, inputType string, selectedOptions []string, batteryId string) interface{} {
 	if inputType == "rs" {
-		return s.getElectricityForRealEstates(queryType, startDate, endDate, selectedOptions, batteryId)
+		return s.getElectricityForRealEstates(queryType, startDate, endDate, selectedOptions, batteryId, false)
 
 	} else { // input type is "city"
 		// Initialize a map to store aggregated values for each city (there can be multiple cities in selectedOptions)
@@ -90,7 +90,7 @@ func (s *ElectricityServiceImpl) GetElectricityForSelectedDate(queryType, startD
 				estateIds[i] = strconv.Itoa(estate.Id)
 			}
 			// [estate.Name][timestamp]value
-			realEstatesMap := s.getElectricityForRealEstates(queryType, startDate, endDate, estateIds, "")
+			realEstatesMap := s.getElectricityForRealEstates(queryType, startDate, endDate, estateIds, "", false)
 			cityAggregatedValues := aggregateResults(realEstatesMap)
 			// Store the aggregated values for the city in the results map
 			if len(cityAggregatedValues) == 0 {
@@ -106,17 +106,21 @@ func (s *ElectricityServiceImpl) GetElectricityForSelectedDate(queryType, startD
 	}
 }
 
-func (s *ElectricityServiceImpl) getElectricityForRealEstates(queryType string, startDate, endDate string, selectedOptions []string, batteryId string) map[string]map[time.Time]float64 {
+func (s *ElectricityServiceImpl) getElectricityForRealEstates(queryType string, startDate, endDate string, selectedOptions []string, batteryId string, isTime bool) map[string]map[time.Time]float64 {
 	var results = make(map[string]map[time.Time]float64)
 
 	for _, estateId := range selectedOptions {
 		estateId, _ := strconv.Atoi(estateId)
 		estate, _ := s.realEstateService.Get(estateId)
+		sample := "1h"
+		if !isTime {
+			sample = "12h"
+		}
 		if batteryId == "" {
 			query := fmt.Sprintf(`from(bucket:"bucket") 
 		|> range(start: %s, stop: %s)
 		|> filter(fn: (r) => r._measurement == "%s" and r["_field"] == "electricity" and r["estate_id"] == "%d")
-		|> yield(name: "sum")`, startDate, endDate, queryType, estateId)
+		|> aggregateWindow(every: %s, fn: sum)`, startDate, endDate, queryType, estateId, sample)
 			tempMap := s.processingQuery(query, startDate, endDate)
 			if len(tempMap) == 0 {
 				continue
@@ -126,7 +130,7 @@ func (s *ElectricityServiceImpl) getElectricityForRealEstates(queryType string, 
 			query := fmt.Sprintf(`from(bucket:"bucket") 
 		|> range(start: %s, stop: %s)
 		|> filter(fn: (r) => r._measurement == "%s" and r["_field"] == "electricity" and r["estate_id"] == "%d" and r["battery_id"] == "%s")
-		|> yield(name: "sum")`, startDate, endDate, queryType, estateId, batteryId)
+		|> aggregateWindow(every: %s, fn: sum)`, startDate, endDate, queryType, estateId, batteryId)
 			tempMap := s.processingQuery(query, startDate, endDate)
 			if len(tempMap) == 0 {
 				continue

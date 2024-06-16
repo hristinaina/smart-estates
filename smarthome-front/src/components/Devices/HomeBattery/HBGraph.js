@@ -20,6 +20,10 @@ const HBGraph = ({ data, name }) => {
         scales: {
             y: {
                 beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'kWh',
+                },
             },
         },
     };
