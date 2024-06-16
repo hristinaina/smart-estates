@@ -8,6 +8,8 @@ import LogTable from "../AirConditioner/LogTable";
 import SprinklerService from "../../../services/SprinklerService";
 import mqtt from 'mqtt';
 import authService from "../../../services/AuthService";
+import PieChart from "../AirConditioner/PieChart";
+
 
 export class Sprinkler extends Component {
     connected = false;
@@ -142,6 +144,8 @@ export class Sprinkler extends Component {
                 logData.result[timestamp].User = this.state.username;
             }
         }
+        console.log('------------');
+        console.log(logData.result);
         // const data = this.setAction(logData.result)
         this.setState({
             logData: logData.result,
@@ -255,6 +259,17 @@ export class Sprinkler extends Component {
                             <LogTable logData={this.state.logData} hide={true}/>
                         </div>
                     </div>
+                    <div id='statistics'>
+                    <p className='sp-card-title'>Statistic</p>
+                    <p>Graphs are based on switch history data</p>
+                    <div>
+                        <p className='sp-card-title'>Device activity percentage %</p>
+                        <PieChart data={this.state.logData} graph={4} />
+
+                        <p className='sp-card-title'>User usage percentage %</p>
+                        <PieChart data={this.state.logData} graph={3} />
+                    </div>
+                </div>
                 <Snackbar
                     open={this.state.open}
                     autoHideDuration={2000}

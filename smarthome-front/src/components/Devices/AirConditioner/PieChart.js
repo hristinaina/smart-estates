@@ -25,6 +25,8 @@ class PieChart extends Component {
                 this.calculatePercentages();
             else if (this.props.graph === 2)
                 this.calculatePercentagesOffOn();
+            else if (this.props.graph === 4)
+                this.calculatePercentagesOffOnSprinkler();
             else 
                 this.calculateUserActivity();
         }
@@ -65,11 +67,40 @@ class PieChart extends Component {
         const { data } = this.props;
         let turnOnCount = 0;
         let turnOffCount = 0;
-
         Object.values(data).forEach(entry => {
             if (entry.Action === "Turn on") {
                 turnOnCount++;
             } else if (entry.Action === "Turn off") {
+                turnOffCount++;
+            }
+        });
+
+        const totalEntries = Object.values(data).length;
+
+        const turnOnPercentage = (turnOnCount / totalEntries) * 100;
+        const turnOffPercentage = (turnOffCount / totalEntries) * 100;
+
+        const backgroundColors = this.generateRandomColors(2); 
+
+        this.setState({
+            data: {
+                labels: ["Turn On", "Turn Off"],
+                datasets: [{
+                    data: [turnOnPercentage, turnOffPercentage],
+                    backgroundColor: backgroundColors, 
+                }],
+            },
+        });
+    };
+
+    calculatePercentagesOffOnSprinkler = () => {
+        const { data } = this.props;
+        let turnOnCount = 0;
+        let turnOffCount = 0;
+        Object.values(data).forEach(entry => {
+            if (entry.Action === "on") {
+                turnOnCount++;
+            } else if (entry.Action === "off") {
                 turnOffCount++;
             }
         });
