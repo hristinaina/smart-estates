@@ -54,3 +54,17 @@
 .button-height{
     height: 45px;
 }
+
+.charts{
+    background-color: rgb(247, 246, 246);
+    margin: 20px 5%;
+    text-align: center;
+    justify-content: center;
+    padding: 20px 10%;
+}
+
+.chart-container{
+   width: 50%;
+   margin-left: auto;
+   margin-right: auto;
+}

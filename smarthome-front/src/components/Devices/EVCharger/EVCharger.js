@@ -5,7 +5,6 @@ import { Navigation } from '../../Navigation/Navigation';
 import mqtt from 'mqtt';
 import authService from '../../../services/AuthService';
 import 'chart.js/auto';
-import SPGraph from '../SolarPanel/SPGraph';
 import { TextField } from '@mui/material';
 import { Button } from 'reactstrap';
 import './EVCharger.css'
@@ -14,6 +13,7 @@ import SolarPanelService from '../../../services/SolarPanelService';
 import EVChargerService from '../../../services/EVChargerService';
 import TableOfActions from './TableOfActions';
 import PermissionService from '../../../services/PermissionService';
+import ActionPieChart from './ActionPieChart';
 
 // todo prepraviti na tabelu umjesto grafa i uzimanje mejla kao sto je Tasija uradila
 export class EVCharger extends Component {
@@ -55,7 +55,7 @@ export class EVCharger extends Component {
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
         this.email =  user.Email;
-        const historyData = await EVChargerService.getTableActions(this.id, user.Email, "2023-12-12", "2024-02-07");
+        const historyData = await EVChargerService.getTableActions(this.id, user.Email, "2024-06-13", "2024-06-20");
         //todo change this upper method
         let users = await PermissionService.getPermissions(this.id, user.EstateId);
         users.push(user.Email);
@@ -67,8 +67,8 @@ export class EVCharger extends Component {
             data: historyData,
             emailInput: user.Email,
             userEmails: users,
-            startDate: "2023-12-12",
-            endDate: "2024-02-07",
+            startDate: "2024-06-13",
+            endDate: "2024-06-20",
             inputPercentage: parseInt(percentage *100),
         });
 
@@ -228,7 +228,6 @@ export class EVCharger extends Component {
                         </div>
                     </div>
                     <div id='sp-right-card'>
-                        <p className='sp-card-title'>Actions History</p>
                         <form onSubmit={this.handleFormSubmit} className='sp-container'>
                             <label>
                                 Email:
@@ -256,8 +255,19 @@ export class EVCharger extends Component {
                             <br />
                             <Button type="submit" id='sp-data-button' className='button-height'>Fetch Data</Button>
                         </form>
-                        <TableOfActions logData={data} />
+                        <div className='card'>
+                            <p className='sp-card-title'>Actions History</p>
+                            <TableOfActions logData={data} />
+                        </div>
                     </div>
+                </div>
+                <div id='statistics'>
+                    <p className='sp-card-title'>Actions usage percentage</p>
+                    <ActionPieChart data={data} graph={1}/>
+                    <p className='sp-card-title'>User usage percentage</p>
+                    <ActionPieChart data={data} graph={2}/>
+                    <p className='sp-card-title'>Plug usage percentage</p>
+                    <ActionPieChart data={data} graph={3}/>
                 </div>
                 <Snackbar
                     open={this.state.open}
