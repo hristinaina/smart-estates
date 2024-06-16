@@ -82,7 +82,6 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
             fetchNewData(labels, Object.values(data));
         }
 
-
         setIsGraphVisible(true);
     };
 
@@ -94,7 +93,6 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
     const formatLables = (labels) => {
         let formattedLabels = [];
         Object.keys(labels).forEach(element => {
-            console.log("ELEMENT " + labels[element]);
             const date = new Date(labels[element]);
             formattedLabels.push(format(date, "dd.MM.yyyy. hh:mm a"));
         });
@@ -169,9 +167,12 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
                                 </React.Fragment>
                                 )}
                             </div>
-                            <div style={{ width: '800px', height: '400px' }}>
-                            <Line data={chartData}/>
-                            </div>
+                            {(selectedTimeRange.startTime == '' || selectedTimeRange.endTime == '') && selectedTimeRange.lastXitem == null ? (
+                                <p>{selectedTimeRange.lastXitems}</p>
+                            ) : (
+                                <div style={{ width: '800px', height: '400px' }}>
+                                    <Line data={chartData}/>
+                                </div>)}
                             <br/>
                             <button onClick={close}>CLOSE</button>
                             <button onClick={goBack}>GO BACK</button>
