@@ -35,14 +35,7 @@ func NewSprinklerRepository(db *sql.DB, influx influxdb2.Client, cacheService ca
 	return &SprinklerRepositoryImpl{db: db, influx: influx, cacheService: &cacheService}
 }
 
-func (repo *SprinklerRepositoryImpl) Get(id int) (models.Sprinkler, error) {
-	cacheKey := fmt.Sprintf("sprinkler_%d", id)
-
-	var sprinkler models.Sprinkler
-	if found, err := repo.cacheService.GetFromCache(cacheKey, &sprinkler); found {
-		return sprinkler, err
-	}
-
+func (repo *SprinklerRepositoryImpl) SelectQuery(id int) (models.Sprinkler, error) {
 	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, s.IsOn
 			  FROM Sprinkler s 
@@ -60,7 +53,20 @@ func (repo *SprinklerRepositoryImpl) Get(id int) (models.Sprinkler, error) {
 	if repositories.IsError(err) {
 		return models.Sprinkler{}, err
 	}
-	sprinkler = sprinklers[0]
+	sprinkler := sprinklers[0]
+
+	return sprinkler, err
+}
+
+func (repo *SprinklerRepositoryImpl) Get(id int) (models.Sprinkler, error) {
+	cacheKey := fmt.Sprintf("sprinkler_%d", id)
+
+	var sprinkler models.Sprinkler
+	if found, err := repo.cacheService.GetFromCache(cacheKey, &sprinkler); found {
+		return sprinkler, err
+	}
+
+	sprinkler, _ = repo.SelectQuery(id)
 	// TODO: add here modes
 
 	if err := repo.cacheService.SetToCache(cacheKey, sprinkler); err != nil {
@@ -102,6 +108,15 @@ func (repo *SprinklerRepositoryImpl) UpdateIsOn(id int, isOn bool) (bool, error)
 	_, err := repo.db.Query(query, isOn, id)
 	if repositories.IsError(err) {
 		return false, err
+	}
+
+	sprinkler, _ := repo.SelectQuery(id)
+
+	cacheKey := fmt.Sprintf("sprinkler_%d", id)
+	if err := repo.cacheService.SetToCache(cacheKey, sprinkler); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
 	}
 	return true, nil
 }

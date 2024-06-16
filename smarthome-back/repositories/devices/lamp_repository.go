@@ -33,14 +33,8 @@ func NewLampRepository(db *sql.DB, influxdb influxdb2.Client, cacheService cache
 	return &LampRepositoryImpl{db: db, influxdb: influxdb, cacheService: &cacheService}
 }
 
-func (rl *LampRepositoryImpl) Get(id int) (devices.Lamp, error) {
-	cacheKey := fmt.Sprintf("lamp_%d", id)
-
+func (rl *LampRepositoryImpl) SelectQuery(id int) (devices.Lamp, error) {
 	var lamp devices.Lamp
-	if found, err := rl.cacheService.GetFromCache(cacheKey, &lamp); found {
-		return lamp, err
-	}
-
 	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, Lamp.IsOn, Lamp.LightningLevel
 			  FROM Lamp 
@@ -59,6 +53,19 @@ func (rl *LampRepositoryImpl) Get(id int) (devices.Lamp, error) {
 	}(rows)
 	lamps, err := ScanRows(rows)
 	lamp = lamps[0]
+
+	return lamp, err
+}
+
+func (rl *LampRepositoryImpl) Get(id int) (devices.Lamp, error) {
+	cacheKey := fmt.Sprintf("lamp_%d", id)
+
+	var lamp devices.Lamp
+	if found, err := rl.cacheService.GetFromCache(cacheKey, &lamp); found {
+		return lamp, err
+	}
+
+	lamp, err := rl.SelectQuery(id)
 
 	if err := rl.cacheService.SetToCache(cacheKey, lamp); err != nil {
 		fmt.Println("Cache error:", err)
@@ -98,6 +105,15 @@ func (rl *LampRepositoryImpl) UpdateIsOnState(id int, isOn bool) (bool, error) {
 	if repositories.IsError(err) {
 		return false, err
 	}
+
+	lamp, _ := rl.SelectQuery(id)
+
+	cacheKey := fmt.Sprintf("lamp_%d", id)
+	if err := rl.cacheService.SetToCache(cacheKey, lamp); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
 	return true, nil
 }
 
@@ -111,6 +127,16 @@ func (rl *LampRepositoryImpl) UpdateLightningState(id int, lightningState int) (
 	if repositories.CheckIfError(err) {
 		return false, err
 	}
+
+	lamp, _ := rl.SelectQuery(id)
+
+	cacheKey := fmt.Sprintf("lamp_%d", id)
+	if err := rl.cacheService.SetToCache(cacheKey, lamp); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return true, nil
 }
 
