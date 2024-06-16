@@ -15,6 +15,7 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { Line } from "react-chartjs-2";
 import LampService from "../../../services/LampService";
+import PieChart from "../AirConditioner/PieChart";
 
 
 export class VehicleGate extends Component {
@@ -34,6 +35,7 @@ export class VehicleGate extends Component {
             snackbarMessage: '',
             showSnackbar: false,
             open: false,
+            logData: [],
             data: {
                 labels: [],
                 datasets: [
@@ -260,6 +262,7 @@ export class VehicleGate extends Component {
         let datasets = [];
         let keys = [];
         console.log("data: ", data);
+        await this.setState({logData: data});
         if (data == null) {
             await this.setState({snackbarMessage: "No data found."});
             this.handleClick();
@@ -371,6 +374,14 @@ export class VehicleGate extends Component {
                             <Button id='sp-data-button' onClick={this.fetch}>Confirm</Button>
                         </form>
                         <Line key={JSON.stringify(this.state.data)} id="vg-graph" data={this.state.data} options={this.options} />
+                    </div>
+                </div>
+                <div id='statistics'>
+                    <p className='sp-card-title'>Statistic</p>
+                    <p>Graphs are based on reports</p>
+                    <div>
+                        <p className='sp-card-title'>Vehicle gate usage percentage %</p>
+                        <PieChart data={this.state.logData} graph={5} />
                     </div>
                 </div>
                 {this.state.showAddLicensePlateDialog && (
