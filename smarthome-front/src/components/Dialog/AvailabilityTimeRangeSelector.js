@@ -6,9 +6,11 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { Line } from "react-chartjs-2";
 import DeviceAvailabilityService from '../../services/DeviceAvailabilityService';
 import { format } from 'date-fns';
+import { dialogActionsClasses } from '@mui/material';
 
 
 const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
+    const [activeDataIndex, setActiveDataIndex] = useState(0);
     const [selectedTimeRange, setSelectedTimeRange] = useState({
         startTime: '',
         endTime: '',
@@ -31,12 +33,25 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
     });
 
     const fetchNewData = async (labels, data) => {
-        // Replace this with your actual data fetching logic
+        // console.log(dataList);
+        // const datasets = dataList.map((data, index) => ({
+        //     label: `Dataset ${index + 1}`,
+        //     data: data,
+        //     fill: false,
+        //     // backgroundColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.2)`,
+        //     // borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`,
+        //     borderWidth: 2,
+        // }));
+
+        // console.log(datasets);
+    
+        // Update the chart data
         setChartData(prevState => ({
             ...prevState,
             labels: labels,
             datasets: prevState.datasets.map(dataset => ({
                 ...dataset,
+                label: 'Availability in Percentage',
                 data: data,
             })),
         }));
@@ -74,7 +89,9 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
         (selectedTimeRange.endTime === null || selectedTimeRange.endTime === '')) {
             let data = await DeviceAvailabilityService.get(getDeviceId(), "-" + selectedTimeRange.lastXitem, "-1");
             let labels = formatLables(Object.keys(data));
-            fetchNewData(labels, Object.values(data));
+            let values = formatValues(Object.values(data));
+            console.log(values);
+            fetchNewData(labels, values.value);
         } else {
             let data = await DeviceAvailabilityService.get(getDeviceId(), selectedTimeRange.startTime.toISOString(), 
                                                            selectedTimeRange.endTime.toISOString());
@@ -98,6 +115,34 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
         });
         return formattedLabels;
     } 
+
+    const formatValues = (values) => {
+        let formattedValues = [];
+        let formattedDescriptions = [];
+        Object.keys(values).forEach(element => {
+            let returnedValue = convertDecimalHours(values[element]);
+            formattedValues.push(returnedValue.percentage);
+            formattedDescriptions.push(returnedValue.description);
+        });
+        console.log("formatted values");
+        console.log(formattedValues);
+        console.log("formatted descriptions");
+        console.log(formattedDescriptions);
+        return {value: formattedValues, descriptions: formattedDescriptions};
+    }
+
+    function convertDecimalHours(decimalHours) {
+        const percentageOfDay = (decimalHours / 24) * 100;
+    
+        const hours = Math.floor(decimalHours);
+        const minutes = Math.round((decimalHours - hours) * 60);
+    
+        return {value: decimalHours, percentage: percentageOfDay.toFixed(2), time: `${hours} hours and ${minutes} minutes`};
+    }
+
+    const handleToggle = () => {
+        setActiveDataIndex(prevIndex => (prevIndex + 1) % chartData.length);
+    };
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -170,8 +215,11 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
                             {(selectedTimeRange.startTime == '' || selectedTimeRange.endTime == '') && selectedTimeRange.lastXitem == null ? (
                                 <p>{selectedTimeRange.lastXitems}</p>
                             ) : (
-                                <div style={{ width: '800px', height: '400px' }}>
-                                    <Line data={chartData}/>
+                                <div>
+                                    <div style={{ width: '820px', height: '400px' }}>
+                                        <Line data={chartData} />
+                                    </div>
+                                    <button onClick={handleToggle}>Toggle Data</button>
                                 </div>)}
                             <br/>
                             <button onClick={close}>CLOSE</button>
