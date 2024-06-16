@@ -6,11 +6,18 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { Line } from "react-chartjs-2";
 import DeviceAvailabilityService from '../../services/DeviceAvailabilityService';
 import { format } from 'date-fns';
-import { dialogActionsClasses } from '@mui/material';
+import { IconButton, Snackbar, dialogActionsClasses } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 
 const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
     const [activeDataIndex, setActiveDataIndex] = useState(0);
+    const [percentages, setPercentages] = useState([]);
+    const [timeValues, setTimeValues] = useState([]);
+    const [labels, setLabels] = useState([]);
+    const [snackbarMessage, setSnackBarMessage] = useState('');
+    const [showSnackbar, setShowSnackbar] = useState(false);
+    const [open, setOpen] = useState(false);
     const [selectedTimeRange, setSelectedTimeRange] = useState({
         startTime: '',
         endTime: '',
@@ -32,26 +39,13 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
         ],
     });
 
-    const fetchNewData = async (labels, data) => {
-        // console.log(dataList);
-        // const datasets = dataList.map((data, index) => ({
-        //     label: `Dataset ${index + 1}`,
-        //     data: data,
-        //     fill: false,
-        //     // backgroundColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.2)`,
-        //     // borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`,
-        //     borderWidth: 2,
-        // }));
-
-        // console.log(datasets);
-    
-        // Update the chart data
+    const fetchNewData = async (label, labels, data) => {
         setChartData(prevState => ({
             ...prevState,
             labels: labels,
             datasets: prevState.datasets.map(dataset => ({
                 ...dataset,
-                label: 'Availability in Percentage',
+                label: label,
                 data: data,
             })),
         }));
@@ -85,19 +79,30 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
     };
 
     const confirm = async() => {
+        let data = {};
         if ((selectedTimeRange.startTime === null || selectedTimeRange.startTime === '') || 
         (selectedTimeRange.endTime === null || selectedTimeRange.endTime === '')) {
-            let data = await DeviceAvailabilityService.get(getDeviceId(), "-" + selectedTimeRange.lastXitem, "-1");
-            let labels = formatLables(Object.keys(data));
-            let values = formatValues(Object.values(data));
-            console.log(values);
-            fetchNewData(labels, values.value);
+            data = await DeviceAvailabilityService.get(getDeviceId(), "-" + selectedTimeRange.lastXitem, "-1");
+  
         } else {
-            let data = await DeviceAvailabilityService.get(getDeviceId(), selectedTimeRange.startTime.toISOString(), 
-                                                           selectedTimeRange.endTime.toISOString());
-            let labels = formatLables(Object.keys(data));
-            fetchNewData(labels, Object.values(data));
+            if (daysBetweenDates(selectedTimeRange.startTime, selectedTimeRange.endTime) > 30) {
+                setSnackBarMessage("Date range needs to be smaller than 30 days.");
+                handleTimeRangeChange("startTime", '');
+                handleTimeRangeChange("endTime", '');        
+                setOpen(true);
+                goBack();
+                return;
+            } 
+            data = await DeviceAvailabilityService.get(getDeviceId(), selectedTimeRange.startTime.toISOString(), 
+                                                         selectedTimeRange.endTime.toISOString());
         }
+        let labels = formatLables(Object.keys(data));
+        let values = formatValues(Object.values(data));
+        console.log(values);
+        setPercentages(values.value);
+        setTimeValues(values.descriptions);
+        setLabels(labels);
+        fetchNewData('Availability in Percentage', labels, values.value);
 
         setIsGraphVisible(true);
     };
@@ -122,13 +127,22 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
         Object.keys(values).forEach(element => {
             let returnedValue = convertDecimalHours(values[element]);
             formattedValues.push(returnedValue.percentage);
-            formattedDescriptions.push(returnedValue.description);
+            formattedDescriptions.push(values[element]);
         });
         console.log("formatted values");
         console.log(formattedValues);
         console.log("formatted descriptions");
         console.log(formattedDescriptions);
         return {value: formattedValues, descriptions: formattedDescriptions};
+    }
+
+    function daysBetweenDates(date1, date2) {
+        const oneDay = 24 * 60 * 60 * 1000; // Number of milliseconds in one day
+        const diffInMilliseconds = Math.abs(date2 - date1); // Absolute difference in milliseconds
+    
+        const diffInDays = Math.round(diffInMilliseconds / oneDay); // Convert difference to days
+    
+        return diffInDays;
     }
 
     function convertDecimalHours(decimalHours) {
@@ -141,8 +155,40 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
     }
 
     const handleToggle = () => {
-        setActiveDataIndex(prevIndex => (prevIndex + 1) % chartData.length);
+        if (activeDataIndex == 1){
+            setActiveDataIndex(0);
+            fetchNewData('Availiability in Hours', labels, timeValues);
+        } else {
+            setActiveDataIndex(1);
+            fetchNewData('Availability in Perecentage', labels, percentages);
+        }
+        
     };
+
+    // snackbar
+    const handleClick = () => {
+        setOpen(true);
+    };
+
+    const handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+          return;
+        }
+        setOpen(false);
+      };
+
+    const action = (
+        <React.Fragment>
+            <IconButton
+            size="small"
+            aria-label="close"
+            color="inherit"
+            onClick={handleClose}>
+            <CloseIcon fontSize="small" />
+            </IconButton>
+        </React.Fragment>
+    );
+
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -155,7 +201,7 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
                             <DatePicker
                                 className='picker'
                                 label="Starting point"
-                                value={selectedTimeRange.startDate || null}
+                                value={selectedTimeRange.startTime || null}
                                 onChange={(date) => handleTimeRangeChange('startTime', date)}
                                 format="MM/dd/yyyy"
                             />
@@ -163,7 +209,7 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
                             <DatePicker
                                 className='picker'
                                 label="Ending point"
-                                value={selectedTimeRange.endDate || null}
+                                value={selectedTimeRange.endTime || null}
                                 onChange={(date) => handleTimeRangeChange('endTime', date)}
                                 format="MM/dd/yyyy"
                             />
@@ -226,9 +272,18 @@ const AvailabilityTimeRangeSelector = ({onConfirm, onCancel}) => {
                             <button onClick={goBack}>GO BACK</button>
                         </div>
                     )};
+                    <Snackbar
+                        open={open}
+                        autoHideDuration={3000}
+                        onClose={handleClose}
+                        message={snackbarMessage}
+                        action={action}
+                    />
                 </div>
         </LocalizationProvider>
     );
 }
+
+
 
 export default AvailabilityTimeRangeSelector;
