@@ -13,15 +13,16 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type AirConditionerController struct {
-	service inside.AirConditionerService
-	mqtt    *mqtt_client.MQTTClient
+	service  inside.AirConditionerService
+	influxDb influxdb2.Client
 }
 
-func NewAirConditionerController(db *sql.DB, mqtt *mqtt_client.MQTTClient, cacheService cache.CacheService) AirConditionerController {
-	return AirConditionerController{service: inside.NewAirConditionerService(db, &cacheService), mqtt: mqtt}
+func NewAirConditionerController(db *sql.DB, influxDb influxdb2.Client, cacheService cache.CacheService) AirConditionerController {
+	return AirConditionerController{service: inside.NewAirConditionerService(db, &cacheService), influxDb: influxDb}
 }
 
 func (uc AirConditionerController) Get(c *gin.Context) {
@@ -42,7 +43,7 @@ func (ac AirConditionerController) GetHistoryData(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "Invalid JSON"})
 		return
 	}
-	results := mqtt_client.QueryDeviceData(ac.mqtt.GetInflux(), data)
+	results := mqtt_client.QueryDeviceData(ac.influxDb, data)
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 
