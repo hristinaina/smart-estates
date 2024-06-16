@@ -58,7 +58,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	}
 	airConditionerRoutes := r.Group("/api/ac")
 	{
-		airConditionerController := devicesController.NewAirConditionerController(db, mqtt, cacheService)
+		airConditionerController := devicesController.NewAirConditionerController(db, influxDb, cacheService)
 		middleware := middleware.NewMiddleware(db, cacheService)
 		airConditionerRoutes.GET("/:id", airConditionerController.Get)
 		airConditionerRoutes.PUT("history", middleware.RequireAuth, airConditionerController.GetHistoryData)
@@ -93,7 +93,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 
 	ambientSensor := r.Group("/api/ambient")
 	{
-		ambientSensorController := devicesController.NewAmbientSensorController(db, mqtt, cacheService)
+		ambientSensorController := devicesController.NewAmbientSensorController(db, influxDb, cacheService)
 		ambientSensor.GET("/:id", ambientSensorController.Get)
 		ambientSensor.GET("/last-hour/:id", ambientSensorController.GetValueForHour)
 		ambientSensor.POST("/selected-time/:id", ambientSensorController.GetValueForSelectedTime)
@@ -146,7 +146,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	washingMachineRoutes := r.Group("/api/wm")
 	{
 		middleware := middleware.NewMiddleware(db, cacheService)
-		washingMachineController := devicesController.NewWashingMachineController(db, mqtt, cacheService)
+		washingMachineController := devicesController.NewWashingMachineController(db, influxDb, cacheService)
 		washingMachineRoutes.GET("/:id", washingMachineController.Get)
 		washingMachineRoutes.POST("/schedule", middleware.RequireAuth, washingMachineController.AddScheduledMode)
 		washingMachineRoutes.GET("/schedule/:id", washingMachineController.GetScheduledModes)

@@ -12,15 +12,16 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type AmbientSensorController struct {
-	service inside.AmbientSensorService
-	mqtt    *mqtt_client.MQTTClient
+	service  inside.AmbientSensorService
+	influxDb influxdb2.Client
 }
 
-func NewAmbientSensorController(db *sql.DB, mqtt *mqtt_client.MQTTClient, cacheService cache.CacheService) AmbientSensorController {
-	return AmbientSensorController{service: inside.NewAmbientSensorService(db, &cacheService), mqtt: mqtt}
+func NewAmbientSensorController(db *sql.DB, influxDb influxdb2.Client, cacheService cache.CacheService) AmbientSensorController {
+	return AmbientSensorController{service: inside.NewAmbientSensorService(db, &cacheService), influxDb: influxDb}
 }
 
 func (as AmbientSensorController) Get(c *gin.Context) {
@@ -40,7 +41,7 @@ type AmbientSensor struct {
 }
 
 func (uc AmbientSensorController) GetValueForHour(c *gin.Context) {
-	results := mqtt_client.GetLastOneHourValues(uc.mqtt.GetInflux(), c.Param("id"))
+	results := mqtt_client.GetLastOneHourValues(uc.influxDb, c.Param("id"))
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
 
@@ -56,7 +57,7 @@ func (uc AmbientSensorController) GetValueForSelectedTime(c *gin.Context) {
 		return
 	}
 
-	results := mqtt_client.GetValuesForSelectedTime(uc.mqtt.GetInflux(), input.Time, c.Param("id"))
+	results := mqtt_client.GetValuesForSelectedTime(uc.influxDb, input.Time, c.Param("id"))
 
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
@@ -84,7 +85,7 @@ func (uc AmbientSensorController) GetValuesForDate(c *gin.Context) {
 		fmt.Println("Error parsing date:", err)
 	}
 
-	results := mqtt_client.GetValuesForDate(uc.mqtt.GetInflux(), startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), c.Param("id"))
+	results := mqtt_client.GetValuesForDate(uc.influxDb, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), c.Param("id"))
 
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
