@@ -60,7 +60,7 @@ export class HomeBattery extends Component {
         const historyData = await HomeBatteryService.getHBGraphDataByRS(device.Device.RealEstate);
         
         console.log(historyData)
-        const graphData = this.convertResultToGraphData(historyData.result);
+        const graphData = this.convertResultToGraphData(historyData.result, true);
         this.setState({
             device: updatedData,
             data: graphData,
@@ -132,9 +132,10 @@ export class HomeBattery extends Component {
 
     updateGraph = async (value) => {
         const result = await HomeBatteryService.getGraphDataForDropdownSelect(this.rs, value);
-        const graphData = this.convertResultToGraphData(result.result.result)
+        const graphData = this.convertResultToGraphData(result.result.result, true)
         const resultStatus = await HomeBatteryService.getStatusDataForDropdownSelect(this.id, value);
-        const graphStatus = this.convertResultToGraphData(resultStatus.result.result)
+        const graphStatus = this.convertResultToGraphData(resultStatus.result.result, true)
+        
         this.setState({
             data: graphData,
             statusData: graphStatus
@@ -187,8 +188,8 @@ export class HomeBattery extends Component {
         const result = await HomeBatteryService.getGraphDataForDates(this.rs, this.state.startDate, this.state.endDate);
         const statusResult = await HomeBatteryService.getStatusDataForDates(this.id, this.state.startDate, this.state.endDate);
         console.log("datum graf ", result.result.result)
-        const graphData = this.convertResultToGraphData(result.result.result)
-        const statusGraph = this.convertResultToGraphData(statusResult.result.result)
+        const graphData = this.convertResultToGraphData(result.result.result, false)
+        const statusGraph = this.convertResultToGraphData(statusResult.result.result, false)
         this.setState({
             data: graphData,
             statusData: statusGraph
@@ -200,7 +201,7 @@ export class HomeBattery extends Component {
         return parts[parts.length - 1];
     }
 
-    convertResultToGraphData(values) {
+    convertResultToGraphData(values, showMinutes = true) {
         if (values == null) {
             return {
                 timestamps: [],
@@ -209,9 +210,28 @@ export class HomeBattery extends Component {
         }
         const timestamps = Object.keys(values);
         const consumptionData = timestamps.map((timestamp) => values[timestamp]);
+        if (["-7d", "-30d"].includes(this.state.selectedOption.value))
+            showMinutes = false
+
         const graphData = {
             timestamps: timestamps,
-            consumptionData: consumptionData
+            consumptionData: consumptionData,
+            x: {
+                type: 'time',
+                time: {
+                    displayFormats: {
+                        quarter: 'HH:MM'
+                    }
+                }
+            },
+        }
+        if (!showMinutes) {
+            graphData.x.time = {
+                unit: 'day',
+                displayFormats: {
+                    day: 'MMM d',
+                },
+            };
         }
         return graphData
     }

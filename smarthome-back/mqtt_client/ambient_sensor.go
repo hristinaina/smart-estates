@@ -128,7 +128,8 @@ func processingQuery(influxdb influxdb2.Client, query string) map[time.Time]Ambi
 func GetLastOneHourValues(influxdb influxdb2.Client, deviceId string) map[time.Time]AmbientSensor {
 	query := fmt.Sprintf(`from(bucket:"bucket") 
 		|> range(start: -1h, stop: now())
-		|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")`, deviceId)
+		|> filter(fn: (r) => r._measurement == "measurement1" and r.device_id == "%s")
+		|> aggregateWindow(every: 10m, fn: mean)`, deviceId)
 
 	return processingQuery(influxdb, query)
 }

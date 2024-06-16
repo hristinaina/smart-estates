@@ -18,6 +18,15 @@ const ProductionGraph = ({ data }) => {
 
     const options = {
         scales: {
+            x: {
+                type: 'time',
+                time: {
+                    unit: 'day',
+                    displayFormats: {
+                        day: 'MMM d',
+                    },
+                }
+            },
             y: {
                 beginAtZero: true,
                 title: {

@@ -18,6 +18,7 @@ const HBGraph = ({ data, name }) => {
 
     const options = {
         scales: {
+            x: data.x,
             y: {
                 beginAtZero: true,
                 title: {

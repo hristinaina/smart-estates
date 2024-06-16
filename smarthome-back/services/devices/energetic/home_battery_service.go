@@ -130,7 +130,7 @@ func (s *HomeBatteryServiceImpl) GetConsumptionForLastHour(estateId int) interfa
 	query := fmt.Sprintf(`from(bucket:"%s")|> range(start: -1h, stop: now()) 
 			|> filter(fn: (r) => r["_measurement"] == "consumption"
 			and r["_field"] == "electricity" and r["estate_id"] == "%d")
-			|> yield(name: "sum")`, bucket, estateId)
+			|> aggregateWindow(every: 10m, fn: sum)`, bucket, estateId)
 	return s.processingQuery(query)
 }
 
