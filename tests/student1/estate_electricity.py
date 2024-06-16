@@ -53,3 +53,41 @@ class MyUser(HttpUser):
             self.environment.runner.quit()
         else:
             print("success")
+
+    @task
+    def get_estate_ratio(self):
+        city_consumption = {
+            "type": "rs",
+            "selectedOptions": ["Neka kuca nmp"],
+            "start": "2024-02-15T12:34:56Z",
+            "end": "2024-01-16T12:34:56Z",
+            "batteryId": ""
+        }
+        response = self.client.post(
+            "/api/consumption/ratio/selected-date",
+            headers={"Authorization": f"Bearer {self.token}"},
+            json=city_consumption
+        )
+        if response.status_code != 200:
+            self.environment.runner.quit()
+        else:
+            print("success")
+
+    @task
+    def get_estate_ed(self):
+        city_consumption = {
+            "type": "rs",
+            "selectedOptions": ["Neka kuca nmp"],
+            "start": "2024-02-15T12:34:56Z",
+            "end": "2024-01-16T12:34:56Z",
+            "batteryId": "electrical_distribution"
+        }
+        response = self.client.post(
+            "/api/consumption/ratio/selected-date",
+            headers={"Authorization": f"Bearer {self.token}"},
+            json=city_consumption
+        )
+        if response.status_code != 200:
+            self.environment.runner.quit()
+        else:
+            print("success")
