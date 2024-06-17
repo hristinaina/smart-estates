@@ -70,6 +70,9 @@ export class VehicleGate extends Component {
 
         const user = authService.getCurrentUser();
         this.Name = device.ConsumptionDevice.Device.Name;
+        if (device.licensePlates === undefined) {
+            device.LicensePlates = [];
+        }
         await this.setState({device: device});
 
         try {        
