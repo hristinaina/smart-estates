@@ -9,6 +9,8 @@ import DeviceService from '../../../services/DeviceService';
 import LogTable from './LogTable';
 import PieChart from './PieChart';
 import SpecialModeForm from './SpecialModeForm';
+import PermissionService from '../../../services/PermissionService';
+import { ConstructionOutlined } from '@mui/icons-material';
 
 
 export class AirConditioner extends Component {
@@ -31,7 +33,8 @@ export class AirConditioner extends Component {
             temp: 20.0,
             currentTemp: "Loading...",
             splitMode: [],
-            convertedSpecialMode: []
+            convertedSpecialMode: [],
+            userEmails: []
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -59,14 +62,18 @@ export class AirConditioner extends Component {
 
         const user = authService.getCurrentUser();
         this.Name = device.Device.Device.Name;
-        const logData = await DeviceService.getACHistoryData(this.id, 'none', "", "");      
+        const logData = await DeviceService.getACHistoryData(this.id, user.Name + " " + user.Surname, "", "");      
         const data = this.setAction(logData.result)
+        let users = await PermissionService.getAllUsers(this.id, device.Device.Device.RealEstate);
+        users.push("auto");
+        users.push("all");
         this.setState({ 
             logData: data,
             email: user.Name + " " + user.Surname,
-            pickedValue: "none",
+            pickedValue: user.Name + " " + user.Surname,
             startDate: "",
             endDate: "",
+            userEmails: users
         });
 
         try {
@@ -333,7 +340,7 @@ export class AirConditioner extends Component {
     }   
 
     render() {
-        const { device, logData, mode, email, startDate, endDate, currentTemp, pickedValue, splitMode, convertedSpecialMode } = this.state;
+        const { device, logData, mode, email, startDate, endDate, currentTemp, pickedValue, splitMode, convertedSpecialMode, userEmails } = this.state;
 
         return (
             <div>
@@ -393,9 +400,11 @@ export class AirConditioner extends Component {
                                     className="new-real-estate-select"
                                     value={pickedValue}
                                     onChange={(e) => this.setState({ pickedValue: e.target.value })}>
-                                    <option value={email}>{ email }</option>
-                                    <option value="auto">auto</option>
-                                    <option value="none">none</option>
+                                    {userEmails.map(email => (
+                                        <option key={email} value={email}>
+                                        {email}
+                                        </option>
+                                    ))}
                                 </select>
                             </label>
                             <label>
