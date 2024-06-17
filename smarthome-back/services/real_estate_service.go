@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"smarthome-back/cache"
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
@@ -18,16 +19,18 @@ type RealEstateService interface {
 	// ChangeState if state == 0 it is accepted, in opposite it is declined
 	ChangeState(id int, state int, reason string) (models.RealEstate, error)
 	Add(estate models.RealEstate) (models.RealEstate, error)
+	GetByCity(city string) ([]models.RealEstate, error)
 }
 
 type RealEstateServiceImpl struct {
-	db          *sql.DB
-	repository  repositories.RealEstateRepository
-	mailService MailService
+	db             *sql.DB
+	repository     repositories.RealEstateRepository
+	userRepository repositories.UserRepository
+	mailService    MailService
 }
 
-func NewRealEstateService(db *sql.DB) RealEstateService {
-	return &RealEstateServiceImpl{db: db, mailService: NewMailService(db), repository: *repositories.NewRealEstateRepository(db)}
+func NewRealEstateService(db *sql.DB, cacheService *cache.CacheService) RealEstateService {
+	return &RealEstateServiceImpl{db: db, mailService: NewMailService(db), repository: *repositories.NewRealEstateRepository(db, cacheService), userRepository: repositories.NewUserRepository(db, cacheService)}
 }
 
 func (res *RealEstateServiceImpl) GetAll() ([]models.RealEstate, error) {
@@ -36,6 +39,10 @@ func (res *RealEstateServiceImpl) GetAll() ([]models.RealEstate, error) {
 
 func (res *RealEstateServiceImpl) GetByUserId(userId int) ([]models.RealEstate, error) {
 	return res.repository.GetByUserId(userId)
+}
+
+func (res *RealEstateServiceImpl) GetByCity(city string) ([]models.RealEstate, error) {
+	return res.repository.GetByCity(city)
 }
 
 func (res *RealEstateServiceImpl) Get(id int) (models.RealEstate, error) {
@@ -47,6 +54,8 @@ func (res *RealEstateServiceImpl) GetPending() ([]models.RealEstate, error) {
 }
 
 func (res *RealEstateServiceImpl) ChangeState(id int, state int, reason string) (models.RealEstate, error) {
+	// todo proveri da li iz real estate moze da se nadje email osobe cija je nekretnina i njoj da se posalje mejl
+
 	realEstate, err := res.Get(id)
 	if CheckIfError(err) {
 		return models.RealEstate{}, err
@@ -59,13 +68,17 @@ func (res *RealEstateServiceImpl) ChangeState(id int, state int, reason string) 
 	if CheckIfError(err) {
 		return models.RealEstate{}, err
 	}
+
+	user, e := res.userRepository.GetUserById(realEstate.User)
+	err = e
+
 	if state == 0 {
 		realEstate.State = enumerations.ACCEPTED
-		err = res.mailService.ApproveRealEstate(realEstate)
+		go res.mailService.ApproveRealEstate(realEstate, user.Email, user.Name)
 	} else {
 		realEstate.State = enumerations.DECLINED
 		realEstate.DiscardReason = reason
-		err = res.mailService.DiscardRealEstate(realEstate)
+		go res.mailService.DiscardRealEstate(realEstate, user.Email, user.Name)
 	}
 	realEstate, err = res.repository.UpdateState(realEstate)
 

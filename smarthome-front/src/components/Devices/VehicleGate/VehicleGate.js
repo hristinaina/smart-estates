@@ -15,6 +15,8 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { Line } from "react-chartjs-2";
 import LampService from "../../../services/LampService";
+import DeviceHeader from "../DeviceHeader/DeviceHeader";
+import PieChart from "../AirConditioner/PieChart";
 
 
 export class VehicleGate extends Component {
@@ -25,6 +27,7 @@ export class VehicleGate extends Component {
         this.state = {
             device: {LicensePlates: []},
             licensePlate: '',
+            pieChartData: {},
             startDate: '',
             endDate: '',
             enterLicensePlate: '',
@@ -34,6 +37,7 @@ export class VehicleGate extends Component {
             snackbarMessage: '',
             showSnackbar: false,
             open: false,
+            logData: [],
             data: {
                 labels: [],
                 datasets: [
@@ -67,6 +71,9 @@ export class VehicleGate extends Component {
 
         const user = authService.getCurrentUser();
         this.Name = device.ConsumptionDevice.Device.Name;
+        if (device.licensePlates === undefined) {
+            device.LicensePlates = [];
+        }
         await this.setState({device: device});
 
         try {        
@@ -79,8 +86,6 @@ export class VehicleGate extends Component {
                         keepalive: 60
                 });
                 this.mqttClient.on('connect', () => {
-                    console.log("iddddd");
-                    console.log(this.id);
                     this.mqttClient.subscribe('vg/open/' + this.id);
                 });
     
@@ -260,6 +265,9 @@ export class VehicleGate extends Component {
         let datasets = [];
         let keys = [];
         console.log("data: ", data);
+        await this.setState({logData: data});
+        let newData = await VehicleGateService.getPieChartData(this.id.toString(), startDate, endDate);
+        await this.setState({pieChartData: newData});
         if (data == null) {
             await this.setState({snackbarMessage: "No data found."});
             this.handleClick();
@@ -318,8 +326,7 @@ export class VehicleGate extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow}/>
-                <span className='estate-title'>{this.Name}</span>
+                <DeviceHeader handleBackArrow={this.handleBackArrow} name={this.Name} />
                 <div className="sp-container">
                     <div id="sp-left-card">
                         <p className="sp-card-title">Device Data</p>
@@ -371,6 +378,17 @@ export class VehicleGate extends Component {
                             <Button id='sp-data-button' onClick={this.fetch}>Confirm</Button>
                         </form>
                         <Line key={JSON.stringify(this.state.data)} id="vg-graph" data={this.state.data} options={this.options} />
+                    </div>
+                </div>
+                <div id='statistics'>
+                    <p className='sp-card-title'>Statistic</p>
+                    <p>Graphs are based on reports</p>
+                    <div>
+                        <p className='sp-card-title'>Vehicle gate usage percentage %</p>
+                        <PieChart data={this.state.logData} graph={5} />
+
+                        <p className='sp-card-title'>Vehicle gate successful vs. unsuccessful entries</p>
+                        <PieChart data={this.state.pieChartData} graph={6} />
                     </div>
                 </div>
                 {this.state.showAddLicensePlateDialog && (

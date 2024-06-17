@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"smarthome-back/cache"
 	"smarthome-back/repositories"
 	"smarthome-back/utils"
 	"time"
@@ -17,8 +18,8 @@ type Middleware struct {
 	repo repositories.UserRepository
 }
 
-func NewMiddleware(db *sql.DB) Middleware {
-	return Middleware{repo: repositories.NewUserRepository(db)}
+func NewMiddleware(db *sql.DB, cacheService cache.CacheService) Middleware {
+	return Middleware{repo: repositories.NewUserRepository(db, &cacheService)}
 }
 
 func (mw Middleware) RequireAuth(c *gin.Context) {

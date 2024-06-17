@@ -7,6 +7,9 @@ import mqtt from 'mqtt';
 import { TextField, Button, Snackbar, Typography, Switch, Input, FormControl } from '@mui/material';
 import DeviceService from '../../../services/DeviceService';
 import LogTable from './LogTable';
+import PieChart from './PieChart';
+import SpecialModeForm from './SpecialModeForm';
+import DeviceHeader from '../DeviceHeader/DeviceHeader';
 
 
 export class AirConditioner extends Component {
@@ -27,7 +30,9 @@ export class AirConditioner extends Component {
             showSnackbar: false,
             open: false,
             temp: 20.0,
-            currentTemp: "Loading..."
+            currentTemp: "Loading...",
+            splitMode: [],
+            convertedSpecialMode: []
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl());
@@ -39,7 +44,13 @@ export class AirConditioner extends Component {
         if (!valid) window.location.assign("/");
 
         const device = await DeviceService.getDeviceById(this.id, 'http://localhost:8081/api/ac/');
-        const updatedMode = device.Mode.split(',').map((m) => ({
+        console.log(device)
+        const result = await this.convertFormat(device.SpecialMode)
+        this.setState({convertedSpecialMode: result})
+        const splitMode = device.Mode.split(',')
+        this.setState({splitMode: splitMode})
+
+        const updatedMode = splitMode.map((m) => ({
             name: m,
             switchOn: false,
             temp: 20.0
@@ -53,7 +64,7 @@ export class AirConditioner extends Component {
         const data = this.setAction(logData.result)
         this.setState({ 
             logData: data,
-            email: user.Email,
+            email: user.Name + " " + user.Surname,
             pickedValue: "none",
             startDate: "",
             endDate: "",
@@ -99,14 +110,19 @@ export class AirConditioner extends Component {
             } else if (data[key].Action === 1) {
                 data[key].Action = "Turn on";
             }
+
+            if (data[key].User.includes("@")) {
+                data[key].User = this.state.email;
+            }
         }
         return data
     }
 
     handleSwitchToggle = (item) => {
+        console.log(item)
         console.log("uslo je i ovde")
         let i = 0
-        const { mode } = this.state;
+        const { mode, email } = this.state;
         let canTurnOn = false
         if(!item.switchOn)
             canTurnOn = this.canTurnOn(item.name, item.temp)
@@ -115,9 +131,9 @@ export class AirConditioner extends Component {
         {
             const updatedMode = mode.map((m) => { 
                 // ako je bio upaljen, posalji da se gasi   
-                if(m.switchOn && item.name != m.name) {  
+                if(m.switchOn && item.name !== m.name) {  
                     console.log("dugme prvo")
-                    this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn, authService.getCurrentUser().Email)
+                    this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn, email)
                     ++i                   
                 }
                 if (!m.switchOn && m.name === item.name) {
@@ -137,7 +153,7 @@ export class AirConditioner extends Component {
             // ovo znaci da nista pre toga nije bilo ukljuceno/iskljuceno
             if(i===0) {
                 console.log("dugme drugo")
-                this.sendDataToSimulation(item.name, item.temp, '', !item.switchOn, authService.getCurrentUser().Email)
+                this.sendDataToSimulation(item.name, item.temp, '', !item.switchOn, email)
             }                   
             
             this.setState({ mode: updatedMode });
@@ -151,7 +167,7 @@ export class AirConditioner extends Component {
 
         const updatedMode = mode.map((m) => { 
             // ako je bio upaljen, posalji da se gasi   
-            if(m.switchOn && item.name != m.name) {  
+            if(m.switchOn && item.name !== m.name) {  
                 console.log("zakazano prvo")
                 this.sendDataToSimulation(item.name, item.temp, m.name, !item.switchOn, "auto")
                 ++i                   
@@ -241,14 +257,12 @@ export class AirConditioner extends Component {
 
     // Handle incoming MQTT messages
     handleMqttMessage(topic, message) {
-        console.log(topic)
         const result = JSON.parse(message.toString())
         if (result.id === this.id) {
             this.setState({
                 currentTemp: result.temp
             });
             if(result.mode != null) {
-                console.log("ovde saaaaaaaaaaam")
                 this.handleScheduledToggle({
                     name: result.mode,
                     switchOn: !result.switch,
@@ -297,14 +311,34 @@ export class AirConditioner extends Component {
         this.setState({ open: false });
     };
 
+    handleAddSpecialMode = (specialMode) => {
+        // todo izmeni ovo i napravi api da se izmeni ovo 
+        const updatedSchedule = specialMode.map(item => ({
+            ...item,
+            temperature: parseFloat(item.temperature)
+        }));
+        this.setState({ specialModes: updatedSchedule });
+        console.log('Adding special mode:', updatedSchedule);
+    };
+
+    async convertFormat (data) {
+        console.log(data)
+        return data.map(item => ({
+            start: item.StartTime,
+            end: item.EndTime,
+            selectedMode: item.Mode,
+            temperature: item.Temperature,
+            selectedDays: item.SelectedDays.split(",")
+        }));
+    }   
+
     render() {
-        const { device, logData, mode, email, startDate, endDate, currentTemp, pickedValue } = this.state;
+        const { device, logData, mode, email, startDate, endDate, currentTemp, pickedValue, splitMode, convertedSpecialMode } = this.state;
 
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' alt='arrow' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
-                <span className='estate-title'>{this.Name}</span>
+                <DeviceHeader handleBackArrow={this.handleBackArrow} name={this.Name} />
                 <div className='sp-container'>
                     <div id="ac-left-card">
                         <p className='sp-card-title'>Supported Modes</p>
@@ -343,15 +377,17 @@ export class AirConditioner extends Component {
                                     )}
                                 </FormControl>                          
                         </div>
-                        )
-                    })}
-
+                        )})}
+                        <div style={{marginTop: "50px"}}>
+                            <SpecialModeForm onAdd={this.handleAddSpecialMode} acModes={splitMode} minTemp={device.MinTemperature} maxTemp={device.MaxTemperature} specialModeFromDevice={convertedSpecialMode} fromDevice={true} id={this.id}/>
+                        </div>
                     </div>
+
                     <div id='sp-right-card'>
                         <p className='sp-card-title'>Switch History</p>
                         <form onSubmit={this.handleFormSubmit} className='sp-container'>
                             <label>
-                                Email:
+                                User:
                                 <select style={{width: "200px", cursor: "pointer"}}
                                     className="new-real-estate-select"
                                     value={pickedValue}
@@ -373,6 +409,21 @@ export class AirConditioner extends Component {
                             <Button type="submit" id='sp-data-button'>Filter</Button>
                         </form>
                         <LogTable logData={logData} />
+                    </div>
+                </div>
+
+                <div id='statistics'>
+                    <p className='sp-card-title'>Statistic</p>
+                    <p>Graphs are based on switch history data</p>
+                    <div>
+                        <p className='sp-card-title'>Mode usage percentage %</p>
+                        <PieChart data={logData} graph={1} />
+
+                        <p className='sp-card-title'>Device activity percentage %</p>
+                        <PieChart data={logData} graph={2} />
+
+                        <p className='sp-card-title'>User usage percentage %</p>
+                        <PieChart data={logData} graph={3} />
                     </div>
                 </div>
                 <Snackbar

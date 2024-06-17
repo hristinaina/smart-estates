@@ -5,15 +5,17 @@ import authService from '../../services/AuthService'
 import Dialog from '../Dialog/Dialog';
 import RealEstateService from '../../services/RealEstateService';
 import ImageService from '../../services/ImageService';
+import Button from '@mui/material/Button';
+import PermissionService from '../../services/PermissionService';
+
 
 export class RealEstates extends Component {
-
     constructor(props) {
         super(props);
 
         this.state = {
             showNewRealEstate: false,
-            user : null,
+            user : {},
             isAdmin: false,
             userId: -1,
             isDisabled: true,
@@ -22,6 +24,8 @@ export class RealEstates extends Component {
             selectedRealEstate: -1,
             realEstates: [],
             realEstateImages: {},
+
+            permitRealEstate: [],
         };
     }
 
@@ -36,8 +40,8 @@ export class RealEstates extends Component {
             await this.setState({isAdmin: false});
         }
         
-        await this.setState({user: currentUser, userId: currentUser.Id, });
-        console.log("comp did mount");
+        this.setState({user: currentUser, userId: currentUser.Id, });
+        
         try {
             if (!this.state.isAdmin) {
                 const result = await RealEstateService.getAllByUserId(currentUser.Id);
@@ -52,6 +56,10 @@ export class RealEstates extends Component {
                 realEstateImages[realEstate.Id] = imageUrl;
             }
             this.setState({realEstateImages});
+
+            // todo dobavi sve nekretnine koje treba da vidi
+            const permitRealEstate = await PermissionService.getRealEstates(currentUser.Id)
+            this.setState({ permitRealEstate: permitRealEstate });
            
         } catch (error) {
             console.log("error");
@@ -91,11 +99,12 @@ export class RealEstates extends Component {
         window.location.href = '/new-real-estate';
     }
 
-    handleCardClick = (id) => {
-        this.setState({selectedRealEstate: id, isDisabled: false});
+    handleCardClick = (realEstate) => {
+        this.setState({selectedRealEstate: realEstate.Id, isDisabled: false});
         if (!this.state.isAdmin){
-            localStorage.setItem("real-estate", id);
-            window.location.assign("/devices")
+            localStorage.setItem("real-estate", realEstate.Id);
+            localStorage.setItem("owner", realEstate.User);
+            if (realEstate.State === 1 ) window.location.assign("/devices")
         }
     }
 
@@ -108,9 +117,13 @@ export class RealEstates extends Component {
             console.error(error);
         }
     }
- 
+
+    handleGrantPermission = (realEstateId) => {
+        window.location.assign("/grant-permission/" + realEstateId)
+    }
+
     render() {
-        const { user } = this.state;
+        const { user, userId, realEstates, showDropdown, selectedRealEstateId } = this.state;
 
         if (!user) return null;
         
@@ -125,26 +138,59 @@ export class RealEstates extends Component {
                 )}
                 
                 <div id='real-estates-container'>
-                    {this.state.realEstates !== null  ? (
+                    {this.state.realEstates !== null  && (
                     this.state.realEstates.map((realEstate) => (
                         <div 
                             key={realEstate.Id}
-                            className={`real-estate-card ${(realEstate.Id !== this.state.selectedRealEstate && this.state.isAdmin === true) ? 'not-selected-card' : 'selected-card'}`} 
-                            onClick={() => this.handleCardClick(realEstate.Id)}>
-                            <img alt='real-estate' src={this.state.realEstateImages[realEstate.Id]} className='real-estate-img' />
-                            <div className='real-estate-info'>
+                            className={`real-estate-card ${(realEstate.Id !== this.state.selectedRealEstate && this.state.isAdmin === true) ? 'not-selected-card' : 'selected-card'}`} >                           
+                            <img alt='real-estate' src={this.state.realEstateImages[realEstate.Id]} className='real-estate-img' style={{ width: '100%', height: '300px' }} onClick={() => this.handleCardClick(realEstate)}/>
+                            <div className='real-estate-info'  onClick={() => this.handleCardClick(realEstate)}>
                                 <p className='real-estate-title'>{realEstate.Name}</p>
                                 <p className='real-estate-text'>
                                 Type: {realEstate.Type === 0 ? 'HOME' : realEstate.Type === 1 ? 'APARTMENT' : 'VILLA'} </p>
                                 <p className='real-estate-text'>Address: {realEstate.Address}</p>
                                 <p className='real-estate-text'>Square Footage: {realEstate.SquareFootage}</p>
                                 <p className='real-estate-text'>Number of Floors: {realEstate.NumberOfFloors}</p>
-                                <p className={`real-estate-text ${realEstate.State === 1 ? 'accepted' : realEstate.State === 0 ? 'pending' : 'declined'}`}>
+                                <p style={{float: "left"}} className={`real-estate-text ${realEstate.State === 1 ? 'accepted' : realEstate.State === 0 ? 'pending' : 'declined'}`}>
                                     {realEstate.State === 1 ? 'Accepted' : realEstate.State === 0 ? 'Pending' : 'Declined'}
                                 </p>
                             </div>
+
+                            {realEstate.State === 1 && !this.state.isAdmin && realEstate.User == userId && ( 
+                                <div className="permission-buttons">
+                                    <Button variant="contained" onClick={() => this.handleGrantPermission(realEstate.Id)} style={{ width: '120px', float: "right", marginRight: "18px", height:'30px', marginTop: "15px" }}>Permissions</Button>
+                                </div>
+                            )} 
                         </div>
-                    ))): (<p id="nothing-available">No real estates available.</p>)}
+                            
+                        )))}
+
+                    {this.state.permitRealEstate.length != 0  && (
+                    this.state.permitRealEstate.map((realEstate) => (
+                        <div 
+                            key={realEstate.Id}
+                            className={`real-estate-card ${(realEstate.Id !== this.state.selectedRealEstate && this.state.isAdmin === true) ? 'not-selected-card' : 'selected-card'}`} >                           
+                            <img alt='real-estate' src={this.state.realEstateImages[realEstate.Id]} className='real-estate-img'  onClick={() => this.handleCardClick(realEstate.Id)} />
+                            <div className='real-estate-info'  onClick={() => this.handleCardClick(realEstate)}>
+                                <p className='real-estate-title'>{realEstate.Name}</p>
+                                <p className='real-estate-text'>
+                                Type: {realEstate.Type === 0 ? 'HOME' : realEstate.Type === 1 ? 'APARTMENT' : 'VILLA'} </p>
+                                <p className='real-estate-text'>Address: {realEstate.Address}</p>
+                                <p className='real-estate-text'>Square Footage: {realEstate.SquareFootage}</p>
+                                <p className='real-estate-text'>Number of Floors: {realEstate.NumberOfFloors}</p>
+                                <p style={{float: "left"}} className={`real-estate-text ${realEstate.State === 1 ? 'accepted' : realEstate.State === 0 ? 'pending' : 'declined'}`}>
+                                    {realEstate.State === 1 ? 'Accepted' : realEstate.State === 0 ? 'Pending' : 'Declined'}
+                                </p>
+                            </div> 
+                            <div className="permission-buttons">
+                                <p style={{ float: "right", color: "#806894", fontWeight: "bold", fontSize:"25px", margin: "8px 15px 0 10px"}}>Shared</p>
+                            </div>
+                        </div>      
+                        )))}
+
+                        {this.state.realEstates == null && this.state.permitRealEstate.length == 0 && (
+                            <p id="nothing-available">No real estates available.</p>
+                        )}
                 </div>
 
                 {this.state.isAdmin && (

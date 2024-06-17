@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"smarthome-back/cache"
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
@@ -27,8 +28,8 @@ type SuperAdminControllerImpl struct {
 	superadmin_service services.GenerateSuperadmin
 }
 
-func NewSuperAdminController(db *sql.DB) SuperAdminController {
-	return &SuperAdminControllerImpl{db: db, repo: repositories.NewUserRepository(db), mail_service: services.NewMailService(db), superadmin_service: services.NewGenerateSuperAdmin(db)}
+func NewSuperAdminController(db *sql.DB, cacheService cache.CacheService) SuperAdminController {
+	return &SuperAdminControllerImpl{db: db, repo: repositories.NewUserRepository(db, &cacheService), mail_service: services.NewMailService(db), superadmin_service: services.NewGenerateSuperAdmin(db, cacheService)}
 }
 
 // password dto
@@ -108,8 +109,8 @@ func (sas *SuperAdminControllerImpl) AddAdmin(c *gin.Context) {
 		return
 	}
 
-	// send admin mail with his password
-	sas.mail_service.CreateAdminLoginRequest(input.Name, input.Surname, input.Email, password)
+	// send admin mail with his password - async send mail
+	go sas.mail_service.CreateAdminLoginRequest(input.Name, input.Surname, input.Email, password)
 
 	// respond
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully added admin"})

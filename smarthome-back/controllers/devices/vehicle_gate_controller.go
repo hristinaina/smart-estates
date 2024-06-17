@@ -2,22 +2,23 @@ package controllers
 
 import (
 	"database/sql"
-	"github.com/gin-gonic/gin"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"smarthome-back/cache"
 	"smarthome-back/controllers"
-	dto2 "smarthome-back/dto"
 	"smarthome-back/dtos"
 	"smarthome-back/dtos/vehicle_gate_graph"
-	services "smarthome-back/services/devices"
+	services "smarthome-back/services/devices/outside"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type VehicleGateController struct {
 	service services.VehicleGateService
 }
 
-func NewVehicleGateController(db *sql.DB, influx influxdb2.Client) VehicleGateController {
-	return VehicleGateController{service: services.NewVehicleGateService(db, influx)}
+func NewVehicleGateController(db *sql.DB, influx influxdb2.Client, cacheService cache.CacheService) VehicleGateController {
+	return VehicleGateController{service: services.NewVehicleGateService(db, influx, cacheService)}
 }
 
 func (controller VehicleGateController) Get(c *gin.Context) {
@@ -90,7 +91,7 @@ func (controller VehicleGateController) ToPublic(c *gin.Context) {
 }
 
 func (controller VehicleGateController) Add(c *gin.Context) {
-	var dto dto2.DeviceDTO
+	var dto dtos.DeviceDTO
 
 	if err := c.BindJSON(&dto); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -168,5 +169,19 @@ func (controller VehicleGateController) GetLicencePlatesCount(c *gin.Context) {
 	} else {
 		result = controller.service.GetLicensePlatesCount(id, from, to, licensePlate)
 	}
+	c.JSON(200, result)
+}
+
+func (controller VehicleGateController) GetEntriesOutcome(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if controllers.CheckIfError(err, c) {
+		return
+	}
+	from := c.Param("from")
+	to := c.Param("to")
+
+	var result map[string]int
+	result = controller.service.GetLicensePlatesOutcome(id, from, to)
+
 	c.JSON(200, result)
 }

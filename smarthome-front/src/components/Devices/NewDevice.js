@@ -23,7 +23,7 @@ export class NewDevice extends Component {
             acModes: [],
             specialModes: [],
             batterySize: 13,
-            chargingPower: 2.3,
+            chargingPower: 7,
             connections: 1,
             selectedPowerSupply: 0,
             efficiency: 20,
@@ -32,6 +32,8 @@ export class NewDevice extends Component {
             showPowerSupply: true,
             showPowerConsumption: false,
             showAirConditioner: false,
+            showWashingMachine: false,
+            wmModes: [],
             showBatterySize: false,
             showSolarPanel: false,
             showCharger: false,
@@ -67,6 +69,7 @@ export class NewDevice extends Component {
             // Callback function after state is updated
             this.setState({
                 showAirConditioner: false,
+                showWashingMachine: false,
                 showBatterySize: false,
                 showCharger: false,
                 showSolarPanel: false,
@@ -95,6 +98,10 @@ export class NewDevice extends Component {
             } else if (selectedType == 1) {
                 this.setState({
                     showAirConditioner: true,
+                });
+            } else if (selectedType == 2) {
+                this.setState({
+                    showWashingMachine: true,
                 });
             } else if (selectedType == 8) {
                 this.setState({
@@ -259,6 +266,9 @@ export class NewDevice extends Component {
             if (this.state.selectedType == 1 && (this.state.minTemp >= this.state.maxTemp || this.state.minTemp < -40 || this.state.maxTemp > 60 || this.state.acModes.length === 0)) {
                 this.setState({ isButtonDisabled: true })
             }
+            else if (this.state.selectedType == 2 && this.state.wmModes.length === 0) {
+                this.setState({ isButtonDisabled: true })
+            }
             else if (this.state.selectedType == 7 && (this.state.batterySize > 100000 || this.state.batterySize < 1)) {
                 this.setState({ isButtonDisabled: true })
             }
@@ -280,6 +290,16 @@ export class NewDevice extends Component {
         }
     }
 
+    handleWMModes = (event) => {
+        const wmModes = event.target.value;
+
+        this.setState(() => ({
+            wmModes,
+        }), () => {
+            this.checkButton();
+        });
+    };
+
     createDevice = async () => {
         console.log("api for new device sent");
         try {
@@ -291,7 +311,7 @@ export class NewDevice extends Component {
                 PowerConsumption: parseFloat(this.state.powerConsumption),
                 MinTemperature: parseInt(this.state.minTemp),
                 MaxTemperature: parseInt(this.state.maxTemp),
-                Mode: this.adaptACModes(this.state.acModes, true),
+                Mode: this.adaptModes(this.state.acModes, true),
                 SpecialMode: JSON.stringify(this.state.specialModes),
                 ChargingPower: parseFloat(this.state.chargingPower),
                 Connections: parseInt(this.state.connections),
@@ -300,6 +320,7 @@ export class NewDevice extends Component {
                 SurfaceArea: parseFloat(this.state.surfaceArea),
                 Efficiency: parseFloat(this.state.efficiency),
                 NumberOfPanels: parseInt(this.state.panelsNum),
+                WMModes: this.adaptModes(this.state.wmModes, true),
             };
             const result = await DeviceService.createDevice(data);
             // uploading image
@@ -316,7 +337,7 @@ export class NewDevice extends Component {
         }
     };
 
-    adaptACModes(lista) {
+    adaptModes(lista) {
         return lista.map(mode => mode).join(',');
     }
 
@@ -426,8 +447,28 @@ export class NewDevice extends Component {
                                     </Select>
                                 </FormControl>
 
-                                <SpecialModeForm onAdd={this.handleAddSpecialMode} acModes={this.state.acModes} minTemp={this.state.minTemp} maxTemp={this.state.maxTemp}/>
+                                {/* <SpecialModeForm onAdd={this.handleAddSpecialMode} acModes={this.state.acModes} minTemp={this.state.minTemp} maxTemp={this.state.maxTemp} fromDevice={false}/> */}
 
+                            </div>
+                        )}
+
+                        {this.state.showWashingMachine && (
+                            <div>
+                                <p className="new-real-estate-label">Select modes:</p>
+                                <FormControl id="ac-dropdown">
+                                    <Select
+                                        labelId="multi-select-dropdown-label"
+                                        id="multi-select-dropdown"
+                                        multiple
+                                        value={this.state.wmModes}
+                                        onChange={this.handleWMModes}
+                                        renderValue={(selected) => selected.join(', ')}>
+                                    <MenuItem value="Cotton">Cotton</MenuItem>
+                                    <MenuItem value="Synthetic">Synthetic</MenuItem>
+                                    <MenuItem value="Quick">Quick</MenuItem>
+                                    <MenuItem value="Delicate">Delicate</MenuItem>
+                                    </Select>
+                                </FormControl>
                             </div>
                         )}
                         {this.state.showBatterySize && (
@@ -485,7 +526,7 @@ export class NewDevice extends Component {
                                     value={this.state.chargingPower}
                                     onChange={this.handleChargingPower}
                                 />
-                                <p className="new-real-estate-label">Number of connections:</p>
+                                <p className="new-real-estate-label">Number of plugs:</p>
                                 <input
                                     className="new-real-estate-input"
                                     type="number"

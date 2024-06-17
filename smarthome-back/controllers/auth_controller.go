@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 	"os"
+	"smarthome-back/cache"
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
@@ -21,8 +22,8 @@ type AuthController struct {
 	mail_service services.MailService
 }
 
-func NewAuthController(db *sql.DB) AuthController {
-	return AuthController{repo: repositories.NewUserRepository(db), mail_service: services.NewMailService(db)}
+func NewAuthController(db *sql.DB, cacheService cache.CacheService) AuthController {
+	return AuthController{repo: repositories.NewUserRepository(db, &cacheService), mail_service: services.NewMailService(db)}
 }
 
 // request body
@@ -78,7 +79,7 @@ func (uc AuthController) Login(c *gin.Context) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("Authorization", tokenString, 3600*24*30, "", "", false, true)
 
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{"token": tokenString})
 }
 
 // request body
@@ -123,7 +124,9 @@ func (uc AuthController) SendVerificationMail(c *gin.Context) {
 	// send mail
 	expiration := time.Now().Add(time.Hour * 24)
 	token, _ := uc.mail_service.GenerateToken(input.Email, expiration)
-	uc.mail_service.CreateVarificationMail(input.Email, input.Name, input.Surname, token)
+
+	// asyc send verification mail for reg
+	go uc.mail_service.CreateVarificationMail(input.Email, input.Name, input.Surname, token)
 
 	// respond
 	c.JSON(http.StatusOK, gin.H{"message": "check mail"})

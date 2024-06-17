@@ -46,8 +46,6 @@ func HandleNewDevice(client mqtt.Client, msg mqtt.Message) {
 }
 
 func StartSimulation(client mqtt.Client, d models.Device) {
-	// fmt.Printf("DEviceeeee: %s\n", d.Name)
-	// fmt.Printf("Typeee: %d\n", d.Type)
 	fmt.Println("start simulation")
 	switch d.Type {
 	case 0:
@@ -58,15 +56,22 @@ func StartSimulation(client mqtt.Client, d models.Device) {
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		air_conditioner := NewAirConditionerSimulator(client, d)
 		air_conditioner.ConnectAirConditioner()
+	case 2:
+		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
+		air_conditioner := NewWashingMachineSimulator(client, d)
+		air_conditioner.ConnectWashingMachine()
 	case 3:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		lamp := NewLampSimulator(client, d)
 		lamp.ConnectLamp()
-
 	case 4:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		vehicleGate := NewVehicleGateSimulator(client, d)
 		vehicleGate.ConnectVehicleGate()
+	case 5:
+		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
+		sprinkler := NewSprinklerSimulator(client, d)
+		sprinkler.ConnectSprinkler()
 	case 6:
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		sp := NewSolarPanelSimulator(client, d)
@@ -75,6 +80,10 @@ func StartSimulation(client mqtt.Client, d models.Device) {
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
 		sp := NewBatterySimulator(client, d)
 		sp.ConnectBattery()
+	case 8:
+		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)
+		sp := NewEVChargerSimulator(client, d)
+		sp.ConnectEVCharger()
 	default:
 		fmt.Println("usao je u default case")
 		fmt.Printf("Connecting device id=%d, Name=%s\n", d.ID, d.Name)

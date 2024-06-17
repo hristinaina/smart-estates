@@ -3,16 +3,18 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"smarthome-back/cache"
 	"smarthome-back/enumerations"
 	"smarthome-back/models"
 )
 
 type RealEstateRepository struct {
-	db *sql.DB
+	db           *sql.DB
+	cacheService *cache.CacheService
 }
 
-func NewRealEstateRepository(db *sql.DB) *RealEstateRepository {
-	return &RealEstateRepository{db: db}
+func NewRealEstateRepository(db *sql.DB, cacheService *cache.CacheService) *RealEstateRepository {
+	return &RealEstateRepository{db: db, cacheService: cacheService}
 }
 
 func (rer *RealEstateRepository) GetAll() ([]models.RealEstate, error) {
@@ -26,8 +28,35 @@ func (rer *RealEstateRepository) GetAll() ([]models.RealEstate, error) {
 }
 
 func (rer *RealEstateRepository) GetByUserId(id int) ([]models.RealEstate, error) {
+	cacheKey := fmt.Sprintf("real_estate_user_%d", id)
+
+	var realEstates []models.RealEstate
+	if found, err := rer.cacheService.GetFromCache(cacheKey, &realEstates); found {
+		return realEstates, err
+	}
+
 	query := "SELECT * FROM realestate WHERE USERID = ?"
 	rows, err := rer.db.Query(query, id)
+
+	if IsError(err) {
+		return nil, err
+	}
+	defer rows.Close()
+
+	realEstates, _ = ScanRows(rows)
+
+	if err := rer.cacheService.SetToCache(cacheKey, realEstates); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
+	return ScanRows(rows)
+}
+
+func (rer *RealEstateRepository) GetByCity(city string) ([]models.RealEstate, error) {
+	query := "SELECT * FROM realestate WHERE city = ?"
+	rows, err := rer.db.Query(query, city)
 
 	if IsError(err) {
 		return nil, err
@@ -37,6 +66,13 @@ func (rer *RealEstateRepository) GetByUserId(id int) ([]models.RealEstate, error
 }
 
 func (rer *RealEstateRepository) Get(id int) (models.RealEstate, error) {
+	cacheKey := fmt.Sprintf("real_estate_%d", id)
+
+	var realEstate models.RealEstate
+	if found, err := rer.cacheService.GetFromCache(cacheKey, &realEstate); found {
+		return realEstate, err
+	}
+
 	query := "SELECT * FROM realestate WHERE ID = ?"
 	rows, err := rer.db.Query(query, id)
 	if IsError(err) {
@@ -47,6 +83,13 @@ func (rer *RealEstateRepository) Get(id int) (models.RealEstate, error) {
 	if estates != nil {
 		return estates[0], err
 	}
+
+	if err := rer.cacheService.SetToCache(cacheKey, estates); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return models.RealEstate{}, err
 }
 

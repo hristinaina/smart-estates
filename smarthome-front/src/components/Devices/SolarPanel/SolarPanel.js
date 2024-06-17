@@ -14,6 +14,9 @@ import { Button } from 'reactstrap';
 import './SolarPanel.css'
 import { Snackbar } from "@mui/material";
 import SolarPanelService from '../../../services/SolarPanelService';
+import PermissionService from '../../../services/PermissionService';
+import ProductionGraph from './ProductionGraph';
+import DeviceHeader from '../DeviceHeader/DeviceHeader';
 
 
 export class SolarPanel extends Component {
@@ -25,8 +28,10 @@ export class SolarPanel extends Component {
             device: {},
             switchOn: false,
             data: [],
-            email: '',
+            email: '',  // email of the selected option from user emails
+            userEmails: [],
             startDate: '',
+            productionData: [],
             endDate: '',
             snackbarMessage: '',
             showSnackbar: false,
@@ -54,15 +59,22 @@ export class SolarPanel extends Component {
 
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
-        const historyData = await SolarPanelService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
-    
+        const historyData = await SolarPanelService.getSPGraphData(this.id, user.Email, "2024-06-13", "2024-06-20");
+        const resultP = await SolarPanelService.getProduction(this.id, "2024-06-13", "2024-06-20");
+        const graphProduction = this.convertResultToGraphData(resultP)
+        let users = await PermissionService.getPermissions(this.id, user.EstateId);
+        users.push(user.Email);
+        users.push("all");
+        users.push("none");
         this.setState({
             device: updatedData,
             switchOn: device.IsOn,
             data: historyData,
+            productionData: graphProduction,
             email: user.Email,
-            startDate: "2023-12-12",
-            endDate: "2023-12-23",
+            userEmails: users,
+            startDate: '2024-06-13',
+            endDate: '2024-06-20',
         });
 
         try {
@@ -133,10 +145,30 @@ export class SolarPanel extends Component {
         const { email, startDate, endDate } = this.state;
         console.log(email, startDate, endDate);
         const historyData = await SolarPanelService.getSPGraphData(this.id, email, startDate, endDate);
+        const resultP = await SolarPanelService.getProduction(this.id, startDate, endDate);
+        const graphProduction = this.convertResultToGraphData(resultP)
         this.setState({
             data: historyData,
+            productionData: graphProduction,
         });
     };
+
+    
+    convertResultToGraphData(values) {
+        if (values == null) {
+            return {
+                timestamps: [],
+                consumptionData: []
+            }
+        }
+        const timestamps = Object.keys(values);
+        const consumptionData = timestamps.map((timestamp) => values[timestamp]);
+        const graphData = {
+            timestamps: timestamps,
+            consumptionData: consumptionData
+        }
+        return graphData
+    }
 
     extractDeviceIdFromUrl() {
         const parts = window.location.href.split('/');
@@ -160,13 +192,12 @@ export class SolarPanel extends Component {
     };
 
     render() {
-        const { device, switchOn, data, email, startDate, endDate } = this.state;
+        const { productionData, device, switchOn, data, email, startDate, endDate, userEmails } = this.state;
 
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
-                <span className='estate-title'>{this.Name}</span>
+                <DeviceHeader handleBackArrow={this.handleBackArrow} name={this.Name} />
                 <div className='sp-container'>
                     <div id="sp-left-card">
                         <p className='sp-card-title'>Device Data</p>
@@ -190,11 +221,19 @@ export class SolarPanel extends Component {
                         </Stack>
                     </div>
                     <div id='sp-right-card'>
-                        <p className='sp-card-title'>Switch History</p>
-                        <form onSubmit={this.handleFormSubmit} className='sp-container'>
+                        <form onSubmit={this.handleFormSubmit} className='sp-container-input'>
                             <label>
-                                Email:
-                                <TextField style={{ backgroundColor: "white" }} type="text" value={email} onChange={(e) => this.setState({ email: e.target.value })} />
+                                User:
+                                <select style={{width: "200px", cursor: "pointer"}}
+                                    className="new-real-estate-select"
+                                    value={email}
+                                    onChange={(e) => this.setState({ email: e.target.value })}>
+                                    {userEmails.map(email => (
+                                        <option key={email} value={email}>
+                                        {email}
+                                        </option>
+                                    ))}
+                                </select>
                             </label>
                             <br />
                             <label>
@@ -209,8 +248,16 @@ export class SolarPanel extends Component {
                             <br />
                             <Button type="submit" id='sp-data-button'>Fetch Data</Button>
                         </form>
-                        <SPGraph data={data} />
+
+                        <div className='card'>
+                            <p className='sp-card-title'>Switch History</p>
+                            <SPGraph data={data}/>
+                        </div>
                     </div>
+                </div>
+                <div className='center-graph card'>
+                    <p className='sp-card-title'>Electricity produced</p>
+                    <ProductionGraph data={productionData} />
                 </div>
                 <Snackbar
                     open={this.state.open}

@@ -1,21 +1,15 @@
-/* .top-bar {
-    display: flex;
-} */
-
 .buttons {
     display: flex;
-    /* justify-content: center; */
     align-items: center;
-    margin-top: 50px;
-    margin-left: 15%;
+    margin-top: 10px;
+    margin-bottom: 30px;
     font-weight: 900;
-    font-size: x-large;
+    font-size: large;
 }
 
 .active-button {
     cursor: pointer;
     padding: 10px;
-    /* margin-bottom: 50px; */
     transition: background-color 0.3s;
     color: #806894;
     background-color: #d3d3d3;
@@ -26,11 +20,46 @@
     cursor: pointer;
 }
 
-.canvas {
-    margin: 75px 20px;
-}
-
 .ambient-sensor-title {
     font-size: 45px;
     margin-left: 35px;
+}
+
+.card {
+    margin-top: 20px;
+    /* margin-bottom: 1.9em; */
+    padding: 10px;
+    text-align: center;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px;
+    background-color: rgb(247, 246, 246);
+    height: auto;
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+}
+
+.history-container {
+    display: flex;
+    justify-content: space-between; 
+    width: 100%;
+    margin-top: 20px; 
+}
+
+.history-controls {
+    width: 30%; 
+    padding: 10px;
+    margin-top: 75px; 
+}
+
+.history-chart {
+    width: 90%;
+    height: 500px;
+}
+
+.ws-graph {
+    height: 100%!important;
+    width: 75% !important;
 }

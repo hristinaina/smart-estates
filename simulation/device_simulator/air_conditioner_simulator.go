@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	topicACSwitch = "ac/switch/" // front salje sta se upalilo/ugasilo
+	topicACSwitch = "ac/switch/" // front salje sta se upalilo/ugasilo i ide do back-a
 	topicTemp     = "ac/temp"    // salje temp na front
 	topicAction   = "ac/action"  // slanje na front i back zakazan termin
 )
@@ -82,7 +82,6 @@ func (ac *AirConditionerSimulator) GenerateAirConditionerData() {
 	for {
 		select {
 		case <-ticker.C:
-			fmt.Println(ac.off_on)
 			if ac.off_on.Switch {
 				switch ac.off_on.Mode {
 				case "Heating":

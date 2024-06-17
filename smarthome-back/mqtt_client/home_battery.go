@@ -6,6 +6,7 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"smarthome-back/enumerations"
 	models "smarthome-back/models/devices"
+	"smarthome-back/models/devices/energetic"
 	"strconv"
 	"strings"
 	"time"
@@ -62,7 +63,7 @@ func (mc *MQTTClient) handleConsumption(device models.Device, consumptionValue f
 	}
 }
 
-func (mc *MQTTClient) calculateConsumptionForBatteries(batteries []models.HomeBattery, realEstateId int, deviceId int, consumptionValue float64, isSurplus bool) float64 {
+func (mc *MQTTClient) calculateConsumptionForBatteries(batteries []energetic.HomeBattery, realEstateId int, deviceId int, consumptionValue float64, isSurplus bool) float64 {
 	surplus := 0.0
 	for i, _ := range batteries {
 		if !batteries[i].Device.IsOnline {

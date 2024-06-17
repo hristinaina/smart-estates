@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import theme from '../../theme';
 import authService from '../../services/AuthService'
 import Button from '@mui/material/Button';
+import PermissionService from '../../services/PermissionService';
 
 
 export class ActivationPage extends Component {
@@ -28,8 +29,15 @@ export class ActivationPage extends Component {
 
   activateAccount = async () => {
     try {
-      const result = await authService.activateAccount();
-
+      const url = window.location.href;
+      let result = null
+      if(url.includes("permission")) {
+        result = await PermissionService.verifyAccount(); 
+      }
+      else {
+        result = await authService.activateAccount();
+      }
+      
       if (this.state.isMounted) {
         if (result.success) {
           this.setState({ activationStatus: 'You have successfully activated your account!' });

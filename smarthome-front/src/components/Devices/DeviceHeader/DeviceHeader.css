@@ -1,0 +1,9 @@
+#availability {
+    margin-left: auto;
+    font-weight: bold;
+    font-size: large;
+}
+
+#availability:hover {
+    cursor: pointer ;
+}

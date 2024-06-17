@@ -16,6 +16,11 @@ import { SolarPanel } from './components/Devices/SolarPanel/SolarPanel';
 import { AirConditioner } from './components/Devices/AirConditioner/AirConditioner';
 import { HomeBattery } from './components/Devices/HomeBattery/HomeBattery';
 import { VehicleGate } from './components/Devices/VehicleGate/VehicleGate';
+import { GrantPermission } from './components/Permission/GrantPermission';
+import { WashingMachine } from './components/Devices/WashingMachine/WashingMachine';
+import { ElectricityOverview } from './components/Admin/ElectricityOverview';
+import { EVCharger } from './components/Devices/EVCharger/EVCharger';
+import { Sprinkler } from './components/Devices/Sprinkler/Sprinkler';
 
 const AppRoutes = [
   {
@@ -40,6 +45,10 @@ const AppRoutes = [
   },
   {
     path: '/activate',
+    element: <ActivationPage />
+  },
+  {
+    path: '/activate-permission',
     element: <ActivationPage />
   },
   {
@@ -75,6 +84,10 @@ const AppRoutes = [
     element: <AirConditioner />
   },
   {
+    path: "/washing-machine/:id",
+    element: <WashingMachine />
+  },
+  {
     path: "/vehicle-gate/:id",
     element: <VehicleGate/>
   },
@@ -86,6 +99,22 @@ const AppRoutes = [
     path: "/hb/:id",
     element: <HomeBattery />
   },
+  {
+    path: "/grant-permission/:id",
+    element: <GrantPermission/>
+  },
+  {
+    path: "/consumption",
+    element: <ElectricityOverview />
+  },
+  {
+    path: "/ev-charger/:id",
+    element: <EVCharger />
+  },
+  {
+    path: "/sprinkler/:id",
+    element: <Sprinkler/>
+  }
 ];
 
 export default AppRoutes;

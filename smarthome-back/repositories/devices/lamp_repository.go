@@ -4,13 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"github.com/influxdata/influxdb-client-go/v2/api"
 	"log"
+	"smarthome-back/cache"
 	models "smarthome-back/models/devices"
 	devices "smarthome-back/models/devices/outside"
 	"smarthome-back/repositories"
 	"strconv"
+
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
 )
 
 type LampRepository interface {
@@ -22,15 +24,23 @@ type LampRepository interface {
 }
 
 type LampRepositoryImpl struct {
-	db       *sql.DB
-	influxdb influxdb2.Client
+	db           *sql.DB
+	influxdb     influxdb2.Client
+	cacheService *cache.CacheService
 }
 
-func NewLampRepository(db *sql.DB, influxdb influxdb2.Client) LampRepository {
-	return &LampRepositoryImpl{db: db, influxdb: influxdb}
+func NewLampRepository(db *sql.DB, influxdb influxdb2.Client, cacheService cache.CacheService) LampRepository {
+	return &LampRepositoryImpl{db: db, influxdb: influxdb, cacheService: &cacheService}
 }
 
 func (rl *LampRepositoryImpl) Get(id int) (devices.Lamp, error) {
+	cacheKey := fmt.Sprintf("lamp_%d", id)
+
+	var lamp devices.Lamp
+	if found, err := rl.cacheService.GetFromCache(cacheKey, &lamp); found {
+		return lamp, err
+	}
+
 	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, Lamp.IsOn, Lamp.LightningLevel
 			  FROM Lamp 
@@ -48,7 +58,14 @@ func (rl *LampRepositoryImpl) Get(id int) (devices.Lamp, error) {
 		}
 	}(rows)
 	lamps, err := ScanRows(rows)
-	lamp := lamps[0]
+	lamp = lamps[0]
+
+	if err := rl.cacheService.SetToCache(cacheKey, lamp); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return lamp, err
 }
 
@@ -107,11 +124,13 @@ func (rl *LampRepositoryImpl) GetLampData(id int, from, to string) *api.QueryTab
 	if to != "" {
 		query = fmt.Sprintf(`from(bucket: "bucket")
             |> range(start: %s, stop: %s)
-            |> filter(fn: (r) => r._measurement == "lamps" and r.Id == "%s")`, from, to, queryId)
+            |> filter(fn: (r) => r._measurement == "lamps" and r.Id == "%s")
+			|> aggregateWindow(every: 12h, fn: mean)`, from, to, queryId)
 	} else {
 		query = fmt.Sprintf(`from(bucket: "bucket")
             |> range(start: %s)
-            |> filter(fn: (r) => r._measurement == "lamps" and r["Id"] == "%s")`, from, queryId)
+            |> filter(fn: (r) => r._measurement == "lamps" and r["Id"] == "%s")
+			|> aggregateWindow(every: 12h, fn: mean)`, from, queryId)
 		fmt.Printf("Generated Flux query: %s\n", query)
 	}
 

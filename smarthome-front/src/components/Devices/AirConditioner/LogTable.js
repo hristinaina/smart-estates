@@ -57,7 +57,6 @@ class LogTable extends React.Component {
   };
 
   handleChangePage = (event, newPage) => {
-    console.log(newPage)
     this.setState({ page: newPage })
   };
 
@@ -88,7 +87,7 @@ class LogTable extends React.Component {
                 Action {sortBy === 'Action' && sortOrder === 'asc' && '↑'}
                 {sortBy === 'Action' && sortOrder === 'desc' && '↓'}
               </TableCell>
-              <TableCell style={{ cursor: "pointer" }} onClick={() => this.handleSort('Mode')}>
+              <TableCell style={{ cursor: "pointer", display: this.props.hide ? 'none': 'table-cell' }} onClick={() => this.handleSort('Mode')}>
                 Mode {sortBy === 'Mode' && sortOrder === 'asc' && '↑'}
                 {sortBy === 'Mode' && sortOrder === 'desc' && '↓'}
                 </TableCell>

@@ -1,0 +1,2101 @@
+openapi: 3.0.2
+info:
+  title: Rich Internet Applications
+  version: '1.0'
+tags:
+  - name: user
+    description: User functionalities
+  - name: real estate
+    description: Real estate functionalities
+  - name: device
+    description: Device functionalities
+  - name: ambient sensor
+    description: Ambient sensor functionalities
+  - name: air conditioner
+    description: Air conditioner functionalities
+  - name: washing machine
+    description: Washing machine functionalities
+  - name: lamp
+    description: Lamp functionalities
+  - name: vehicle gate
+    description: Vehicle gate functionalities
+  - name: sprinkler
+    description: Sprinkler functionalities
+  - name: solar panel
+    description: Solar panel functionalities
+  - name: home battery
+    description: Home battery functionalities
+  - name: ev charger
+    description: Ev charger functionalities
+  - name: image
+    description: Image functionalities
+  - name: permissions
+    description: Permissions functionalities
+paths:
+  /api/users/verify-email:
+    post:
+      tags:
+        - user
+      summary: Send reset password email
+      operationId: sendResetPasswordEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyEmail"
+      responses:
+        '200':
+          description: A verification email has been sent
+        '400':
+          description: Failed to read body
+
+  /api/users/reset-password:
+    post:
+      tags:
+        - user
+      summary: Reset password
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPassword"
+      responses:
+        '200':
+          description: Successfully reset password
+        '400':
+          description: Failed to read body
+
+  /api/users/login:
+    post:
+      tags:
+        - user
+      summary: User login
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        '200':
+          description: Successfully logged in
+        '400':
+          description: Invalid username or password
+
+  /api/users/validate:
+    get:
+      tags:
+        - user
+      summary: Validate user session
+      operationId: validateUserSession
+      responses:
+        '200':
+          description: User session validated successfully
+        '401':
+          description: Unauthorized
+
+  /api/users/logout:
+    post:
+      tags:
+        - user
+      summary: User logout
+      operationId: userLogout
+      responses:
+        '200':
+          description: Successful logout!
+        '401':
+          description: Unauthorized
+
+  /api/users/verificationMail:
+    post:
+      tags:
+        - user
+      summary: Send verification email for registration
+      operationId: sendVerificationMail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        '200':
+          description: Check mail
+        '400':
+          description: Failed to read body or Account with that email already exists!
+
+  /api/users/activate:
+    post:
+      tags:
+        - user
+      summary: Activate user account
+      operationId: activateUserAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActivateAccount"
+      responses:
+        '200':
+          description: User account activated successfully
+        '400':
+          description: Failed to read body or Invalid token!
+
+  /api/users/reset-superadmin-password:
+    post:
+      tags:
+        - user
+      summary: Reset superadmin password
+      operationId: resetSuperAdminPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordInput"
+      responses:
+        '200':
+          description: Password changed successfully
+        '400':
+          description: Failed to read body or Admin not found or Error from database!
+        '403':
+          description: User is not authorized to perform this action
+
+  /api/users/add-admin:
+    post:
+      tags:
+        - user
+      summary: Add admin
+      operationId: addAdmin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Admin"
+      responses:
+        '200':
+          description: Successfully added admin
+        '400':
+          description: Failed to read body or There is already an account with the entered email
+        '403':
+          description: User is not authorized to perform this action
+
+  /api/users/edit-admin:
+    post:
+      tags:
+        - user
+      summary: Edit superadmin profile
+      operationId: editSuperAdmin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Admin"
+      responses:
+        '200':
+          description: Successfully edit profile
+        '400':
+          description: Failed to read body or Database error
+        '403':
+          description: User is not authorized to perform this action
+
+  /api/real-estate:
+    get:
+      tags:
+        - real estate
+      summary: Get all real estates
+      operationId: getAllRealEstates
+      responses:
+        '200':
+          description: List of real estates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RealEstate"
+    post:
+      tags:
+        - real estate
+      summary: Add a new real estate
+      operationId: addRealEstate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RealEstate"
+      responses:
+        '200':
+          description: The created real estate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RealEstate"
+        '400':
+          description: Invalid JSON or Error while adding real estate
+
+  /api/real-estate/user/{userId}:
+    get:
+      tags:
+        - real estate
+      summary: Get all real estates by user ID
+      operationId: getAllRealEstatesByUserId
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        '200':
+          description: List of real estates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RealEstate"
+        '400':
+          description: Error while fetching real estates by user ID
+
+  /api/real-estate/{id}:
+    get:
+      tags:
+        - real estate
+      summary: Get real estate by ID
+      operationId: getRealEstateById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Real estate ID
+      responses:
+        '200':
+          description: The requested real estate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RealEstate"
+        '404':
+          description: Real estate not found
+
+  /api/real-estate/pending:
+    get:
+      tags:
+        - real estate
+      summary: Get pending real estates
+      operationId: getPendingRealEstates
+      responses:
+        '200':
+          description: List of pending real estates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RealEstate"
+        '400':
+          description: Error while fetching pending real estates
+
+  /api/real-estate/{id}/{state}:
+    put:
+      tags:
+        - real estate
+      summary: Change state of real estate
+      operationId: changeStateOfRealEstate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Real estate ID
+        - in: path
+          name: state
+          required: true
+          schema:
+            type: integer
+          description: New state of real estate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscardRealEstate"
+      responses:
+        '200':
+          description: Real estate state changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RealEstate"
+        '400':
+          description: Error while changing state of real estate
+        '403':
+          description: User is not authorized to perform this action
+
+  /api/devices/{id}:
+    get:
+      tags:
+        - device
+      summary: Get device by ID
+      operationId: getDeviceById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Device ID
+      responses:
+        '200':
+          description: The requested device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        '404':
+          description: Device not found
+
+  /api/devices:
+    get:
+      tags:
+        - device
+      summary: Get all devices
+      operationId: getAllDevices
+      responses:
+        '200':
+          description: List of devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Device"
+    post:
+      tags:
+        - device
+      summary: Add a new device
+      operationId: addDevice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceDTO"
+      responses:
+        '200':
+          description: The created device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        '400':
+          description: Invalid JSON or Error while adding device
+        '401':
+          description: Unauthorized
+
+  /api/devices/estate/{estateId}:
+    get:
+      tags:
+        - device
+      summary: Get all devices by estate ID
+      operationId: getAllDevicesByEstateId
+      parameters:
+        - in: path
+          name: estateId
+          required: true
+          schema:
+            type: integer
+          description: Estate ID
+      responses:
+        '200':
+          description: List of devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Device"
+        '400':
+          description: Error while fetching devices by estate ID
+
+  /api/devices/consumption-device/{id}:
+    get:
+      tags:
+        - device
+      summary: Get consumption device DTO by ID
+      operationId: getConsumptionDeviceDtoById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Device ID
+      responses:
+        '200':
+          description: Consumption device DTO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsumptionDeviceDTO"
+        '404':
+          description: Consumption device DTO not found
+
+  /api/ac/{id}:
+    get:
+      tags:
+        - air conditioner
+      summary: Get air conditioner by ID
+      operationId: getAirConditionerById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Air conditioner ID
+      responses:
+        '200':
+          description: The requested air conditioner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AirConditioner"
+        '404':
+          description: Air conditioner not found
+
+  /api/ac/history:
+    post:
+      tags:
+        - air conditioner
+      summary: Get history data for air conditioner
+      operationId: getAirConditionerHistory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActionGraphRequest"
+      responses:
+        '200':
+          description: History data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ACHistoryData"
+        '400':
+          description: Invalid JSON or error while retrieving history data
+
+  /api/sp/{id}:
+    get:
+      tags:
+        - solar panel
+      summary: Get solar panel by ID
+      operationId: getSolarPanelById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Solar panel ID
+      responses:
+        '200':
+          description: The requested solar panel
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SolarPanel"
+        '404':
+          description: Solar panel not found
+
+  /api/sp/graphData:
+    put:
+      tags:
+        - solar panel
+      summary: Get solar panel graph data
+      operationId: getSolarPanelGraphData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActionGraphRequest"
+      responses:
+        '200':
+          description: Solar panel graph data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionGraphResponse"
+        '400':
+          description: Invalid JSON or Error while fetching graph data
+
+  /api/sp/lastValue/{id}:
+    get:
+      tags:
+        - solar panel
+      summary: Get last value from solar panel
+      operationId: getLastValueFromSolarPanel
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Solar panel ID
+      responses:
+        '200':
+          description: Last value from solar panel retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lastValue:
+                    type: number
+                    format: float
+        '404':
+          description: No data found
+  
+  /api/hb/{id}:
+    get:
+      tags:
+        - home battery
+      summary: Get home battery details by ID
+      operationId: getHomeBatteryById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Home battery ID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HomeBattery"
+        '401':
+          description: "Unauthorized"
+
+  /api/hb/last-hour/{id}:
+    get:
+      tags:
+        - home battery
+      summary: Get home battery consumption for the last hour
+      operationId: getHomeBatteryConsumptionForLastHour
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Home battery ID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          description: "Unauthorized"
+
+  /api/hb/selected-time/{id}:
+    post:
+      tags:
+        - home battery
+      summary: Get home battery consumption for selected time
+      operationId: getHomeBatteryConsumptionForSelectedTime
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Home battery ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TimeInput"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          description: "Unauthorized"
+
+  /api/hb/selected-date/{id}:
+    post:
+      tags:
+        - home battery
+      summary: Get home battery consumption for selected date range
+      operationId: getHomeBatteryConsumptionForSelectedDate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Home battery ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DateInput"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          description: "Unauthorized"
+  
+  /api/upload-image/{real-estate-name}:
+    post:
+      tags:
+        - image
+      summary: Upload image for real estate
+      operationId: uploadImage
+      parameters:
+        - in: path
+          name: real-estate-name
+          required: true
+          schema:
+            type: string
+          description: Name of the real estate
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Image uploaded successfully
+        '400':
+          description: Error while uploading image
+
+  /api/upload-image/{file-name}:
+    get:
+      tags:
+        - image
+      summary: Get image by file name
+      operationId: getImage
+      parameters:
+        - in: path
+          name: file-name
+          required: true
+          schema:
+            type: string
+          description: Name of the image file
+      responses:
+        '200':
+          description: Image URL retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imageUrl:
+                    type: string
+        '500':
+          description: Error while searching for file
+
+  /api/ambient/{id}:
+    get:
+      tags:
+        - ambient sensor
+      summary: Get ambient sensor data by ID
+      operationId: getAmbientSensorData
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the ambient sensor
+      responses:
+        '200':
+          description: Ambient sensor data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AmbientSensor"
+        '404':
+          description: Ambient sensor not found
+
+  /api/ambient/last-hour/{id}:
+    get:
+      tags:
+        - ambient sensor
+      summary: Get ambient sensor values for the last hour
+      operationId: getAmbientSensorValuesForLastHour
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the ambient sensor
+      responses:
+        '200':
+          description: Ambient sensor values for the last hour retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AmbientSensorValue"
+        '404':
+          description: Ambient sensor not found
+
+  /api/ambient/selected-time/{id}:
+    post:
+      tags:
+        - ambient sensor
+      summary: Get ambient sensor values for selected time
+      operationId: getAmbientSensorValuesForSelectedTime
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the ambient sensor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TimeInput"
+      responses:
+        '200':
+          description: Ambient sensor values for selected time retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AmbientSensorValue"
+        '400':
+          description: Failed to read body
+
+  /api/ambient/selected-date/{id}:
+    post:
+      tags:
+        - ambient sensor
+      summary: Get ambient sensor values for selected date range
+      operationId: getAmbientSensorValuesForSelectedDate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the ambient sensor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DateInput"
+      responses:
+        '200':
+          description: Ambient sensor values for selected date range retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AmbientSensorValue"
+        '400':
+          description: Failed to read body
+
+  /api/lamp/{id}:
+    get:
+      tags:
+        - lamp
+      summary: Get lamp by ID
+      operationId: getLampById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the lamp
+      responses:
+        '200':
+          description: Lamp data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lamp"
+        '404':
+          description: Lamp not found
+
+    delete:
+      tags:
+        - lamp
+      summary: Delete a lamp by ID
+      operationId: deleteLampById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the lamp
+      responses:
+        '204':
+          description: Lamp deleted successfully
+        '404':
+          description: Lamp not found
+
+  /api/lamp:
+    get:
+      tags:
+        - lamp
+      summary: Get all lamps
+      operationId: getAllLamps
+      responses:
+        '200':
+          description: Lamps retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lamp"
+        '400':
+          description: Error retrieving lamps
+
+    post:
+      tags:
+        - lamp
+      summary: Add a new lamp
+      operationId: addLamp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceDTO"
+      responses:
+        '200':
+          description: Lamp added successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lamp"
+        '400':
+          description: Error adding lamp
+
+  /api/lamp/on/{id}:
+    put:
+      tags:
+        - lamp
+      summary: Turn on the lamp
+      operationId: turnOnLamp
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the lamp
+      responses:
+        '200':
+          description: Lamp turned on successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lamp"
+        '404':
+          description: Lamp not found
+
+  /api/lamp/off/{id}:
+    put:
+      tags:
+        - lamp
+      summary: Turn off the lamp
+      operationId: turnOffLamp
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the lamp
+      responses:
+        '200':
+          description: Lamp turned off successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lamp"
+        '404':
+          description: Lamp not found
+
+  /api/lamp/{id}/{level}:
+    put:
+      tags:
+        - lamp
+      summary: Set lighting level of the lamp
+      operationId: setLightingLevel
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the lamp
+        - in: path
+          name: level
+          required: true
+          schema:
+            type: integer
+          description: Lighting level to set
+      responses:
+        '200':
+          description: Lighting level set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lamp"
+        '400':
+          description: Error setting lighting level    
+
+  /api/lamp/graph/{id}/{from}/{to}:
+    get:
+      tags:
+        - lamp
+      summary: Get graph data for the lamp within a specified time range
+      operationId: getLampGraphData
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the lamp
+        - in: path
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Start date/time of the time range
+        - in: path
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: End date/time of the time range
+      responses:
+        '200':
+          description: Graph data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LampGraphData"
+        '404':
+          description: Lamp not found
+
+  /api/vehicle-gate/{id}:
+    get:
+      summary: "Get vehicle gate by ID"
+      tags:
+        - vehicle gate
+      parameters:
+        - in: path
+          name: id
+          description: "ID of the vehicle gate to get"
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleGate'
+        '404':
+          description: "Vehicle gate with selected ID not found"
+
+    delete:
+      summary: "Delete vehicle gate by ID"
+      tags:
+        - vehicle gate
+      parameters:
+        - in: path
+          name: id
+          description: "ID of the vehicle gate to delete"
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: "Vehicle gate deleted successfully"
+        '404':
+          description: "Vehicle gate with selected ID not found"
+
+  /api/vehicle-gate/:
+    get:
+      summary: "Get all vehicle gates"
+      tags:
+        - vehicle gate
+      responses:
+        '200':
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleGate'
+
+    post:
+      summary: "Add a new vehicle gate"
+      tags:
+        - vehicle gate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceDTO'
+      responses:
+        '200':
+          description: "Vehicle gate added successfully"
+        '400':
+          description: "Invalid JSON"
+
+  /api/vehicle-gate/open/{id}:
+    put:
+      summary: "Open vehicle gate"
+      tags:
+        - vehicle gate
+      parameters:
+        - in: path
+          name: id
+          description: "ID of the vehicle gate to open"
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Vehicle gate opened successfully"
+
+  /api/vehicle-gate/close/{id}:
+    put:
+      summary: "Close vehicle gate"
+      tags:
+        - vehicle gate
+      parameters:
+        - in: path
+          name: id
+          description: "ID of the vehicle gate to close"
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Vehicle gate closed successfully"
+
+  /api/vehicle-gate/private/{id}:
+    put:
+      summary: "Set vehicle gate to private mode"
+      tags:
+        - vehicle gate
+      parameters:
+        - in: path
+          name: id
+          description: "ID of the vehicle gate"
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Vehicle gate set to private mode successfully"
+
+  /api/vehicle-gate/public/{id}:
+    put:
+      summary: "Set vehicle gate to public mode"
+      tags:
+        - vehicle gate
+      parameters:
+        - in: path
+          name: id
+          description: "ID of the vehicle gate"
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Vehicle gate set to public mode successfully"
+
+  /api/vehicle-gate/license-plate/{id}:
+    get:
+      summary: "Get license plates for a vehicle gate"
+      tags:
+        - vehicle gate
+      parameters:
+        - in: path
+          name: id
+          description: "ID of the vehicle gate"
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /api/vehicle-gate/license-plate:
+    post:
+      summary: "Add a license plate to a vehicle gate"
+      tags:
+        - vehicle gate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceId:
+                  type: integer
+                licensePlate:
+                  type: string
+              required:
+                - deviceId
+                - licensePlate
+      responses:
+        '200':
+          description: "License plate added successfully"
+        '400':
+          description: "Invalid JSON"
+
+    get:
+      summary: "Get all license plates"
+      tags:
+        - vehicle gate
+      responses:
+        '200':
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /api/vehicle-gate/count/{id}/{from}/{to}/{license-plate}:
+    get:
+      summary: "Get count of vehicle entries for a specific vehicle gate and time range"
+      tags:
+        - vehicle gate
+      parameters:
+        - in: path
+          name: id
+          description: "ID of the vehicle gate"
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: from
+          description: "Start date in format 'YYYY-MM-DD'"
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: to
+          description: "End date in format 'YYYY-MM-DD'"
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: license-plate
+          description: "License plate number (optional)"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleEntriesCount'
+
+  /api/wm/{id}:
+    get:
+      summary: "Get washing machine by ID"
+      tags:
+        - washing machine
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: "ID of the washing machine"
+      responses:
+        '200':
+          description: "Successful response"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WashingMachine'
+        '404':
+          description: "Washing machine not found"
+
+  /api/wm/schedule:
+    post:
+      summary: "Add scheduled mode to washing machine"
+      tags:
+        - washing machine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduledModeDTO'
+      responses:
+        '200':
+          description: "Scheduled mode added successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Success message"
+        '400':
+          description: "Invalid request body"
+        '404':
+          description: "Washing machine not found"
+
+  /api/wm/schedule/{id}:
+    get:
+      summary: "Get all scheduled modes for a washing machine"
+      tags:
+        - washing machine
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: "ID of the washing machine"
+      responses:
+        '200':
+          description: "Successful response"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScheduledMode'
+        '404':
+          description: "Washing machine not found"
+
+  /api/wm/history:
+    put:
+      summary: "Get history data for washing machine"
+      tags:
+        - washing machine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionGraphRequest'
+      responses:
+        '200':
+          description: "Successful response"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WMHistoryData'
+        '400':
+          description: "Invalid request body"
+
+  /api/permission:
+    post:
+      summary: "Receive grant permission"
+      description: "Receive grant permission for accessing real estate devices"
+      tags:
+        - permissions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrantPermission"
+      responses:
+        "200":
+          description: "Success"
+        "400":
+          description: "Invalid request body"
+  
+  /api/permission/verify:
+    post:
+      summary: "Verify account"
+      description: "Verify account using token"
+      tags:
+        - permissions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActivateAccount"
+      responses:
+        "200":
+          description: "Valid token"
+        "400":
+          description: "Invalid token"
+  
+  /api/permission/{id}:
+    get:
+      summary: "Get permission for real estate"
+      description: "Get permissions for a specific real estate"
+      tags:
+        - permissions
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: "ID of the real estate"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PermissionDTO"
+        "400":
+          description: "Invalid ID"
+
+  /api/permission/deny/{id}:
+    post:
+      summary: "Delete permit"
+      description: "Delete permit for accessing real estate devices"
+      tags:
+        - permissions
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: "ID of the real estate"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/PermissionDTO"
+      responses:
+        "200":
+          description: "Success"
+        "400":
+          description: "Invalid request body"
+
+  /api/permission/get-real-estate/{id}:
+    get:
+      summary: "Get permit real estate"
+      description: "Get real estate with permit by user ID"
+      tags:
+        - permissions
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: "ID of the user"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RealEstate"
+        "400":
+          description: "Invalid ID"
+
+  /api/permission/get-devices/{id}/{userId}:
+    get:
+      summary: "Get device for real estate"
+      description: "Get devices shared with a user for a specific real estate"
+      tags:
+        - permissions
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: "ID of the real estate"
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: "ID of the user"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Device"
+        "400":
+          description: "Invalid IDs"
+
+components:
+  schemas:
+    VerifyEmail:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+    ResetPassword:
+      type: object
+      properties:
+        password:
+          type: string
+        token:
+          type: string
+      required:
+        - password
+        - token
+    LoginInput:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+    RegisterInput:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        name:
+          type: string
+        surname:
+          type: string
+        role:
+          type: integer
+      required:
+        - email
+        - password
+        - name
+        - surname
+        - role
+    ActivateAccount:
+      type: object
+      properties:
+        token:
+          type: string
+      required:
+        - token
+    PasswordInput:
+      type: object
+      properties:
+        password:
+          type: string
+      required:
+        - password
+    Admin:
+      type: object
+      properties:
+        name:
+          type: string
+        surname:
+          type: string
+        email:
+          type: string
+      required:
+        - name
+        - surname
+        - email
+    RealEstateType:
+      type: string
+      enum:
+        - HOME
+        - APARTMENT
+        - VILLA
+    State:
+      type: string
+      enum:
+        - PENDING
+        - ACCEPTED
+        - DECLINED
+    RealEstate:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/RealEstateType"
+        address:
+          type: string
+        city:
+          type: string
+        squareFootage:
+          type: number
+          format: float
+        numberOfFloors:
+          type: integer
+        picture:
+          type: string
+        state:
+          $ref: "#/components/schemas/State"
+        user:
+          type: integer
+        discardReason:
+          type: string
+      required:
+        - name
+        - type
+        - address
+        - city
+        - squareFootage
+        - numberOfFloors
+        - state
+        - user
+    DiscardRealEstate:
+      type: object
+      properties:
+        discardReason:
+          type: string
+      required:
+        - discardReason
+    DeviceType:
+      type: string
+      enum:
+        - AmbientSensor
+        - AirConditioner
+        - WashingMachine
+        - Lamp
+        - VehicleGate
+        - Sprinkler
+        - SolarPanel
+        - BatteryStorage
+        - EVCharger
+    Device:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/DeviceType"
+        realEstate:
+          type: integer
+        isOnline:
+          type: boolean
+        statusTimeStamp:
+          type: string
+        lastValue:
+          type: number
+          format: float
+      required:
+        - name
+        - type
+        - realEstate
+        - isOnline
+        - lastValue
+    ConsumptionDeviceDTO:
+      type: object
+      properties:
+        powerSupply:
+          $ref: "#/components/schemas/PowerSupplyType"
+        powerConsumption:
+          type: number
+          format: float
+      required:
+        - powerSupply
+        - powerConsumption
+    PowerSupplyType:
+      type: string
+      enum:
+        - Autonomous
+        - Home
+    DeviceDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/DeviceType"
+        realEstate:
+          type: integer
+        isOnline:
+          type: boolean
+        powerSupply:
+          $ref: "#/components/schemas/PowerSupplyType"
+        powerConsumption:
+          type: number
+          format: float
+        minTemperature:
+          type: number
+          format: float
+        maxTemperature:
+          type: number
+          format: float
+        mode:
+          type: string
+        specialMode:
+          type: string
+        chargingPower:
+          type: number
+          format: float
+        connections:
+          type: integer
+        size:
+          type: number
+          format: float
+        userId:
+          type: integer
+        surfaceArea:
+          type: number
+          format: float
+        efficiency:
+          type: number
+          format: float
+        isOn:
+          type: boolean
+        numberOfPanels:
+          type: integer
+        wmModes:
+          type: string
+      required:
+        - id
+        - name
+        - type
+        - realEstate
+        - isOnline
+        - powerSupply
+        - powerConsumption
+        - userId
+        - isOn
+        - wmModes
+    ActionGraphRequest:
+      type: object
+      properties:
+        deviceId:
+          type: integer
+        userEmail:
+          type: string
+          format: email
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+      required:
+        - deviceId
+    ActionGraphResponse:
+      type: object
+      properties:
+        labels:
+          type: array
+          items:
+            type: string
+          description: Labels for the graph data
+        values:
+          type: array
+          items: {}
+          description: Values for the graph data
+    ACHistoryData:
+      type: object
+      properties:
+        User:
+          type: string
+        Action:
+          type: integer
+          format: int64
+        Mode:
+          type: string
+      required:
+        - User
+        - Action
+        - Mode
+    SpecialMode:
+      type: object
+      properties:
+        StartTime:
+          type: string
+          format: date-time
+        EndTime:
+          type: string
+          format: date-time
+        Mode:
+          type: string
+        Temperature:
+          type: number
+          format: float
+        SelectedDays:
+          type: string
+      required:
+        - StartTime
+        - EndTime
+        - Mode
+        - Temperature
+        - SelectedDays
+    AirConditioner:
+      type: object
+      properties:
+        Device:
+          $ref: "#/components/schemas/ConsumptionDevice"
+        MinTemperature:
+          type: number
+          format: float
+        MaxTemperature:
+          type: number
+          format: float
+        Mode:
+          type: string
+        SpecialMode:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecialMode"
+      required:
+        - Device
+        - MinTemperature
+        - MaxTemperature
+        - Mode
+    ConsumptionDevice:
+      type: object
+      properties:
+        Device:
+          $ref: "#/components/schemas/Device"
+        PowerSupply:
+          $ref: "#/components/schemas/PowerSupplyType"
+        PowerConsumption:
+          type: number
+          format: float
+      required:
+        - Device
+        - PowerSupply
+    SolarPanel:
+      type: object
+      properties:
+        device:
+          $ref: "#/components/schemas/Device"  
+        surfaceArea:
+          type: number
+          format: float
+        efficiency:
+          type: number
+          format: float
+        numberOfPanels:
+          type: integer
+        isOn:
+          type: boolean
+      required:
+        - device
+        - surfaceArea
+        - efficiency
+        - numberOfPanels
+        - isOn
+    DateInput:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date
+          example: "2024-01-30"
+        end:
+          type: string
+          format: date
+          example: "2024-02-15"
+      required:
+        - start
+        - end
+    TimeInput:
+      type: object
+      properties:
+        time:
+          type: string
+          format: time
+          example: "15:04:05"
+      required:
+        - time
+    HomeBattery:
+      type: object
+      properties:
+        Device:
+          $ref: "#/components/schemas/Device"
+        Size:
+          type: number
+          format: float
+        CurrentValue:
+          type: number
+          format: float
+    AmbientSensor:
+      type: object
+      properties:
+        humidity:
+          type: number
+          format: float
+        temperature:
+          type: number
+          format: float
+    AmbientSensorValue:
+      type: object
+      properties:
+        humidity:
+          type: number
+          format: float
+        temperature:
+          type: number
+          format: float
+        timestamp:
+          type: string
+          format: date-time
+    Lamp:
+      type: object
+      properties:
+        consumptionDevice:
+          $ref: '#/components/schemas/ConsumptionDevice'
+        isOn:
+          type: boolean
+        lightningLevel:
+          $ref: '#/components/schemas/LampLightningLevel'
+      required:
+        - consumptionDevice
+        - isOn
+        - lightningLevel
+    LampLightningLevel:
+      type: string
+      enum:
+        - OFF
+        - LOW
+        - MEDIUM
+        - HIGH
+    LampGraphData:
+      type: object
+      properties:
+        count:
+          type: integer
+        value:
+          type: number
+      required:
+        - count
+        - value
+    VehicleGate:
+      type: object
+      properties:
+        ConsumptionDevice:
+          $ref: '#/components/schemas/ConsumptionDevice'
+        IsOpen:
+          type: boolean
+        Mode:
+          type: integer
+          enum: [0, 1] # 0 - Private, 1 - Public
+        LicensePlates:
+          type: array
+          items:
+            type: string
+    VehicleEntriesCount:
+      type: object
+      properties:
+        Count:
+          type: integer
+        LicensePlate:
+          type: string
+    ScheduledModeDTO:
+      type: object
+      properties:
+        DeviceId:
+          type: integer
+        StartTime:
+          type: string
+          format: date-time
+        ModeId:
+          type: integer
+    WashingMachine:
+      type: object
+      properties:
+        Device:
+          $ref: '#/components/schemas/ConsumptionDevice'
+        Mode:
+          type: array
+          items:
+            $ref: '#/components/schemas/Mode'
+        ModeName:
+          type: string
+          description: Name of the washing machine mode
+
+    Mode:
+      type: object
+      properties:
+        Id:
+          type: integer
+          description: ID of the mode
+        Name:
+          type: string
+          description: Name of the mode
+        Duration:
+          type: integer
+          description: Duration of the mode in minutes
+        Temperature:
+          type: string
+          description: Temperature of the mode
+    ScheduledMode:
+      type: object
+      properties:
+        Id:
+          type: integer
+        DeviceId:
+          type: integer
+        StartTime:
+          type: string
+          format: date-time
+        ModeId:
+          type: integer
+    WMHistoryData:
+      type: object
+      properties:
+        User:
+          type: string
+        Action:
+          type: string
+        Mode:
+          type: string
+    GrantPermission:
+      type: object
+      required:
+        - Emails
+        - Devices
+        - RealEstateId
+        - RealEstateName
+        - User
+      properties:
+        Emails:
+          type: array
+          items:
+            type: string
+        Devices:
+          type: array
+          items:
+            type: integer
+        RealEstateId:
+          type: integer
+        RealEstateName:
+          type: string
+        User:
+          type: string
+    PermissionDTO:
+      type: object
+      properties:
+        RealEstate:
+          type: string
+        User:
+          type: string
+        UserEmail:
+          type: string
+          format: email
+        Device:
+          type: string
+        DeviceId:
+          type: integer
+      required:
+        - RealEstate
+        - User
+        - UserEmail
+        - Device
+        - DeviceId

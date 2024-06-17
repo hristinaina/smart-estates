@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
+	"smarthome-back/cache"
 	"smarthome-back/models"
 	"smarthome-back/repositories"
 	"smarthome-back/services"
@@ -13,32 +14,12 @@ import (
 )
 
 type UserController struct {
-	service      services.UserService
 	mail_service services.MailService
 	repo         repositories.UserRepository
 }
 
-func NewUserController(db *sql.DB) UserController {
-	return UserController{service: services.NewUserService(db), mail_service: services.NewMailService(db), repo: repositories.NewUserRepository(db)}
-}
-
-func (uc UserController) ListUsers(c *gin.Context) {
-	users := uc.service.ListUsers()
-	c.JSON(http.StatusOK, users)
-}
-
-func (uc UserController) GetUser(c *gin.Context) {
-	id := c.Param("id")
-	user, err := uc.service.GetUser(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
-	c.JSON(http.StatusOK, user)
-}
-
-func (uc UserController) TestGetMethod(c *gin.Context) {
-	uc.service.TestGetMethod()
+func NewUserController(db *sql.DB, cacheService cache.CacheService) UserController {
+	return UserController{mail_service: services.NewMailService(db), repo: repositories.NewUserRepository(db, &cacheService)}
 }
 
 var user = models.User{}
@@ -60,7 +41,9 @@ func (uc UserController) SendResetPasswordEmail(c *gin.Context) {
 	// send mail
 	expiration := time.Now().Add(time.Minute * 30)
 	token, _ := uc.mail_service.GenerateToken(input.Email, expiration)
-	uc.mail_service.SendVerifyEmail(input.Email, token)
+
+	// aync send mail
+	go uc.mail_service.SendVerifyEmail(input.Email, token)
 
 	// respond
 	c.JSON(http.StatusOK, gin.H{"message": "A verification email has been sent"})

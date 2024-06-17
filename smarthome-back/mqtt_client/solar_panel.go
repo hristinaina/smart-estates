@@ -5,8 +5,8 @@ import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"smarthome-back/dto"
-	models "smarthome-back/models/devices"
+	"smarthome-back/dtos"
+	"smarthome-back/models/devices/energetic"
 	"strconv"
 	"strings"
 	"time"
@@ -22,7 +22,7 @@ func (mc *MQTTClient) HandleSPSwitch(client mqtt.Client, msg mqtt.Message) {
 
 	device := mc.solarPanelRepository.Get(deviceId)
 	// Unmarshal the JSON string into the struct
-	var data dto.SolarPanelDTO
+	var data dtos.SolarPanelDTO
 	err = json.Unmarshal([]byte(msg.Payload()), &data)
 	if err != nil {
 		fmt.Println("Error unmarshaling JSON:", err)
@@ -57,7 +57,7 @@ func (mc *MQTTClient) HandleSPData(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Solar panel: name=%s, id=%d, generated value %f \n", device.Device.Name, device.Device.Id, value)
 }
 
-func (mc *MQTTClient) handleProduction(device models.SolarPanel, value float64) {
+func (mc *MQTTClient) handleProduction(device energetic.SolarPanel, value float64) {
 	batteries, err := mc.homeBatteryRepository.GetAllByEstateId(device.Device.RealEstate)
 	if err != nil {
 		return
@@ -66,21 +66,21 @@ func (mc *MQTTClient) handleProduction(device models.SolarPanel, value float64) 
 	if len(batteries) != 0 {
 		valuePerBattery := value / float64(len(batteries))
 		// value is divided between batteries and each battery takes the same value
-		surplus = mc.calculateProductionForBatteries(batteries, device.Device.Id, valuePerBattery, false)
+		surplus = mc.calculateProductionForBatteries(batteries, device.Device.Id, device.Device.RealEstate, valuePerBattery, false)
 		if surplus != 0.0 {
 			// surplus=what was left (if one of the batteries was full) is sent to batteries again (not divided)
-			surplus = mc.calculateProductionForBatteries(batteries, device.Device.Id, surplus, true)
+			surplus = mc.calculateProductionForBatteries(batteries, device.Device.Id, device.Device.RealEstate, surplus, true)
 		}
 	} else {
-		saveSPDataToInfluxDb(mc.influxDb, device.Device.Id, "electrical_distribution", value)
+		saveSPDataToInfluxDb(mc.influxDb, device.Device.Id, device.Device.RealEstate, "electrical_distribution", value)
 	}
 	if surplus != 0.0 {
-		saveSPDataToInfluxDb(mc.influxDb, device.Device.Id, "electrical_distribution", surplus)
+		saveSPDataToInfluxDb(mc.influxDb, device.Device.Id, device.Device.RealEstate, "electrical_distribution", surplus)
 	}
 
 }
 
-func (mc *MQTTClient) calculateProductionForBatteries(batteries []models.HomeBattery, deviceId int, valuePerBattery float64, isSurplus bool) float64 {
+func (mc *MQTTClient) calculateProductionForBatteries(batteries []energetic.HomeBattery, deviceId int, estateId int, valuePerBattery float64, isSurplus bool) float64 {
 	surplus := 0.0
 	for i, _ := range batteries {
 		if !batteries[i].Device.IsOnline {
@@ -91,7 +91,7 @@ func (mc *MQTTClient) calculateProductionForBatteries(batteries []models.HomeBat
 		}
 		if batteries[i].CurrentValue+valuePerBattery <= batteries[i].Size {
 			batteries[i].CurrentValue = batteries[i].CurrentValue + valuePerBattery
-			saveSPDataToInfluxDb(mc.influxDb, deviceId, strconv.Itoa(batteries[i].Device.Id), valuePerBattery)
+			saveSPDataToInfluxDb(mc.influxDb, deviceId, estateId, strconv.Itoa(batteries[i].Device.Id), valuePerBattery)
 			SaveHBDataToInfluxDb(mc.influxDb, batteries[i].Device.Id, batteries[i].CurrentValue)
 			mc.homeBatteryRepository.Update(batteries[i])
 			//everything that was supposed to go into the battery went into it
@@ -108,7 +108,7 @@ func (mc *MQTTClient) calculateProductionForBatteries(batteries []models.HomeBat
 			} else {
 				surplus = surplus + valuePerBattery - produced
 			}
-			saveSPDataToInfluxDb(mc.influxDb, deviceId, strconv.Itoa(batteries[i].Device.Id), produced)
+			saveSPDataToInfluxDb(mc.influxDb, deviceId, estateId, strconv.Itoa(batteries[i].Device.Id), produced)
 			SaveHBDataToInfluxDb(mc.influxDb, batteries[i].Device.Id, batteries[i].CurrentValue)
 			mc.homeBatteryRepository.Update(batteries[i])
 		}
@@ -120,7 +120,7 @@ func (mc *MQTTClient) calculateProductionForBatteries(batteries []models.HomeBat
 	}
 }
 
-func saveSPSwitchChangeToInfluxDb(client influxdb2.Client, device models.SolarPanel, email string) {
+func saveSPSwitchChangeToInfluxDb(client influxdb2.Client, device energetic.SolarPanel, email string) {
 	Org := "Smart Home"
 	Bucket := "bucket"
 	writeAPI := client.WriteAPI(Org, Bucket)
@@ -141,13 +141,13 @@ func saveSPSwitchChangeToInfluxDb(client influxdb2.Client, device models.SolarPa
 	fmt.Println("Saved sp switch change to influxdb")
 }
 
-func saveSPDataToInfluxDb(client influxdb2.Client, deviceId int, batteryId string, value float64) {
+func saveSPDataToInfluxDb(client influxdb2.Client, deviceId int, estateId int, batteryId string, value float64) {
 	Org := "Smart Home"
 	Bucket := "bucket"
 	writeAPI := client.WriteAPI(Org, Bucket)
 	p := influxdb2.NewPoint("solar_panel", //table
-		map[string]string{"device_id": strconv.Itoa(deviceId), "battery_id": batteryId}, //tag
-		map[string]interface{}{"electricity": value},                                    //field
+		map[string]string{"device_id": strconv.Itoa(deviceId), "estate_id": strconv.Itoa(estateId), "battery_id": batteryId}, //tag
+		map[string]interface{}{"electricity": value}, //field
 		time.Now())
 
 	// Write the point to InfluxDB

@@ -11,6 +11,7 @@ import authService from '../../services/AuthService'
 
 import ImageService from '../../services/ImageService';
 import { DeviceUnknown } from '@mui/icons-material';
+import PermissionService from '../../services/PermissionService';
 
 export class Devices extends Component {
     connected = false;
@@ -22,6 +23,7 @@ export class Devices extends Component {
             data: [],
             deviceImages: {},
             name: '',
+            owner: false,
         };
         this.mqttClient = null;
         this.connecting = false; //change to true if you want to use this
@@ -29,12 +31,30 @@ export class Devices extends Component {
     }
 
     async componentDidMount() {
+        
         const valid = await authService.validateUser();
         if (!valid) window.location.assign("/");
 
         try {
             const result = await DeviceService.getDevices(this.id);
+            console.log(result)
             this.setState({ data: result });
+
+            // todo ako nije pozvati api koja vraca sve uredjaje koje moze da vidi ulogovani korisnik za izabranu nekretninu
+            const currentUser = authService.getCurrentUser()
+            console.log(localStorage.getItem('owner'))
+            if (currentUser.Id != localStorage.getItem('owner')) {
+                // todo ne moze da dodaje uredjaje
+                console.log("nije vlasnik!!")
+                console.log(this.id)
+                console.log(currentUser.Id)
+                const devices = await PermissionService.getDevices(this.id, currentUser.Id)
+                console.log(devices)
+                this.setState({ data: devices });
+            }
+            else {
+                this.setState({ owner: true });
+            }
 
             const deviceImages = {};
             for (const device of result) {
@@ -117,19 +137,19 @@ export class Devices extends Component {
         else if (device.Type === 'Air conditioner')
             window.location.assign("/air-conditioner/" + device.Id)
         else if (device.Type === 'Washing machine')
-            window.location.assign("/lamp/" + device.Id)
+            window.location.assign("/washing-machine/" + device.Id)
         else if (device.Type === 'Lamp')
             window.location.assign("/lamp/" + device.Id)
         else if (device.Type === 'Vehicle gate')
             window.location.assign("/vehicle-gate/" + device.Id)
         else if (device.Type === 'Sprinkler')
-            window.location.assign("/lamp/" + device.Id)
+            window.location.assign("/sprinkler/" + device.Id)
         else if (device.Type === 'Solar panel')
             window.location.assign("/sp/" + device.Id)
         else if (device.Type === 'Battery storage')
             window.location.assign("/hb/" + device.Id)
         else if (device.Type === 'Electric vehicle charger')
-            window.location.assign("/lamp/" + device.Id)
+            window.location.assign("/ev-charger/" + device.Id)
     }
 
     extractDeviceIdFromTopic(topic) {
@@ -150,12 +170,14 @@ export class Devices extends Component {
                 <div id="tools">
                     <Link to="/real-estates"><img src='/images/arrow.png' id='arrow' /></Link>
                     <span className='estate-title'>{name}</span>
-                    <p id="add-device">
-                        <Link to="/new-device" onClick={this.handleNavigationToNewDevice}>
-                            <img alt="." src="/images/plus.png" id="plus" />
-                            Add Device
-                        </Link>
-                    </p>
+                    {this.state.owner && (
+                        <p id="add-device">
+                            <Link to="/new-device" onClick={this.handleNavigationToNewDevice}>
+                                <img alt="." src="/images/plus.png" id="plus" />
+                                Add Device
+                            </Link>
+                        </p>
+                    )}
                 </div>
                 <Divider style={{ width: "87%", marginLeft: 'auto', marginRight: 'auto', marginBottom: '20px' }} />
                 <DevicesList devices={data} deviceImages={deviceImages} onClick={this.handleClick} connecting={connecting} />
@@ -185,6 +207,7 @@ const DevicesList = ({ devices, deviceImages, onClick, connecting }) => {
                                 alt='device'
                                 src={deviceImages[device.Id]}
                                 className='device-img'
+                                style={{ width: '100%', height: '300px' }}
                             />
                             <div className='device-info'>
                                 <p className='device-title'>{device.Name}</p>
