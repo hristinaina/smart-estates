@@ -134,7 +134,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 	permissionRoutes := r.Group("/api/permission")
 	{
 		middleware := middleware.NewMiddleware(db, cacheService)
-		permissionController := controllers.NewPermissionController(db, cacheService)
+		permissionController := controllers.NewPermissionController(db, influxDb, cacheService)
 		permissionRoutes.POST("", middleware.RequireAuth, permissionController.ReceiveGrantPermission)
 		permissionRoutes.POST("/verify", permissionController.VerifyAccount)
 		permissionRoutes.GET("/:id", middleware.RequireAuth, permissionController.GetPermissionForRealEstate)

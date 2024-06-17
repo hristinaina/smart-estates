@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"net/http"
 	"smarthome-back/cache"
 	"smarthome-back/dtos"
@@ -23,8 +24,10 @@ type PermissionController struct {
 	mailService          services.MailService
 }
 
-func NewPermissionController(db *sql.DB, cacheService cache.CacheService) PermissionController {
-	return PermissionController{userRepository: repositories.NewUserRepository(db, &cacheService), permissionRepository: repositories.NewPermissionRepository(db), mailService: services.NewMailService(db), deviceRepository: repositories2.NewDeviceRepository(db, &cacheService)}
+func NewPermissionController(db *sql.DB, client influxdb2.Client, cacheService cache.CacheService) PermissionController {
+	return PermissionController{userRepository: repositories.NewUserRepository(db, &cacheService),
+		permissionRepository: repositories.NewPermissionRepository(db), mailService: services.NewMailService(db),
+		deviceRepository: repositories2.NewDeviceRepository(db, client, &cacheService)}
 }
 
 // request body

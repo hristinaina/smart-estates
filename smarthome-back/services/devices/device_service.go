@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	_ "fmt"
-	"smarthome-back/cache"
 	_ "github.com/gin-gonic/gin"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"smarthome-back/cache"
 	"smarthome-back/dtos"
 	models "smarthome-back/models/devices"
 	"smarthome-back/mqtt_client"
@@ -54,7 +54,7 @@ func NewDeviceService(db *sql.DB, mqtt *mqtt_client.MQTTClient, influxDb influxd
 	return &DeviceServiceImpl{db: db, airConditionerService: inside.NewAirConditionerService(db, &cacheService), washingMachineService: inside.NewWashingMachineService(db, &cacheService), evChargerService: energetic.NewEVChargerService(db, influxDb, cacheService),
 		homeBatteryService: energetic.NewHomeBatteryService(db, influxDb, cacheService), lampService: outside.NewLampService(db, influxDb, cacheService),
 		vehicleGateService: outside.NewVehicleGateService(db, influxDb, cacheService), sprinklerService: outside.NewSprinklerService(db, influxDb, cacheService),
-		mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db, &cacheService),
+		mqtt: mqtt, deviceRepository: repositories.NewDeviceRepository(db, influxDb, &cacheService),
 		solarPanelService: energetic.NewSolarPanelService(db, influxDb, cacheService), ambientSensorService: inside.NewAmbientSensorService(db, &cacheService)}
 }
 

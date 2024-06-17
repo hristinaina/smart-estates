@@ -8,6 +8,7 @@ import LogTable from "../AirConditioner/LogTable";
 import SprinklerService from "../../../services/SprinklerService";
 import mqtt from 'mqtt';
 import authService from "../../../services/AuthService";
+import DeviceHeader from "../DeviceHeader/DeviceHeader";
 
 export class Sprinkler extends Component {
     connected = false;
@@ -30,12 +31,18 @@ export class Sprinkler extends Component {
             username: '',
         };
         this.id = parseInt(this.extractDeviceIdFromUrl());
+        this.Name = '';
         this.mqttClient = null;
     }
 
     async componentDidMount() {
         const user = authService.getCurrentUser();
+        const device = await SprinklerService.get(this.id);
+        console.log(device);
+        this.Name = device.ConsumptionDevice.Device.Name;
+        console.log(this.Name);
         await this.setState({email: user.Email, username: user.Name + " " + user.Surname});   
+        console.log('*****************');
         const res = await SprinklerService.getSpecialModes(this.id);
         if (res !== null) {
             let specials = [];
@@ -50,7 +57,7 @@ export class Sprinkler extends Component {
            
             await this.setState({specialModes: specials});
         }
-
+        
         const sprinkler = await SprinklerService.get(this.id);
         if (sprinkler.IsOn == true){
             await this.setState({switchOn: true});
@@ -180,8 +187,7 @@ export class Sprinkler extends Component {
         return (
             <div>
                 <Navigation/>
-                <img src='/images/arrow.png' alt='arrow' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow}/>
-                <span className='estate-title'>Sprinkler</span>
+                <DeviceHeader handleBackArrow={this.handleBackArrow} name={this.Name} />
                 <div className='sp-container'>
                     <div id="ac-left-card">
                         <p className='sp-card-title'>Details</p>
