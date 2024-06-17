@@ -25,6 +25,12 @@ class PieChart extends Component {
                 this.calculatePercentages();
             else if (this.props.graph === 2)
                 this.calculatePercentagesOffOn();
+            else if (this.props.graph === 4)
+                this.calculatePercentagesOffOnSprinkler();
+            else if (this.props.graph === 5)
+                this.calculatePercentagesVehicleGate();
+            else if (this.props.graph === 6)
+                this.calculateVehicleGatePieChart();
             else 
                 this.calculateUserActivity();
         }
@@ -65,7 +71,6 @@ class PieChart extends Component {
         const { data } = this.props;
         let turnOnCount = 0;
         let turnOffCount = 0;
-
         Object.values(data).forEach(entry => {
             if (entry.Action === "Turn on") {
                 turnOnCount++;
@@ -91,6 +96,86 @@ class PieChart extends Component {
             },
         });
     };
+
+    calculatePercentagesOffOnSprinkler = () => {
+        const { data } = this.props;
+        let turnOnCount = 0;
+        let turnOffCount = 0;
+        Object.values(data).forEach(entry => {
+            if (entry.Action === "on") {
+                turnOnCount++;
+            } else if (entry.Action === "off") {
+                turnOffCount++;
+            }
+        });
+
+        const totalEntries = Object.values(data).length;
+
+        const turnOnPercentage = (turnOnCount / totalEntries) * 100;
+        const turnOffPercentage = (turnOffCount / totalEntries) * 100;
+
+        const backgroundColors = this.generateRandomColors(2); 
+
+        this.setState({
+            data: {
+                labels: ["Turn On", "Turn Off"],
+                datasets: [{
+                    data: [turnOnPercentage, turnOffPercentage],
+                    backgroundColor: backgroundColors, 
+                }],
+            },
+        });
+    };
+
+    calculatePercentagesVehicleGate = () => {
+        const { data } = this.props;
+        let totalCount = 0;
+        let labels = [];
+        let counts = [];
+        console.log(data);
+        data.forEach(entry => {
+            labels.push(entry.LicensePlate);
+            counts.push(entry.Count);
+            totalCount += entry.Count;  
+        });
+
+        let percentages = [];
+        counts.forEach(entry => {
+            let percentage = entry / totalCount * 100;
+            percentages.push(percentage);
+        });
+
+        const backgroundColors = this.generateRandomColors(10); 
+
+        this.setState({
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: percentages,
+                    backgroundColor: backgroundColors, 
+                }],
+            },
+        });
+    };
+
+    calculateVehicleGatePieChart = () => {
+        const { data } = this.props;
+        console.log(data);
+        let labels = ["successful", "unsuccessful"];
+        let pieData = [data.success, data.not_success];
+
+        const backgroundColors = this.generateRandomColors(2);
+        this.setState({
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: pieData,
+                    backgroundColor: backgroundColors, 
+                }],
+            },
+        });
+    };
+
 
     calculateUserActivity = () => {
         const { data } = this.props;

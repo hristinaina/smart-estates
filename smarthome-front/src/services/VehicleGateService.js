@@ -123,6 +123,20 @@ class VehicleGateService {
         }
     }
 
+    async getPieChartData(id, from, to) {
+        try {
+            let url = '';
+            url = `http://localhost:8081/api/vehicle-gate/count/${id}/${from}/${to}`;
+            console.log(url);
+            const response = await fetch(url);
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
     addNewGraphData(graphType, oldData, newData) {
             // license plate entries count graph
             if (!this.checkDates(newData["start_date"], newData["end_date"])) {

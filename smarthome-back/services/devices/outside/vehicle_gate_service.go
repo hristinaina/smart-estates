@@ -28,6 +28,7 @@ type VehicleGateService interface {
 	AddLicensePlate(deviceId int, licensePlate string) (string, error)
 	GetAllLicensePlates() ([]string, error)
 	GetLicensePlatesCount(id int, from string, filter ...string) []vehicle_gate_graph.VehicleEntriesCount
+	GetLicensePlatesOutcome(id int, from string, filter ...string) map[string]int
 }
 
 type VehicleGateServiceImpl struct {
@@ -209,6 +210,39 @@ func (service *VehicleGateServiceImpl) GetLicensePlatesCount(id int, from string
 	}
 
 	return graphData
+}
+
+func (service *VehicleGateServiceImpl) GetLicensePlatesOutcome(id int, from string, filter ...string) map[string]int {
+	values := make(map[string]int)
+	var result *api.QueryTableResult
+	result = service.repository.GetFromInfluxDb(id, from, filter[0])
+
+	fmt.Println("Resultsssss")
+	fmt.Printf("Type of record: %T\n", result.Record())
+	fmt.Println(result)
+	values["success"] = 0
+	values["not_success"] = 0
+	is_success := "not_success"
+
+	for result.Next() {
+		if result.Record().Value() != nil {
+			//key := result.Record().Value().(string)
+			//fmt.Println(result.Record())
+			successValue := result.Record().ValueByKey("Success")
+			//key := result.Record().ValueByKey("Action").(string)
+			if successValue == "true" {
+				is_success = "success"
+
+			} else {
+				is_success = "not_success"
+			}
+			currentCount := service.getValueFromMap(values, is_success)
+			currentCount++
+			values[is_success] = currentCount
+		}
+	}
+
+	return values
 }
 
 func (service *VehicleGateServiceImpl) isPresentInMap(mapValues map[string]int, key string) bool {
