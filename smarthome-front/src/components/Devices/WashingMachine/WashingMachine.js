@@ -12,6 +12,7 @@ import WashingMachineService from "../../../services/WashingMachineService";
 import { Close } from "@mui/icons-material";
 import mqtt from 'mqtt';
 import PieChart from "../AirConditioner/PieChart";
+import DeviceHeader from "../DeviceHeader/DeviceHeader";
 
 
 export class WashingMachine extends Component {
@@ -348,8 +349,7 @@ export class WashingMachine extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' alt='arrow' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
-                <span className='estate-title'>{wmName}</span>
+                <DeviceHeader handleBackArrow={this.handleBackArrow} name={wmName} />
                 <div className='sp-container'>
                     <div id="ac-left-card">
                         <p className='sp-card-title'>Supported Modes</p>

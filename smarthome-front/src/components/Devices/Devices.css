@@ -105,10 +105,11 @@
 }
 
 #graph {
-    margin-left: 3em;
+    /* margin-left: 3em;
     margin-right: 3em;
     margin-bottom: 1.5em;
-    margin-top: 22em;
+    margin-top: 22em; */
+
 }
 
 #custom-date-range-container {

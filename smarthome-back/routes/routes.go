@@ -55,6 +55,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, mqtt *mqtt_client.MQTTClient, influx
 		deviceRoutes.GET("/estate/:estateId", middleware.RequireAuth, deviceController.GetAllByEstateId)
 		deviceRoutes.POST("/", middleware.RequireAuth, deviceController.Add)
 		deviceRoutes.GET("/consumption-device/:id", deviceController.GetConsumptionDeviceDto)
+		deviceRoutes.PUT("/availability", deviceController.GetAvailability)
 	}
 	airConditionerRoutes := r.Group("/api/ac")
 	{

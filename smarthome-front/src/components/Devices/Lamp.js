@@ -13,6 +13,7 @@ import LampService from '../../services/LampService';
 import CustomDateRangeDialog from '../Dialog/CustomDateRangeDialog';
 import { containerClasses } from '@mui/material';
 import DeviceService from '../../services/DeviceService';
+import DeviceHeader from './DeviceHeader/DeviceHeader';
 
 
 export class Lamp extends Component {
@@ -226,29 +227,31 @@ export class Lamp extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow} />
-                <p id='device-name'>{this.state.device.Name}</p>
-                <div style={{ width: "fit-content", marginLeft: "auto", marginRight: "auto", marginTop: "10%" }}>
-                    <p className='device-title'>Id: {this.id}</p>
-                    {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
-                    <p className='device-text'>Read Illumination: {device.Value}</p>
-                    <p className='device-text'>Light bulb is {switchOn && Number(device.Value.slice(0, -1)) < 50 ? 'ON' : 'OFF'}</p>
-                    { console.log("Switchhh: ") }
-                    {console.log(switchOn) }
-                    {console.log(device.Value)}
-                    <Stack direction="row" spacing={1} alignItems="center">
-                        <Typography>Off</Typography>
-                        <Switch
-                            checked={switchOn}
-                            onChange={this.handleSwitchToggle}
-                        />
-                        <Typography>On</Typography>
-                    </Stack>
-                </div>
-
-                <Line key={JSON.stringify(this.state.data)} id='graph' data={this.state.data} options={this.options} />
-                <div id='custom-date-range-container'>
-                    <button id='custom-date-range' onClick={this.openDialog}>Add custom date range</button>
+                <DeviceHeader handleBackArrow={this.handleBackArrow} name={this.state.device.Name}/>
+                <div className='sp-container'>
+                    <div id='sp-left-card'>
+                        <p className='sp-card-title' style={{marginTop:"3.5em"}}>Id: {this.id}</p>
+                        {/* {switchOn ? (<p className='device-text'>Value: {device.Value}</p>) : null} */}
+                        <p className='sp-data-text'>Read Illumination: {device.Value}</p>
+                        <p className='sp-data-text'>Light bulb is {switchOn && Number(device.Value.slice(0, -1)) < 50 ? 'ON' : 'OFF'}</p>
+                        { console.log("Switchhh: ") }
+                        {console.log(switchOn) }
+                        {console.log(device.Value)}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Typography>Off</Typography>
+                            <Switch
+                                checked={switchOn}
+                                onChange={this.handleSwitchToggle}
+                            />
+                            <Typography>On</Typography>
+                        </div>
+                    </div>
+                    <div id='sp-right-card'>
+                        <Line key={JSON.stringify(this.state.data)}  data={this.state.data} options={this.options} />
+                        <div id='custom-date-range-container'>
+                            <button id='custom-date-range' onClick={this.openDialog}>Add custom date range</button>
+                        </div>
+                    </div>
                 </div>
 
                 {this.state.showCustomDateRangeDialog && (
@@ -257,6 +260,7 @@ export class Lamp extends Component {
                     onCancel={this.closeDialog}
                 />
                 )}
+                
             </div>
         )
     }

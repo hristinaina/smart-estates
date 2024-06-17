@@ -71,26 +71,26 @@ const CustomDateRangeDialog = ({onConfirm, onCancel}) => {
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <div id="dialog-overlay">
                 <div id="dialog">
-                <p id="dialog-title">Add custom date range</p>
-                <p id="dialog-message">Choose starting and ending point</p>
-                <DatePicker
-                    className='picker'
-                    label="Starting point"
-                    value={startDate}
-                    onChange={handleStartDateChange}
-                />
-                <p></p>
-                <DatePicker
-                    className='picker'
-                    label="Ending point"
-                    value={endDate}
-                    onChange={handleEndDateChange}
-                />
-                <p></p>
-                {displayError && <p id='please-choose-dates'>{errorMessage}</p>}
-                <button onClick={onCancel}>CANCEL</button>
-                <button onClick={handleConfirm}>CONFIRM</button>
-                {/* <button onClick={() => onConfirm(selectedDate)}>CONFIRM</button> */}
+                    <p id="dialog-title">Add custom date range</p>
+                    <p id="dialog-message">Choose starting and ending point</p>
+                    <DatePicker
+                        className='picker'
+                        label="Starting point"
+                        value={startDate}
+                        onChange={handleStartDateChange}
+                    />
+                    <p></p>
+                    <DatePicker
+                        className='picker'
+                        label="Ending point"
+                        value={endDate}
+                        onChange={handleEndDateChange}
+                    />
+                    <p></p>
+                    {displayError && <p id='please-choose-dates'>{errorMessage}</p>}
+                    <button onClick={onCancel}>CANCEL</button>
+                    <button onClick={handleConfirm}>CONFIRM</button>
+                    {/* <button onClick={() => onConfirm(selectedDate)}>CONFIRM</button> */}
                 </div>
             </div>
         </LocalizationProvider>

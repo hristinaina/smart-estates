@@ -15,6 +15,7 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { Line } from "react-chartjs-2";
 import LampService from "../../../services/LampService";
+import DeviceHeader from "../DeviceHeader/DeviceHeader";
 
 
 export class VehicleGate extends Component {
@@ -79,8 +80,6 @@ export class VehicleGate extends Component {
                         keepalive: 60
                 });
                 this.mqttClient.on('connect', () => {
-                    console.log("iddddd");
-                    console.log(this.id);
                     this.mqttClient.subscribe('vg/open/' + this.id);
                 });
     
@@ -318,8 +317,7 @@ export class VehicleGate extends Component {
         return (
             <div>
                 <Navigation />
-                <img src='/images/arrow.png' id='arrow' style={{ margin: "55px 0 0 90px", cursor: "pointer" }} onClick={this.handleBackArrow}/>
-                <span className='estate-title'>{this.Name}</span>
+                <DeviceHeader handleBackArrow={this.handleBackArrow} name={this.Name} />
                 <div className="sp-container">
                     <div id="sp-left-card">
                         <p className="sp-card-title">Device Data</p>
