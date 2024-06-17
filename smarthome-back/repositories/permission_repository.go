@@ -235,7 +235,7 @@ func (res *PermissionRepositoryImpl) GetAllUsersForRealEstate(deviceId int, esta
 	query := `SELECT DISTINCT u.Name, u.Surname
 			  FROM smart_home.permission p
 			  JOIN user u ON p.userEmail = u.Email
-			  WHERE (p.deviceId = ? OR p.realEstateId = ?) AND p.isDeleted = false`
+			  WHERE (p.deviceId = ? AND p.realEstateId = ?) AND p.isDeleted = false`
 
 	rows, err := res.db.Query(query, deviceId, estateId)
 	if err != nil {
