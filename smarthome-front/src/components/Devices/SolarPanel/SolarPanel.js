@@ -57,8 +57,8 @@ export class SolarPanel extends Component {
 
         const user = authService.getCurrentUser();
         this.Name = device.Device.Name;
-        const historyData = await SolarPanelService.getSPGraphData(this.id, user.Email, "2023-12-12", "2023-12-23");
-        const resultP = await SolarPanelService.getProduction(this.id, "2023-12-12", "2023-12-23");
+        const historyData = await SolarPanelService.getSPGraphData(this.id, user.Email, "2024-06-13", "2024-06-20");
+        const resultP = await SolarPanelService.getProduction(this.id, "2024-06-13", "2024-06-20");
         const graphProduction = this.convertResultToGraphData(resultP)
         let users = await PermissionService.getPermissions(this.id, user.EstateId);
         users.push(user.Email);
@@ -71,8 +71,8 @@ export class SolarPanel extends Component {
             productionData: graphProduction,
             email: user.Email,
             userEmails: users,
-            startDate: "2023-12-12",
-            endDate: "2023-12-23",
+            startDate: '2024-06-13',
+            endDate: '2024-06-20',
         });
 
         try {

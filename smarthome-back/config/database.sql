@@ -153,8 +153,8 @@ CREATE TABLE permission (
 
 INSERT INTO user (Id, Email, Password, Name, Surname, Role)
 VALUES
-    (1, 'nesa@gmail.com', '$2a$10$/fbbLLHt7hEZpMq3rQiWz.oF6cJRRNdO5Vek/NIGzAIyJp99jebrO', 'Nenad', 'Peric', 0),
-    (2, 'nata@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Natasa', 'Maric', 1),
+    (1, 'nesa@gmail.com', '$2a$10$OwhZfsWej4wtXgey1DDWduCIGw4mI65wYdFcRY1ICno71gJKqNrJq', 'Nenad', 'Peric', 0),
+    (2, 'nata@gmail.com', '$2a$10$OwhZfsWej4wtXgey1DDWduCIGw4mI65wYdFcRY1ICno71gJKqNrJq', 'Natasa', 'Maric', 1),
     (3, 'anastasijas557@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Anastasija', 'Savic', 1),
     (4, 'kvucic6@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Kata', 'Vu', 1);
 
