@@ -49,7 +49,7 @@ func (wm *WashingMachineSimulator) ConnectWashingMachine() {
 }
 
 func (wm *WashingMachineSimulator) ScheduleMode() {
-	ticker := time.NewTicker(60 * time.Second)
+	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 
 	first := wm.getFirstScheduledToday()
