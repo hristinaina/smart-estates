@@ -33,7 +33,7 @@ func NewLampRepository(db *sql.DB, influxdb influxdb2.Client, cacheService cache
 	return &LampRepositoryImpl{db: db, influxdb: influxdb, cacheService: &cacheService}
 }
 
-func (rl *LampRepositoryImpl) SelectQuery(id int) (devices.Lamp, error) {
+func (rl *LampRepositoryImpl) selectQuery(id int) (devices.Lamp, error) {
 	var lamp devices.Lamp
 	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, Lamp.IsOn, Lamp.LightningLevel
@@ -65,7 +65,7 @@ func (rl *LampRepositoryImpl) Get(id int) (devices.Lamp, error) {
 		return lamp, err
 	}
 
-	lamp, err := rl.SelectQuery(id)
+	lamp, err := rl.selectQuery(id)
 
 	if err := rl.cacheService.SetToCache(cacheKey, lamp); err != nil {
 		fmt.Println("Cache error:", err)
@@ -106,7 +106,7 @@ func (rl *LampRepositoryImpl) UpdateIsOnState(id int, isOn bool) (bool, error) {
 		return false, err
 	}
 
-	lamp, _ := rl.SelectQuery(id)
+	lamp, _ := rl.selectQuery(id)
 
 	cacheKey := fmt.Sprintf("lamp_%d", id)
 	if err := rl.cacheService.SetToCache(cacheKey, lamp); err != nil {
@@ -128,7 +128,7 @@ func (rl *LampRepositoryImpl) UpdateLightningState(id int, lightningState int) (
 		return false, err
 	}
 
-	lamp, _ := rl.SelectQuery(id)
+	lamp, _ := rl.selectQuery(id)
 
 	cacheKey := fmt.Sprintf("lamp_%d", id)
 	if err := rl.cacheService.SetToCache(cacheKey, lamp); err != nil {

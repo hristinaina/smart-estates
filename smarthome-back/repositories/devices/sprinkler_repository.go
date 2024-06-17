@@ -35,7 +35,7 @@ func NewSprinklerRepository(db *sql.DB, influx influxdb2.Client, cacheService ca
 	return &SprinklerRepositoryImpl{db: db, influx: influx, cacheService: &cacheService}
 }
 
-func (repo *SprinklerRepositoryImpl) SelectQuery(id int) (models.Sprinkler, error) {
+func (repo *SprinklerRepositoryImpl) selectQuery(id int) (models.Sprinkler, error) {
 	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, s.IsOn
 			  FROM Sprinkler s 
@@ -66,7 +66,7 @@ func (repo *SprinklerRepositoryImpl) Get(id int) (models.Sprinkler, error) {
 		return sprinkler, err
 	}
 
-	sprinkler, _ = repo.SelectQuery(id)
+	sprinkler, _ = repo.selectQuery(id)
 	// TODO: add here modes
 
 	if err := repo.cacheService.SetToCache(cacheKey, sprinkler); err != nil {
@@ -110,7 +110,7 @@ func (repo *SprinklerRepositoryImpl) UpdateIsOn(id int, isOn bool) (bool, error)
 		return false, err
 	}
 
-	sprinkler, _ := repo.SelectQuery(id)
+	sprinkler, _ := repo.selectQuery(id)
 
 	cacheKey := fmt.Sprintf("sprinkler_%d", id)
 	if err := repo.cacheService.SetToCache(cacheKey, sprinkler); err != nil {

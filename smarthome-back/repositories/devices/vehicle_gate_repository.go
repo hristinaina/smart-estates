@@ -41,7 +41,7 @@ func NewVehicleGateRepository(db *sql.DB, influx influxdb2.Client, cacheService 
 	return &VehicleGateRepositoryImpl{db: db, influx: influx, cacheService: cacheService}
 }
 
-func (repo *VehicleGateRepositoryImpl) SelectQuery(id int) (models.VehicleGate, error) {
+func (repo *VehicleGateRepositoryImpl) selectQuery(id int) (models.VehicleGate, error) {
 	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, v.IsOpen, v.Mode
 			  FROM vehicleGate v 
@@ -77,7 +77,7 @@ func (repo *VehicleGateRepositoryImpl) Get(id int) (models.VehicleGate, error) {
 		return gate, err
 	}
 
-	gate, _ = repo.SelectQuery(id)
+	gate, _ = repo.selectQuery(id)
 
 	if err := repo.cacheService.SetToCache(cacheKey, gate); err != nil {
 		fmt.Println("Cache error:", err)
@@ -126,7 +126,7 @@ func (repo *VehicleGateRepositoryImpl) UpdateIsOpen(id int, isOpen bool) (bool, 
 	if repositories.IsError(err) {
 		return false, err
 	}
-	gate, _ := repo.SelectQuery(id)
+	gate, _ := repo.selectQuery(id)
 
 	cacheKey := fmt.Sprintf("gate_%d", id)
 	if err := repo.cacheService.SetToCache(cacheKey, gate); err != nil {
@@ -153,7 +153,7 @@ func (repo *VehicleGateRepositoryImpl) UpdateMode(id int, mode enumerations.Vehi
 		return false, err
 	}
 
-	gate, _ := repo.SelectQuery(id)
+	gate, _ := repo.selectQuery(id)
 
 	cacheKey := fmt.Sprintf("gate_%d", id)
 	if err := repo.cacheService.SetToCache(cacheKey, gate); err != nil {
