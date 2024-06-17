@@ -205,7 +205,7 @@ const DevicesList = ({ devices, deviceImages, onClick, connecting }) => {
                         <div key={index} className='device-card' onClick={() => onClick(device)}>
                             <img
                                 alt='device'
-                                src={deviceImages[device.Id]}
+                                src={deviceImages[device.Id] == undefined ? '/images/default_image.png' : deviceImages[device.Id]}
                                 className='device-img'
                                 style={{ width: '100%', height: '300px' }}
                             />
