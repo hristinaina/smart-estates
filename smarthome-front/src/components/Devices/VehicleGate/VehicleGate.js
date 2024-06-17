@@ -26,6 +26,7 @@ export class VehicleGate extends Component {
         this.state = {
             device: {LicensePlates: []},
             licensePlate: '',
+            pieChartData: {},
             startDate: '',
             endDate: '',
             enterLicensePlate: '',
@@ -263,6 +264,8 @@ export class VehicleGate extends Component {
         let keys = [];
         console.log("data: ", data);
         await this.setState({logData: data});
+        let newData = await VehicleGateService.getPieChartData(this.id.toString(), startDate, endDate);
+        await this.setState({pieChartData: newData});
         if (data == null) {
             await this.setState({snackbarMessage: "No data found."});
             this.handleClick();
@@ -382,6 +385,9 @@ export class VehicleGate extends Component {
                     <div>
                         <p className='sp-card-title'>Vehicle gate usage percentage %</p>
                         <PieChart data={this.state.logData} graph={5} />
+
+                        <p className='sp-card-title'>Vehicle gate successful vs. unsuccessful entries</p>
+                        <PieChart data={this.state.pieChartData} graph={6} />
                     </div>
                 </div>
                 {this.state.showAddLicensePlateDialog && (

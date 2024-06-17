@@ -29,6 +29,8 @@ class PieChart extends Component {
                 this.calculatePercentagesOffOnSprinkler();
             else if (this.props.graph === 5)
                 this.calculatePercentagesVehicleGate();
+            else if (this.props.graph === 6)
+                this.calculateVehicleGatePieChart();
             else 
                 this.calculateUserActivity();
         }
@@ -130,6 +132,7 @@ class PieChart extends Component {
         let totalCount = 0;
         let labels = [];
         let counts = [];
+        console.log(data);
         data.forEach(entry => {
             labels.push(entry.LicensePlate);
             counts.push(entry.Count);
@@ -142,7 +145,7 @@ class PieChart extends Component {
             percentages.push(percentage);
         });
 
-        const backgroundColors = this.generateRandomColors(2); 
+        const backgroundColors = this.generateRandomColors(10); 
 
         this.setState({
             data: {
@@ -154,6 +157,25 @@ class PieChart extends Component {
             },
         });
     };
+
+    calculateVehicleGatePieChart = () => {
+        const { data } = this.props;
+        console.log(data);
+        let labels = ["successful", "unsuccessful"];
+        let pieData = [data.success, data.not_success];
+
+        const backgroundColors = this.generateRandomColors(2);
+        this.setState({
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: pieData,
+                    backgroundColor: backgroundColors, 
+                }],
+            },
+        });
+    };
+
 
     calculateUserActivity = () => {
         const { data } = this.props;
