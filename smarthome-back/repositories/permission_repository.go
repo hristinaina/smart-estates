@@ -20,6 +20,7 @@ type PermissionRepository interface {
 	GetPermitRealEstateByEmail(email string) []models.RealEstate
 	GetDeviceForSharedRealEstate(email string, realEstateId int) []PermissionDevice
 	GetPermissionsForDevice(deviceId int, estateId int) []string
+	GetAllUsersForRealEstate(deviceId int, realEstateId int) []string
 }
 
 type PermissionRepositoryImpl struct {
@@ -209,4 +210,65 @@ func (res *PermissionRepositoryImpl) GetPermissionsForDevice(deviceId int, estat
 	}
 
 	return userEmails
+}
+
+func (res *PermissionRepositoryImpl) getOwnerNameByRealEstateId(realEstateId int) (string, error) {
+	query := `SELECT u.Name, u.Surname
+			  FROM user u
+			  JOIN realestate r ON u.Id = r.UserId
+			  WHERE r.Id = ?`
+
+	var name, surname string
+	err := res.db.QueryRow(query, realEstateId).Scan(&name, &surname)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("no owner found for real estate id %d", realEstateId)
+		}
+		return "", err
+	}
+
+	fullName := fmt.Sprintf("%s %s", name, surname)
+	return fullName, nil
+}
+
+func (res *PermissionRepositoryImpl) GetAllUsersForRealEstate(deviceId int, estateId int) []string {
+	query := `SELECT DISTINCT u.Name, u.Surname
+			  FROM smart_home.permission p
+			  JOIN user u ON p.userEmail = u.Email
+			  WHERE (p.deviceId = ? AND p.realEstateId = ?) AND p.isDeleted = false`
+
+	rows, err := res.db.Query(query, deviceId, estateId)
+	if err != nil {
+		log.Printf("Error querying permissions: %v", err)
+		return nil
+	}
+	defer rows.Close()
+
+	var users []string
+
+	for rows.Next() {
+		var name, surname string
+		if err := rows.Scan(&name, &surname); err != nil {
+			log.Printf("Row scan error: %v", err)
+			return nil
+		}
+		fullName := fmt.Sprintf("%s %s", name, surname)
+		users = append(users, fullName)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("Rows iteration error: %v", err)
+		return nil
+	}
+
+	fmt.Println(users)
+
+	owner, err := res.getOwnerNameByRealEstateId(estateId)
+	if err == nil {
+		users = append(users, owner)
+	}
+
+	fmt.Println(owner)
+
+	return users
 }

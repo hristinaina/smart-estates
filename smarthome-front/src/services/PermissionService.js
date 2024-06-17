@@ -151,6 +151,27 @@ class PermissionService {
         }
     }
 
+    async getAllUsers(deviceId, estateId) {
+        try {
+            const response = await fetch('http://localhost:8081/api/permission/get-all-users/' + deviceId + "/" + estateId, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+            console.log(response)
+            console.log("laaaaaaaaaaaaa")
+            const data = await response.json();
+            console.log(data)
+            if (data == null)
+                return [];
+            else return data;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            throw error;
+        }
+    }
 }
 
 export default new PermissionService();

@@ -13,6 +13,7 @@ import { Close } from "@mui/icons-material";
 import mqtt from 'mqtt';
 import PieChart from "../AirConditioner/PieChart";
 import DeviceHeader from "../DeviceHeader/DeviceHeader";
+import PermissionService from "../../../services/PermissionService";
 
 
 export class WashingMachine extends Component {
@@ -38,7 +39,8 @@ export class WashingMachine extends Component {
             open: false,
             remainingTime: "00:00:00",
             intervalId: null,
-            email: ""
+            email: "",
+            userEmails: []
         };
         this.mqttClient = null;
         this.id = parseInt(this.extractDeviceIdFromUrl()); 
@@ -57,6 +59,7 @@ export class WashingMachine extends Component {
         const device = await DeviceService.getDeviceById(this.id, 'http://localhost:8081/api/wm/');
         
         // add switchOn attribute
+        if (device.Mode == undefined) device.Mode = [];
         const updatedMode = device.Mode.map(modeItem => ({
             ...modeItem,
             switchOn: false 
@@ -75,12 +78,18 @@ export class WashingMachine extends Component {
             scheduledModes: scheduledModes
         });
 
-        const logData = await WashingMachineService.getWMHistoryData(this.id, 'none', "", "");  
+        const logData = await WashingMachineService.getWMHistoryData(this.id, user.Name + " " + user.Surname, "", "");  
+        let users = await PermissionService.getAllUsers(this.id, device.Device.Device.RealEstate);
+        console.log(users)
+        users.push("auto");
+        users.push("all");
         this.setState({ 
             logData: logData.result,
-            pickedValue: "none",
+            pickedValue: user.Name + " " + user.Surname,
             startDate: "",
             endDate: "",
+            userEmails: users,
+            email: user.Name + " " + user.Surname,
         });
 
         try {
@@ -344,7 +353,7 @@ export class WashingMachine extends Component {
 
     
     render() {
-        const { wmName, remainingTime, isDialogOpen, selectedMode, scheduledModes, selectedDateTime, logData, mode, email, startDate, endDate, pickedValue } = this.state;
+        const { wmName, remainingTime, isDialogOpen, selectedMode, scheduledModes, selectedDateTime, logData, mode, email, startDate, endDate, pickedValue, userEmails } = this.state;
 
         return (
             <div>
@@ -463,9 +472,11 @@ export class WashingMachine extends Component {
                                     className="new-real-estate-select"
                                     value={pickedValue}
                                     onChange={(e) => this.setState({ pickedValue: e.target.value })}>
-                                    <option value={email}>{ email }</option>
-                                    <option value="auto">auto</option>
-                                    <option value="none">none</option>
+                                    {userEmails.map(email => (
+                                        <option key={email} value={email}>
+                                        {email}
+                                        </option>
+                                    ))}
                                 </select>
                             </label>
                             <label>

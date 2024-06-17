@@ -27,13 +27,8 @@ func NewWashingMachineService(db *sql.DB, cacheService *cache.CacheService) Wash
 	return &WashingMachineServiceImpl{db: db, cacheService: *cacheService}
 }
 
-func (s *WashingMachineServiceImpl) Get(id int) inside.WashingMachine {
-	cacheKey := fmt.Sprintf("wm_%d", id)
-
+func (s *WashingMachineServiceImpl) selectQuery(id int) inside.WashingMachine {
 	var wm inside.WashingMachine
-	if found, _ := s.cacheService.GetFromCache(cacheKey, &wm); found {
-		return wm
-	}
 
 	query := `
 		SELECT
@@ -110,6 +105,19 @@ func (s *WashingMachineServiceImpl) Get(id int) inside.WashingMachine {
 		modes := s.findModeBasedOnName(modeNames.String)
 		wm.Mode = modes
 	}
+
+	return wm
+}
+
+func (s *WashingMachineServiceImpl) Get(id int) inside.WashingMachine {
+	cacheKey := fmt.Sprintf("wm_%d", id)
+
+	var wm inside.WashingMachine
+	if found, _ := s.cacheService.GetFromCache(cacheKey, &wm); found {
+		return wm
+	}
+
+	wm = s.selectQuery(id)
 
 	if err := s.cacheService.SetToCache(cacheKey, wm); err != nil {
 		fmt.Println("Cache error:", err)
@@ -223,8 +231,16 @@ func (s *WashingMachineServiceImpl) AddScheduledMode(deviceId, modeId int, start
 	if err != nil {
 		fmt.Println(err)
 		return fmt.Errorf("Failed to save mode: %v", err)
-
 	}
+
+	wm := s.selectQuery(deviceId)
+	cacheKey := fmt.Sprintf("wm_%d", deviceId)
+	if err := s.cacheService.SetToCache(cacheKey, wm); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return nil
 }
 
