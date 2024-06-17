@@ -27,14 +27,7 @@ func (rer *RealEstateRepository) GetAll() ([]models.RealEstate, error) {
 	return ScanRows(rows)
 }
 
-func (rer *RealEstateRepository) GetByUserId(id int) ([]models.RealEstate, error) {
-	cacheKey := fmt.Sprintf("real_estate_user_%d", id)
-
-	var realEstates []models.RealEstate
-	if found, err := rer.cacheService.GetFromCache(cacheKey, &realEstates); found {
-		return realEstates, err
-	}
-
+func (rer *RealEstateRepository) selectQueryForUserId(id int) ([]models.RealEstate, error) {
 	query := "SELECT * FROM realestate WHERE USERID = ?"
 	rows, err := rer.db.Query(query, id)
 
@@ -43,7 +36,35 @@ func (rer *RealEstateRepository) GetByUserId(id int) ([]models.RealEstate, error
 	}
 	defer rows.Close()
 
-	realEstates, _ = ScanRows(rows)
+	realEstates, err := ScanRows(rows)
+
+	return realEstates, err
+}
+
+func (rer *RealEstateRepository) selectQueryForRealEstateId(id int) (models.RealEstate, error) {
+	query := "SELECT * FROM realestate WHERE ID = ?"
+	rows, err := rer.db.Query(query, id)
+	if IsError(err) {
+		return models.RealEstate{}, nil
+	}
+	defer rows.Close()
+	estates, err := ScanRows(rows)
+	if estates != nil {
+		return estates[0], err
+	}
+
+	return models.RealEstate{}, nil
+}
+
+func (rer *RealEstateRepository) GetByUserId(id int) ([]models.RealEstate, error) {
+	cacheKey := fmt.Sprintf("real_estate_user_%d", id)
+
+	var realEstates []models.RealEstate
+	if found, err := rer.cacheService.GetFromCache(cacheKey, &realEstates); found {
+		return realEstates, err
+	}
+
+	realEstates, _ = rer.selectQueryForUserId(id)
 
 	if err := rer.cacheService.SetToCache(cacheKey, realEstates); err != nil {
 		fmt.Println("Cache error:", err)
@@ -51,7 +72,7 @@ func (rer *RealEstateRepository) GetByUserId(id int) ([]models.RealEstate, error
 		fmt.Println("Saved data in cache.")
 	}
 
-	return ScanRows(rows)
+	return realEstates, nil
 }
 
 func (rer *RealEstateRepository) GetByCity(city string) ([]models.RealEstate, error) {
@@ -73,16 +94,7 @@ func (rer *RealEstateRepository) Get(id int) (models.RealEstate, error) {
 		return realEstate, err
 	}
 
-	query := "SELECT * FROM realestate WHERE ID = ?"
-	rows, err := rer.db.Query(query, id)
-	if IsError(err) {
-		return models.RealEstate{}, nil
-	}
-	defer rows.Close()
-	estates, err := ScanRows(rows)
-	if estates != nil {
-		return estates[0], err
-	}
+	estates, err := rer.selectQueryForRealEstateId(id)
 
 	if err := rer.cacheService.SetToCache(cacheKey, estates); err != nil {
 		fmt.Println("Cache error:", err)
@@ -90,7 +102,7 @@ func (rer *RealEstateRepository) Get(id int) (models.RealEstate, error) {
 		fmt.Println("Saved data in cache.")
 	}
 
-	return models.RealEstate{}, err
+	return estates, err
 }
 
 func (rer *RealEstateRepository) GetPending() ([]models.RealEstate, error) {
@@ -103,12 +115,34 @@ func (rer *RealEstateRepository) GetPending() ([]models.RealEstate, error) {
 }
 
 func (rer *RealEstateRepository) Delete(id int) error {
+	estates, err := rer.selectQueryForRealEstateId(id)
+	userId := estates.User
+
 	// TODO: finish this
 	query := "DELETE FROM realestate WHERE id = ?"
-	_, err := rer.db.Exec(query, id)
+	_, err = rer.db.Exec(query, id)
 
 	if IsError(err) {
 		return err
+	}
+
+	// refresh cache
+	realEstates, _ := rer.selectQueryForUserId(userId)
+
+	cacheKey := fmt.Sprintf("real_estate_user_%d", userId)
+	if err := rer.cacheService.SetToCache(cacheKey, realEstates); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
+	// remove real estate from cache
+	cacheKey = fmt.Sprintf("real_estate_%d", id)
+	err = rer.cacheService.Cache.Delete(cacheKey)
+	if err != nil {
+		fmt.Printf("Failed to delete key from cache: %v", err)
+	} else {
+		fmt.Println("Key deleted successfully")
 	}
 	return nil
 }
@@ -121,6 +155,16 @@ func (rer *RealEstateRepository) Add(estate models.RealEstate) (models.RealEstat
 	if IsError(err) {
 		return models.RealEstate{}, err
 	}
+
+	realEstates, _ := rer.selectQueryForUserId(estate.User)
+
+	cacheKey := fmt.Sprintf("real_estate_user_%d", estate.User)
+	if err := rer.cacheService.SetToCache(cacheKey, realEstates); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return estate, nil
 }
 
@@ -135,6 +179,23 @@ func (rer *RealEstateRepository) UpdateState(realEstate models.RealEstate) (mode
 	} else {
 		realEstate.State = enumerations.DECLINED
 	}
+
+	realEstates, _ := rer.selectQueryForUserId(realEstate.User)
+
+	cacheKey := fmt.Sprintf("real_estate_user_%d", realEstate.User)
+	if err := rer.cacheService.SetToCache(cacheKey, realEstates); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
+	cacheKey = fmt.Sprintf("real_estate_%d", realEstate.Id)
+	if err := rer.cacheService.SetToCache(cacheKey, realEstate); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return realEstate, err
 }
 

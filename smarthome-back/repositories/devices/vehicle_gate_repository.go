@@ -41,14 +41,7 @@ func NewVehicleGateRepository(db *sql.DB, influx influxdb2.Client, cacheService 
 	return &VehicleGateRepositoryImpl{db: db, influx: influx, cacheService: cacheService}
 }
 
-func (repo *VehicleGateRepositoryImpl) Get(id int) (models.VehicleGate, error) {
-	cacheKey := fmt.Sprintf("gate_%d", id)
-
-	var gate models.VehicleGate
-	if found, err := repo.cacheService.GetFromCache(cacheKey, &gate); found {
-		return gate, err
-	}
-
+func (repo *VehicleGateRepositoryImpl) selectQuery(id int) (models.VehicleGate, error) {
 	query := `SELECT Device.Id, Device.Name, Device.Type, Device.RealEstate, Device.IsOnline,
        		  ConsumptionDevice.PowerSupply, ConsumptionDevice.PowerConsumption, v.IsOpen, v.Mode
 			  FROM vehicleGate v 
@@ -66,12 +59,25 @@ func (repo *VehicleGateRepositoryImpl) Get(id int) (models.VehicleGate, error) {
 	if repositories.IsError(err) {
 		return models.VehicleGate{}, err
 	}
-	gate = gates[0]
+	gate := gates[0]
 	licensePlates, err := repo.GetLicensePlates(gate.ConsumptionDevice.Device.Id)
 	if repositories.CheckIfError(err) {
 		return models.VehicleGate{}, err
 	}
 	gate.LicensePlates = licensePlates
+
+	return gate, err
+}
+
+func (repo *VehicleGateRepositoryImpl) Get(id int) (models.VehicleGate, error) {
+	cacheKey := fmt.Sprintf("gate_%d", id)
+
+	var gate models.VehicleGate
+	if found, err := repo.cacheService.GetFromCache(cacheKey, &gate); found {
+		return gate, err
+	}
+
+	gate, _ = repo.selectQuery(id)
 
 	if err := repo.cacheService.SetToCache(cacheKey, gate); err != nil {
 		fmt.Println("Cache error:", err)
@@ -120,6 +126,14 @@ func (repo *VehicleGateRepositoryImpl) UpdateIsOpen(id int, isOpen bool) (bool, 
 	if repositories.IsError(err) {
 		return false, err
 	}
+	gate, _ := repo.selectQuery(id)
+
+	cacheKey := fmt.Sprintf("gate_%d", id)
+	if err := repo.cacheService.SetToCache(cacheKey, gate); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
 	return true, nil
 }
 
@@ -137,6 +151,15 @@ func (repo *VehicleGateRepositoryImpl) UpdateMode(id int, mode enumerations.Vehi
 	_, err := repo.db.Exec(query, queryMode, id)
 	if repositories.IsError(err) {
 		return false, err
+	}
+
+	gate, _ := repo.selectQuery(id)
+
+	cacheKey := fmt.Sprintf("gate_%d", id)
+	if err := repo.cacheService.SetToCache(cacheKey, gate); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
 	}
 	return true, nil
 }

@@ -27,13 +27,8 @@ func NewAirConditionerService(db *sql.DB, cacheService *cache.CacheService) AirC
 	return &AirConditionerServiceImpl{db: db, cacheService: cacheService}
 }
 
-func (s *AirConditionerServiceImpl) Get(id int) inside.AirConditioner {
-	cacheKey := fmt.Sprintf("ac_%d", id)
-
+func (s *AirConditionerServiceImpl) selectQuery(id int) inside.AirConditioner {
 	var ac inside.AirConditioner
-	if found, _ := s.cacheService.GetFromCache(cacheKey, &ac); found {
-		return ac
-	}
 
 	query := `
 		SELECT
@@ -126,6 +121,19 @@ func (s *AirConditionerServiceImpl) Get(id int) inside.AirConditioner {
 	}
 
 	ac.SpecialMode = specialModes
+
+	return ac
+}
+
+func (s *AirConditionerServiceImpl) Get(id int) inside.AirConditioner {
+	cacheKey := fmt.Sprintf("ac_%d", id)
+
+	var ac inside.AirConditioner
+	if found, _ := s.cacheService.GetFromCache(cacheKey, &ac); found {
+		return ac
+	}
+
+	ac = s.selectQuery(id)
 
 	if err := s.cacheService.SetToCache(cacheKey, ac); err != nil {
 		fmt.Println("Cache error:", err)
@@ -230,6 +238,15 @@ func (s *AirConditionerServiceImpl) UpdateSpecialMode(deviceId int, mode string,
 		return fmt.Errorf("failed to update special mode: %v", err)
 	}
 
+	ac := s.selectQuery(deviceId)
+
+	cacheKey := fmt.Sprintf("ac_%d", deviceId)
+	if err := s.cacheService.SetToCache(cacheKey, ac); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return nil
 }
 
@@ -289,6 +306,16 @@ func (s *AirConditionerServiceImpl) DeleteSpecialMode(deviceID int, smDTO []dtos
 			break
 		}
 	}
+
+	ac := s.selectQuery(deviceID)
+
+	cacheKey := fmt.Sprintf("ac_%d", deviceID)
+	if err := s.cacheService.SetToCache(cacheKey, ac); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
+	}
+
 	return nil
 }
 
@@ -316,6 +343,15 @@ func (s *AirConditionerServiceImpl) AddSpecialModes(deviceID int, mode string, s
 			fmt.Println(err)
 			return err
 		}
+	}
+
+	ac := s.selectQuery(deviceID)
+
+	cacheKey := fmt.Sprintf("ac_%d", deviceID)
+	if err := s.cacheService.SetToCache(cacheKey, ac); err != nil {
+		fmt.Println("Cache error:", err)
+	} else {
+		fmt.Println("Saved data in cache.")
 	}
 
 	return nil

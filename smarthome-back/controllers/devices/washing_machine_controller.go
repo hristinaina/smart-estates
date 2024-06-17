@@ -11,15 +11,16 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 type WashingMachineController struct {
-	service inside.WashingMachineService
-	mqtt    *mqtt_client.MQTTClient
+	service  inside.WashingMachineService
+	influxDb influxdb2.Client
 }
 
-func NewWashingMachineController(db *sql.DB, mqtt *mqtt_client.MQTTClient, cacheService cache.CacheService) WashingMachineController {
-	return WashingMachineController{service: inside.NewWashingMachineService(db, &cacheService), mqtt: mqtt}
+func NewWashingMachineController(db *sql.DB, influxDb influxdb2.Client, cacheService cache.CacheService) WashingMachineController {
+	return WashingMachineController{service: inside.NewWashingMachineService(db, &cacheService), influxDb: influxDb}
 }
 
 func (uc WashingMachineController) Get(c *gin.Context) {
@@ -74,6 +75,6 @@ func (uc WashingMachineController) GetHistoryData(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "Invalid JSON"})
 		return
 	}
-	results := mqtt_client.GetWMHistory(uc.mqtt.GetInflux(), data)
+	results := mqtt_client.GetWMHistory(uc.influxDb, data)
 	c.JSON(http.StatusOK, gin.H{"result": results})
 }
