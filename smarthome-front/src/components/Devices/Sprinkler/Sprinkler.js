@@ -10,6 +10,7 @@ import mqtt from 'mqtt';
 import authService from "../../../services/AuthService";
 import DeviceHeader from "../DeviceHeader/DeviceHeader";
 import PieChart from "../AirConditioner/PieChart";
+import PermissionService from "../../../services/PermissionService";
 
 
 export class Sprinkler extends Component {
@@ -31,6 +32,7 @@ export class Sprinkler extends Component {
             snackbarMessage: '',
             showSnackbar: false,
             username: '',
+            userEmails: []
         };
         this.id = parseInt(this.extractDeviceIdFromUrl());
         this.Name = '';
@@ -41,6 +43,14 @@ export class Sprinkler extends Component {
         const user = authService.getCurrentUser();
         const device = await SprinklerService.get(this.id);
         console.log(device);
+        let users = await PermissionService.getAllUsers(this.id, device.ConsumptionDevice.Device.RealEstate);
+        console.log(users)
+        users.push("auto");
+        users.push("all");
+        this.setState({ 
+            userEmails: users,
+            email: user.Name + " " + user.Surname,
+        });
         this.Name = device.ConsumptionDevice.Device.Name;
         console.log(this.Name);
         await this.setState({email: user.Email, username: user.Name + " " + user.Surname});   
@@ -137,6 +147,7 @@ export class Sprinkler extends Component {
         e.preventDefault();
 
         let { email, startDate, endDate, pickedValue } = this.state;
+        console.log(pickedValue);
         if(new Date(startDate) > new Date(endDate)) {
             this.setState({ snackbarMessage: "Start date must be before end date" });
             this.handleClick();
@@ -246,9 +257,11 @@ export class Sprinkler extends Component {
                                     className="new-real-estate-select"
                                     value={this.state.pickedValue}
                                     onChange={(e) => this.setState({ pickedValue: e.target.value })}>
-                                    <option value={this.state.email}>{ this.state.username }</option>
-                                    <option value="auto">auto</option>
-                                    <option value="none">none</option>
+                                    {this.state.userEmails.map(email => (
+                                        <option key={email} value={email}>
+                                        {email}
+                                        </option>
+                                    ))}
                                 </select>
                             </label>
                             <label>
