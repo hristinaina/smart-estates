@@ -157,12 +157,13 @@ VALUES
     (2, 'nata@gmail.com', '$2a$10$OwhZfsWej4wtXgey1DDWduCIGw4mI65wYdFcRY1ICno71gJKqNrJq', 'Natasa', 'Maric', 1),
     (3, 'anastasijas557@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Anastasija', 'Savic', 1),
     (4, 'kvucic6@gmail.com', '$2a$10$rs45oZDdYuLSOmzOdsJGS..HJ.9zmguT0r4cUt131XKqkac4P/7iu', 'Katarina', 'Vucic', 1);
+    (5, 'hristinacina@gmail.com', '$2a$10$OwhZfsWej4wtXgey1DDWduCIGw4mI65wYdFcRY1ICno71gJKqNrJq', 'Hristina', 'Adamovic', 1),
 
 INSERT INTO realestate (Id, Name, Type, Address, City, SquareFootage, NumberOfFloors, Picture, State, UserId, DiscardReason)
 VALUES
     (1, 'Villa B Dorm',  0, '123 Main St', 'Novi Sad', 150.5, 2, 'path/to/picture1.jpg', 0, 1, ''),
     (2, 'Neka kuca nmp', 1, '456 Oak Ave', 'Beograd', 200.75, 3, 'path/to/picture2.jpg', 1, 2, ''),
-    (3, 'Joj stvarno nzm', 0, '789 Pine Ln', 'Zrenjanin', 30.25, 1, 'path/to/picture3.jpg', 1, 1, ''),
+    (3, 'Joj stvarno nzm', 0, '789 Pine Ln', 'Zrenjanin', 30.25, 1, 'path/to/picture3.jpg', 1, 3, ''),
     (4, 'Spavamise', 1, '101 Elm Blvd', 'Novi Sad', 700.0, 2, 'path/to/picture4.jpg', 2, 2, 'jer mi se moze'),
     (5, 'ma ne znam', 0, '102 Elm Blvd', 'Beograd', 65.0, 2, 'path/to/picture5.jpg', 0, 2, ''),
     (6, 'Spavamise2', 1, '103 Elm Blvd', 'Zrenjanin', 70.0, 2, 'path/to/picture6.jpg', 0, 2, '');
