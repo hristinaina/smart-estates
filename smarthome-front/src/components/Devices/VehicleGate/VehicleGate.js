@@ -74,6 +74,8 @@ export class VehicleGate extends Component {
         if (device.licensePlates === undefined) {
             device.LicensePlates = [];
         }
+        let trLicensePlates = await VehicleGateService.getLicensePlates(this.id);
+        device.LicensePlates = trLicensePlates;
         await this.setState({device: device});
 
         try {        
