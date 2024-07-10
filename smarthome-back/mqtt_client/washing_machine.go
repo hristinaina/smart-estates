@@ -79,7 +79,7 @@ func GetWMHistory(client influxdb2.Client, data dtos.ActionGraphRequest) map[str
 	queryAPI := client.QueryAPI(Org)
 	var query string
 
-	if data.EndDate != "" && data.StartDate != "" && data.UserEmail == "none" {
+	if data.EndDate != "" && data.StartDate != "" && data.UserEmail == "all" {
 		endDate, _ := time.Parse("2006-01-02", data.EndDate)
 		endDate = endDate.AddDate(0, 0, 1)
 		endDateStr := endDate.Format("2006-01-02")
@@ -88,14 +88,14 @@ func GetWMHistory(client influxdb2.Client, data dtos.ActionGraphRequest) map[str
         |> range(start: %s, stop: %s)
         |> filter(fn: (r) => r._measurement == "washing_machine" and r.device_id == "%s")
     `, Bucket, data.StartDate, endDateStr, fmt.Sprint(data.DeviceId))
-	} else if data.EndDate == "" && data.StartDate == "" && data.UserEmail != "none" {
+	} else if data.EndDate == "" && data.StartDate == "" && data.UserEmail != "all" {
 		query = fmt.Sprintf(` 
         from(bucket: "%s")
         |> range(start: 0)
         |> filter(fn: (r) => r._measurement == "washing_machine" and r.device_id == "%s")
 		|> filter(fn: (r) => r._field != "user_id" or (r._field == "user_id" and r._value == "%s"))
     `, Bucket, fmt.Sprint(data.DeviceId), data.UserEmail)
-	} else if data.EndDate != "" && data.StartDate != "" && data.UserEmail != "none" {
+	} else if data.EndDate != "" && data.StartDate != "" && data.UserEmail != "all" {
 		endDate, _ := time.Parse("2006-01-02", data.EndDate)
 		endDate = endDate.AddDate(0, 0, 1)
 		endDateStr := endDate.Format("2006-01-02")

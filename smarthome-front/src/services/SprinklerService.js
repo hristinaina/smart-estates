@@ -86,6 +86,7 @@ class SprinklerService {
     }
 
     async getHistoryData(deviceId, email, startDate, endDate) {
+        if (email == 'all') email = 'none';
         const hdata = {
           "DeviceId": deviceId,
           "UserEmail": email,
